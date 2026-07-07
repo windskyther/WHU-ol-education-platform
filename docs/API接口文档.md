@@ -1,12 +1,12 @@
 # 在线教育平台 API 接口文档
 
-当前阶段：P0 后端基础建设。本文档先固定统一接口约定，并列出 P0 已实现接口和 P1-P4 将提供给前端的接口契约。
+当前阶段：P1 用户权限后端建设。本文档固定统一接口约定，并列出已实现的 P0/P1 接口和 P2-P4 将提供给前端的接口契约。
 
 ## 统一约定
 
 - 接口前缀：所有业务接口以 `/api/` 开头。
 - 请求格式：普通请求使用 `application/json`；文件上传使用 `multipart/form-data`。
-- 认证方式：P1 起登录后在请求头携带 `Authorization: Bearer <access_token>`。
+- 认证方式：登录后在请求头携带 `Authorization: Bearer <access_token>`。
 - 成功响应：
 
 ```json
@@ -55,7 +55,7 @@
 }
 ```
 
-## P1 计划接口：用户与权限
+## P1 已实现：用户与权限
 
 | 方法 | 路径 | 权限 | 功能 |
 |---|---|---|---|
@@ -66,6 +66,167 @@
 | POST | `/api/auth/logout/` | 登录用户 | 退出登录 |
 | GET | `/api/users/me/` | 登录用户 | 获取当前用户 |
 | PUT | `/api/users/me/` | 登录用户 | 修改个人资料 |
+
+### 发送邮箱验证码
+
+`POST /api/auth/email-code/send/`
+
+请求：
+
+```json
+{
+  "email": "student@example.com",
+  "purpose": "register"
+}
+```
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "验证码已发送",
+  "data": {
+    "email": "student@example.com",
+    "expires_in": 300,
+    "cooldown_seconds": 60
+  }
+}
+```
+
+说明：开发环境建议使用 console email backend，验证码会输出在后端控制台；生产环境配置真实 SMTP。
+
+### 用户注册
+
+`POST /api/auth/register/`
+
+请求：
+
+```json
+{
+  "username": "student01",
+  "email": "student@example.com",
+  "password": "Pass123456",
+  "role": "student",
+  "email_code": "123456"
+}
+```
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "register success",
+  "data": {
+    "id": 1,
+    "username": "student01",
+    "email": "student@example.com",
+    "role": "student",
+    "avatar": null,
+    "avatar_url": null,
+    "bio": "",
+    "date_joined": "2026-07-07T15:00:00+08:00"
+  }
+}
+```
+
+说明：`role` 只允许 `student` 或 `teacher`；管理员通过 Django Admin 或超级用户创建。
+
+### 用户登录
+
+`POST /api/auth/login/`
+
+请求：
+
+```json
+{
+  "account": "student@example.com",
+  "password": "Pass123456"
+}
+```
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "login success",
+  "data": {
+    "access": "<jwt-access-token>",
+    "refresh": "<jwt-refresh-token>",
+    "user": {
+      "id": 1,
+      "username": "student01",
+      "email": "student@example.com",
+      "role": "student",
+      "avatar": null,
+      "avatar_url": null,
+      "bio": "",
+      "date_joined": "2026-07-07T15:00:00+08:00"
+    }
+  }
+}
+```
+
+说明：`account` 支持用户名或邮箱。
+
+### 刷新 Token
+
+`POST /api/auth/refresh/`
+
+请求：
+
+```json
+{
+  "refresh": "<jwt-refresh-token>"
+}
+```
+
+响应：Simple JWT 标准响应，返回新的 `access`。
+
+### 退出登录
+
+`POST /api/auth/logout/`
+
+请求头：`Authorization: Bearer <access_token>`
+
+响应：
+
+```json
+{
+  "code": 0,
+  "message": "logout success",
+  "data": null
+}
+```
+
+说明：当前采用无状态 JWT，退出时前端清理本地 token。
+
+### 当前用户
+
+`GET /api/users/me/`
+
+请求头：`Authorization: Bearer <access_token>`
+
+响应字段同登录响应中的 `user`。
+
+### 修改个人资料
+
+`PUT /api/users/me/`
+
+请求头：`Authorization: Bearer <access_token>`
+
+支持字段：
+
+```json
+{
+  "username": "new_name",
+  "bio": "个人简介"
+}
+```
+
+头像上传可使用 `multipart/form-data` 字段 `avatar`。
 
 ## P2 计划接口：课程与章节
 
