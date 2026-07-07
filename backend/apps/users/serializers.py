@@ -61,7 +61,7 @@ class SendEmailCodeSerializer(serializers.Serializer):
             data = {"email": data}
         elif isinstance(data, dict):
             data = data.copy()
-            for alias in ("mail", "to", "to_email", "emailAddress", "email_address"):
+            for alias in ("registerEmail", "register_email", "mail", "to", "to_email", "emailAddress", "email_address"):
                 if "email" not in data and alias in data:
                     data["email"] = data[alias]
             if isinstance(data.get("email"), str):
