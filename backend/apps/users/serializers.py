@@ -72,9 +72,23 @@ class SendEmailCodeSerializer(serializers.Serializer):
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=64)
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=6)
+    password_confirm = serializers.CharField(write_only=True, min_length=6, required=False)
     role = serializers.ChoiceField(choices=["student", "teacher"])
     email_code = serializers.CharField(max_length=6, min_length=6)
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            data = data.copy()
+            if "password_confirm" not in data and "confirmPassword" in data:
+                data["password_confirm"] = data["confirmPassword"]
+        return super().to_internal_value(data)
+
+    def validate(self, attrs):
+        password_confirm = attrs.pop("password_confirm", None)
+        if password_confirm is not None and attrs["password"] != password_confirm:
+            raise serializers.ValidationError({"password_confirm": "PASSWORD_CONFIRM_MISMATCH"})
+        return attrs
 
 
 class LoginSerializer(serializers.Serializer):
