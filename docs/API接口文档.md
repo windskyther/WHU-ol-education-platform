@@ -96,6 +96,29 @@
 
 说明：开发环境建议使用 console email backend，验证码会输出在后端控制台；生产环境配置真实 SMTP。
 
+如果要真实发送到 QQ、163、Gmail 等邮箱，需要在 `backend/.env` 中启用 SMTP：
+
+```env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.qq.com
+EMAIL_PORT=465
+EMAIL_USE_SSL=True
+EMAIL_HOST_USER=your_email@qq.com
+EMAIL_HOST_PASSWORD=your_smtp_auth_code
+DEFAULT_FROM_EMAIL=your_email@qq.com
+```
+
+`EMAIL_HOST_PASSWORD` 必须填写邮箱服务商生成的 SMTP 授权码，不是邮箱登录密码。
+
+前端请求体推荐使用 `email` 字段；后端也兼容 `mail`、`to`、`to_email`、`emailAddress`、`email_address`：
+
+```json
+{
+  "email": "student@example.com",
+  "purpose": "register"
+}
+```
+
 ### 用户注册
 
 `POST /api/auth/register/`
