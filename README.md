@@ -55,3 +55,26 @@ python manage.py runserver
 所有功能先进入个人 `feature/*` 分支，再 PR 到 `dev`。阶段测试通过后由成员 A 合并 `dev -> main` 并打版本标签。当前阶段只要求后端 P0 可启动、可迁移、健康检查可访问。
 
 禁止提交 `.env`、数据库密码、SMTP 密码、Token、私钥、`node_modules`、虚拟环境、`dist` 和大型媒体文件。
+
+
+## P0 前端启动
+
+前端工程位于 `frontend/`，用于完成 P0 阶段成员 B 的前端骨架交付。
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+开发服务启动后，根据终端输出访问本地地址，默认通常为 `http://localhost:5173/`。
+
+## 前端构建
+
+```bash
+cd frontend
+npm run build
+```
+
+构建产物输出到 `frontend/dist/`，后续可交由 Nginx 部署。
+
