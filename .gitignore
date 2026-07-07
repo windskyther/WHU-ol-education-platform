@@ -227,4 +227,6 @@ build/
 *.avi
 *.pdf
 /media/
+/backend/media/*
+!/backend/media/.gitkeep
 /uploads/
