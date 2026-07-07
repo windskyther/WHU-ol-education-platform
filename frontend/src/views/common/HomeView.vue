@@ -5,30 +5,41 @@
         <span class="brand-mark">WHU</span>
         <span>在线教育平台</span>
       </div>
-      <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
+      <div class="topbar-actions">
+        <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
+        <RouterLink to="/login">登录</RouterLink>
+        <el-button type="primary" @click="$router.push('/register')">注册</el-button>
+      </div>
     </section>
 
     <section class="hero">
       <div class="hero-content">
-        <p class="eyebrow">P0 Frontend Skeleton</p>
-        <h1>在线教育平台前端骨架已就绪</h1>
+        <p class="eyebrow">P1 Auth Ready</p>
+        <h1>清晰登录，进入自己的学习路径</h1>
         <p class="summary">
-          当前工程已接入 Vue Router、Pinia、Axios 与 Element Plus，可作为后续登录注册、课程学习、考试和论坛页面的基础。
+          前端已接入注册、邮箱验证码、登录、角色跳转和路由权限拦截。学生与教师会进入不同入口，为后续课程、考试和论坛联调留好位置。
         </p>
         <p class="health-message">{{ healthMessage }}</p>
         <div class="actions">
           <el-button type="primary" size="large" :icon="Refresh" @click="refreshHealth">刷新状态</el-button>
-          <el-button size="large" plain :icon="Reading">课程入口</el-button>
+          <el-button size="large" plain :icon="Reading" @click="$router.push('/login')">进入平台</el-button>
         </div>
       </div>
 
       <div class="status-panel">
-        <h2>基础能力</h2>
+        <div class="mini-path" aria-hidden="true">
+          <span></span>
+          <i></i>
+          <span></span>
+          <i></i>
+          <span></span>
+        </div>
+        <h2>P1 前端能力</h2>
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="路由">Vue Router 已配置首页</el-descriptions-item>
-          <el-descriptions-item label="状态">Pinia 用户状态骨架已创建</el-descriptions-item>
-          <el-descriptions-item label="请求">Axios 默认使用 /api 前缀</el-descriptions-item>
-          <el-descriptions-item label="组件">Element Plus 已全局接入</el-descriptions-item>
+          <el-descriptions-item label="注册">邮箱验证码与角色选择</el-descriptions-item>
+          <el-descriptions-item label="登录">Token 保存与当前用户恢复</el-descriptions-item>
+          <el-descriptions-item label="权限">按 student / teacher / admin 拦截路由</el-descriptions-item>
+          <el-descriptions-item label="接口">统一处理 code/message/data 响应</el-descriptions-item>
         </el-descriptions>
       </div>
     </section>
@@ -37,6 +48,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import { Reading, Refresh } from '@element-plus/icons-vue'
 import { getHealth } from '../../api/health'
 
@@ -77,11 +89,8 @@ onMounted(() => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  color: #172033;
-  background:
-    linear-gradient(135deg, rgba(9, 92, 142, 0.12), transparent 34%),
-    linear-gradient(315deg, rgba(31, 111, 82, 0.12), transparent 38%),
-    #f6f8fb;
+  color: var(--ink-900);
+  background: var(--blue-050);
 }
 
 .topbar {
@@ -107,8 +116,20 @@ onMounted(() => {
   width: 48px;
   height: 32px;
   color: #ffffff;
-  background: #1f6f52;
+  background: var(--blue-700);
   border-radius: 6px;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.topbar-actions a {
+  color: var(--ink-900);
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .hero {
@@ -136,7 +157,7 @@ onMounted(() => {
 h1 {
   max-width: 720px;
   margin: 0;
-  font-size: 72px;
+  font-size: 64px;
   line-height: 1.04;
 }
 
@@ -145,12 +166,12 @@ h1 {
   margin: 24px 0 0;
   font-size: 18px;
   line-height: 1.8;
-  color: #4f5d75;
+  color: var(--slate-500);
 }
 
 .health-message {
   margin: 18px 0 0;
-  color: #637083;
+  color: var(--slate-500);
 }
 
 .actions {
@@ -162,10 +183,29 @@ h1 {
 
 .status-panel {
   padding: 24px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid #dfe6ef;
+  background: var(--white);
+  border: 1px solid var(--border-blue);
   border-radius: 8px;
   box-shadow: 0 16px 48px rgba(23, 32, 51, 0.08);
+}
+
+.mini-path {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.mini-path span {
+  width: 14px;
+  height: 14px;
+  background: var(--blue-700);
+  border-radius: 999px;
+}
+
+.mini-path i {
+  width: 64px;
+  height: 2px;
+  background: var(--blue-500);
 }
 
 .status-panel h2 {

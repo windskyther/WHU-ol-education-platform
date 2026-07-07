@@ -1,6 +1,6 @@
 # WHU Online Education Platform
 
-三人协作的在线教育平台项目，按 `P0 -> P7` 阶段推进。当前仓库先完成成员 A 负责的 P0 后端基础：Django REST Framework 项目骨架、MySQL 配置、跨域、媒体目录、统一响应、统一异常和健康检查接口。
+三人协作的在线教育平台项目，按 `P0 -> P7` 阶段推进。当前仓库已完成成员 A 负责的 P0 后端基础和 P1 用户权限后端接口：Django REST Framework 项目骨架、MySQL 配置、跨域、媒体目录、统一响应、统一异常、健康检查、邮箱验证码、注册、登录、Token 刷新/退出和当前用户接口。
 
 ## 技术栈
 
@@ -33,11 +33,18 @@ python manage.py runserver
 
 默认使用 MySQL。开发机暂时没有 MySQL 时，可在 `.env` 中设置 `USE_SQLITE=True` 快速启动本地演示库。
 
-## 当前 P0 已提供接口
+## 当前已提供接口
 
 - `GET /api/health/`：后端健康检查，返回统一响应格式。
+- `POST /api/auth/email-code/send/`：发送注册邮箱验证码。
+- `POST /api/auth/register/`：用户注册。
+- `POST /api/auth/login/`：用户登录，返回 `access` 和 `refresh`。
+- `POST /api/auth/refresh/`：刷新 Token。
+- `POST /api/auth/logout/`：退出登录。
+- `GET /api/users/me/`：获取当前用户。
+- `PUT /api/users/me/`：修改个人资料。
 
-后续 P1-P4 的业务接口路径和字段见 [API接口文档](docs/API接口文档.md)。
+后续 P2-P4 的业务接口路径和字段见 [API接口文档](docs/API接口文档.md)。
 
 ## 阶段路线
 
@@ -52,7 +59,7 @@ python manage.py runserver
 
 ## 协作约定
 
-所有功能先进入个人 `feature/*` 分支，再 PR 到 `dev`。阶段测试通过后由成员 A 合并 `dev -> main` 并打版本标签。当前阶段只要求后端 P0 可启动、可迁移、健康检查可访问。
+所有功能先进入个人 `feature/*` 分支，再 PR 到 `dev`。阶段测试通过后由成员 A 合并 `dev -> main` 并打版本标签。当前阶段要求后端 P1 可迁移、认证接口可访问、前端可通过文档完成登录注册联调。
 
 禁止提交 `.env`、数据库密码、SMTP 密码、Token、私钥、`node_modules`、虚拟环境、`dist` 和大型媒体文件。
 
