@@ -56,6 +56,18 @@ class SendEmailCodeSerializer(serializers.Serializer):
     email = serializers.EmailField()
     purpose = serializers.ChoiceField(choices=["register"], default="register", required=False)
 
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            data = {"email": data}
+        elif isinstance(data, dict):
+            data = data.copy()
+            for alias in ("mail", "to", "to_email", "emailAddress", "email_address"):
+                if "email" not in data and alias in data:
+                    data["email"] = data[alias]
+            if isinstance(data.get("email"), str):
+                data["email"] = data["email"].strip()
+        return super().to_internal_value(data)
+
 
 class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=64)
