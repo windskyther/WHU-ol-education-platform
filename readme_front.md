@@ -1,12 +1,13 @@
-# Frontend Integration README - P1/P2
+# Frontend Integration README - P1/P2/P3
 
-This file is the frontend/backend contract for the P1 user-auth stage and P2 course/chapter stage.
+This file is the frontend/backend contract for the P1 user-auth, P2 course/chapter, and P3 enrollment/progress stages.
 
 Whenever the backend request fields, response fields, URL paths, auth rules, or error messages change, this file must be updated in the same commit.
 
 ## Base Rules
 
-- Backend base URL in local development: `http://127.0.0.1:8000`
+- Unified local gateway URL: `http://127.0.0.1:8080`
+- Django local upstream URL: `http://127.0.0.1:8000` (frontend should not call this directly)
 - All P1 business APIs are under `/api/`
 - JSON requests must use `Content-Type: application/json`
 - Authenticated requests must include:
@@ -14,6 +15,35 @@ Whenever the backend request fields, response fields, URL paths, auth rules, or 
 ```http
 Authorization: Bearer <access_token>
 ```
+
+## Local Nginx Gateway
+
+Frontend integration should use Nginx as the single local entry:
+
+```text
+Frontend -> Nginx 8080 -> Django 8000 for /api/
+Frontend -> Nginx 8080 -> backend/media for /media/
+```
+
+Repository config:
+
+```text
+deploy/nginx/nginx.dev.windows.conf
+```
+
+Frontend dev proxy target:
+
+```text
+VITE_DEV_PROXY_TARGET=http://127.0.0.1:8080
+```
+
+Video and material URLs returned by backend should therefore use the Nginx gateway host, for example:
+
+```text
+http://127.0.0.1:8080/media/materials/demo.mp4
+```
+
+Do not use `http://127.0.0.1:8000/media/...` for video playback during frontend integration, because Django development static serving does not return video range responses required for seeking.
 
 - Successful backend response format:
 
@@ -1049,6 +1079,7 @@ Unauthenticated users or unenrolled students cannot obtain chapter video/materia
 4. Send `is_completed: true` when the chapter is completed.
 5. Render course progress from enrollment `progress`.
 6. Treat `ENROLLMENT_REQUIRED` as "please enroll first".
+7. Load video URLs through the Nginx gateway `/media/` address, not Django `8000`, so browser seeking receives `206 Partial Content`.
 
 ## Maintenance Rule
 
