@@ -122,7 +122,6 @@ class ProgressUpdateView(APIView):
             progress.percent = incoming_percent
         if serializer.validated_data.get("is_completed") is True:
             progress.is_completed = True
-        if progress.is_completed:
             progress.percent = 100
         progress.save(update_fields=["watched_seconds", "percent", "is_completed", "updated_at"])
         enrollment = sync_enrollment_progress(enrollment)
