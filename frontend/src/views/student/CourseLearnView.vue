@@ -63,8 +63,8 @@
                   <el-progress :percentage="currentProgress.percent" :stroke-width="10" />
                 </div>
                 <div class="tool-actions">
-                  <el-button :loading="submitting" @click="submitCurrentProgress()">保存进度</el-button>
-                  <el-button type="primary" :loading="submitting" @click="markCompleted">标记完成</el-button>
+                  <el-button :disabled="submitting" @click="submitCurrentProgress()">保存进度</el-button>
+                  <el-button type="primary" :disabled="submitting" @click="markCompleted">标记完成</el-button>
                   <el-button v-if="selectedMaterialId" plain :loading="downloading" @click="handleDownloadMaterial">下载资料</el-button>
                 </div>
               </div>
@@ -144,12 +144,12 @@ function chapterVideoUrl(chapter) {
 
 function materialId(chapter) {
   const material = chapter.material || chapter.materials?.[0]
-  return chapter.material_id || material?.id || ''
+  return chapter.material_id || material?.id || chapter.material?.material_id || material?.material_id || ''
 }
 
 function materialName(chapter) {
   const material = chapter.material || chapter.materials?.[0]
-  return material?.original_name || material?.file_name || material?.name || `${chapter.title || '学习资料'}`
+  return material?.original_name || material?.file_name || material?.name || material?.filename || `${chapter.title || '学习资料'}`
 }
 
 function chapterProgress(chapter) {
@@ -272,6 +272,7 @@ function stopProgressTimer() {
 }
 
 async function submitCurrentProgress(isCompleted = false) {
+  if (submitting.value) return
   if (!selectedChapter.value) return
   const completed = isCompleted === true
   const chapterId = selectedChapter.value.id
