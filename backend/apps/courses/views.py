@@ -1,4 +1,7 @@
+from urllib.parse import quote
+
 from django.db import IntegrityError
+from django.http import FileResponse
 from django.db.models import Count
 from django.utils import timezone
 from rest_framework import status
@@ -232,3 +235,36 @@ class ChapterUploadVideoView(ChapterUploadView):
 
 class ChapterUploadMaterialView(ChapterUploadView):
     kind = Material.KIND_DOCUMENT
+
+
+class MaterialDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, material_id):
+        material = (
+            Material.objects.select_related("chapter", "chapter__course", "chapter__course__teacher")
+            .filter(id=material_id, kind=Material.KIND_DOCUMENT, chapter__course__is_deleted=False)
+            .first()
+        )
+        if not material or not material.file:
+            raise BusinessError(4040, "MATERIAL_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        course = material.chapter.course
+        if not course.is_published and not (
+            request.user
+            and request.user.is_authenticated
+            and (get_user_role(request.user) == "admin" or course.teacher_id == request.user.id)
+        ):
+            raise BusinessError(4040, "MATERIAL_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        assert_chapter_read_access(request.user, material.chapter.course)
+
+        try:
+            response = FileResponse(material.file.open("rb"), content_type=material.content_type or "application/octet-stream")
+        except FileNotFoundError:
+            raise BusinessError(4040, "MATERIAL_FILE_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        filename = material.original_name or material.file.name.rsplit("/", 1)[-1]
+        response["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
+        response["Content-Length"] = material.size
+        return response
