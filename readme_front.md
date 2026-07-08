@@ -859,6 +859,7 @@ P3 scope:
 | `GET` | `/api/my/courses/` | Student | List current student's enrolled courses |
 | `POST` | `/api/progress/update/` | Student | Update chapter learning progress |
 | `GET` | `/api/progress/course/{course_id}/` | Student/Teacher/Admin | Student own progress or teacher course progress summary |
+| `GET` | `/api/materials/{material_id}/download/` | Student/Teacher/Admin | Download chapter material file |
 
 ### Enrollment Object
 
@@ -1093,6 +1094,45 @@ Teacher/Admin response:
   }
 }
 ```
+
+### 24. Download Chapter Material
+
+#### GET `/api/materials/{material_id}/download/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Frontend request:
+
+```js
+request.get(`/materials/${materialId}/download/`, {
+  responseType: 'blob'
+})
+```
+
+Response:
+
+- This endpoint returns the raw file stream, not the unified JSON wrapper.
+- Browser response headers include `Content-Disposition: attachment`.
+- The frontend should create a Blob URL and trigger download.
+
+Permission rule:
+
+- Student can download only after enrolling in the material's course.
+- Course teacher/admin can download materials for accessible courses.
+- Only chapter material files are downloadable through this endpoint; videos still use the returned `/media/` URL for playback.
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `MATERIAL_NOT_FOUND` | Material does not exist, is not a document material, or belongs to an unavailable course |
+| `MATERIAL_FILE_NOT_FOUND` | Database record exists but local file is missing |
+| `ENROLLMENT_REQUIRED` | Student has not enrolled in this course |
+| `PERMISSION_DENIED` | Current role cannot access this material |
 
 ### P3 Resource Access Rule
 

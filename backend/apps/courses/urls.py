@@ -8,6 +8,7 @@ from apps.courses.views import (
     CourseDetailView,
     CourseListCreateView,
     CoursePublishView,
+    MaterialDownloadView,
 )
 
 
@@ -19,4 +20,5 @@ urlpatterns = [
     path("chapters/<int:chapter_id>/", ChapterDetailView.as_view(), name="chapter-detail"),
     path("chapters/<int:chapter_id>/upload-video/", ChapterUploadVideoView.as_view(), name="chapter-upload-video"),
     path("chapters/<int:chapter_id>/upload-material/", ChapterUploadMaterialView.as_view(), name="chapter-upload-material"),
+    path("materials/<int:material_id>/download/", MaterialDownloadView.as_view(), name="material-download"),
 ]
