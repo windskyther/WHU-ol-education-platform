@@ -847,8 +847,8 @@ P3 scope:
 - Student cannot enroll in the same course twice.
 - Student can view own enrolled courses.
 - Student can update learning progress only after enrollment.
-- `watched_seconds` only increases; smaller submitted values will not roll progress back.
-- Course total progress is calculated by completed chapters divided by total chapters.
+- `watched_seconds` and `percent` only increase; smaller submitted values will not roll progress back.
+- Course total progress is calculated by averaging chapter `percent`; completed chapters count as `100`.
 - Teacher can view progress summary for own courses.
 
 ### P3 API Summary
@@ -962,7 +962,8 @@ Request body:
   "course_id": 1,
   "chapter_id": 1,
   "watched_seconds": 120,
-  "is_completed": true
+  "percent": 35,
+  "is_completed": false
 }
 ```
 
@@ -973,6 +974,7 @@ Fields:
 | `course_id` | No | If sent, must match the chapter's course |
 | `chapter_id` | Yes | Chapter being watched |
 | `watched_seconds` | Yes | Non-negative integer; backend keeps max value |
+| `percent` | No | Number from `0` to `100`; backend keeps max value |
 | `is_completed` | No | If `true`, marks this chapter completed |
 
 Success response:
@@ -982,22 +984,28 @@ Success response:
   "code": 0,
   "message": "progress updated",
   "data": {
-    "id": 1,
-    "course": 1,
-    "chapter": {
+    "progress": 35,
+    "enrollment": {},
+    "progress_item": {
       "id": 1,
       "course": 1,
-      "title": "Chapter 1",
-      "description": "Introduction",
-      "order": 1,
-      "video": {},
-      "material": {},
-      "created_at": "2026-07-08T10:00:00+08:00",
-      "updated_at": "2026-07-08T10:00:00+08:00"
+      "chapter": {
+        "id": 1,
+        "course": 1,
+        "title": "Chapter 1",
+        "description": "Introduction",
+        "order": 1,
+        "video": {},
+        "material": {},
+        "created_at": "2026-07-08T10:00:00+08:00",
+        "updated_at": "2026-07-08T10:00:00+08:00"
+      },
+      "watched_seconds": 120,
+      "percent": 35,
+      "is_completed": false,
+      "updated_at": "2026-07-08T10:20:00+08:00"
     },
-    "watched_seconds": 120,
-    "is_completed": true,
-    "updated_at": "2026-07-08T10:20:00+08:00"
+    "chapter_progress": []
   }
 }
 ```
@@ -1005,8 +1013,9 @@ Success response:
 Important behavior:
 
 - If frontend first submits `watched_seconds: 120`, then later submits `60`, backend keeps `120`.
-- If frontend submits `is_completed: true`, the chapter stays completed.
-- Backend recalculates enrollment `progress` after every update.
+- If frontend first submits `percent: 35`, then later submits `20`, backend keeps `35`.
+- If frontend submits `is_completed: true`, the chapter stays completed and its `percent` becomes `100`.
+- Backend recalculates enrollment `progress` after every update by averaging all chapter percentages.
 
 Common errors:
 
@@ -1031,10 +1040,33 @@ Student response:
     "student_id": 3,
     "progress": 50.0,
     "enrollment": {},
-    "progress_items": []
+    "progress_items": [
+      {
+        "id": 1,
+        "course": 1,
+        "chapter": {},
+        "watched_seconds": 120,
+        "percent": 50,
+        "is_completed": false,
+        "updated_at": "2026-07-08T10:20:00+08:00"
+      }
+    ],
+    "chapter_progress": [
+      {
+        "id": 1,
+        "course": 1,
+        "chapter": {},
+        "watched_seconds": 120,
+        "percent": 50,
+        "is_completed": false,
+        "updated_at": "2026-07-08T10:20:00+08:00"
+      }
+    ]
   }
 }
 ```
+
+`chapter_progress` is an alias of `progress_items` for frontend compatibility.
 
 Teacher/Admin response:
 
