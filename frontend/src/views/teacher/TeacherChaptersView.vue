@@ -14,8 +14,10 @@
 
     <section class="chapters-shell">
       <div class="manager-heading">
-        <p class="eyebrow">Chapter manager</p>
-        <h1>{{ course?.title || '章节管理' }}</h1>
+        <div>
+          <p class="eyebrow">Chapter manager</p>
+          <h1>{{ course?.title || '章节管理' }}</h1>
+        </div>
         <p>维护章节排序、简介、视频和资料。P2 只负责内容上传，不接入学习进度。</p>
       </div>
 
@@ -73,7 +75,7 @@
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button size="small" :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
                 <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">删除</el-button>
               </div>
             </template>
@@ -218,23 +220,31 @@ onMounted(() => {
 
 .chapters-shell {
   max-width: 1180px;
-  margin: 54px auto 0;
+  margin: 48px auto 0;
+}
+
+.manager-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 22px;
 }
 
 .manager-heading h1 {
   margin: 0;
-  font-size: 44px;
+  font-size: clamp(34px, 5vw, 46px);
+  line-height: 1.1;
 }
 
 .manager-heading p:last-child {
-  max-width: 760px;
+  margin: 0;
   color: var(--slate-600);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .chapter-panel {
-  margin-top: 22px;
-  padding: 18px;
+  padding: 16px;
 }
 
 .panel-title {
@@ -243,11 +253,12 @@ onMounted(() => {
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .panel-title h2 {
   margin: 0;
+  font-size: 24px;
 }
 
 .chapter-cell,
@@ -265,6 +276,13 @@ onMounted(() => {
 .table-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .manager-heading {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

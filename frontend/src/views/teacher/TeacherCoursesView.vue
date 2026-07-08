@@ -14,8 +14,10 @@
 
     <section class="manager-shell">
       <div class="manager-heading">
-        <p class="eyebrow">Teacher course manager</p>
-        <h1>课程管理</h1>
+        <div>
+          <p class="eyebrow">Teacher course manager</p>
+          <h1>课程管理</h1>
+        </div>
         <p>维护自己的课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
       </div>
 
@@ -54,10 +56,10 @@
           <el-table-column label="操作" min-width="360" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button size="small" :icon="View" @click="$router.push(`/courses/${row.id}`)">查看</el-button>
-                <el-button size="small" :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
-                <el-button size="small" :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">章节</el-button>
-                <el-button size="small" :loading="publishingId === row.id" @click="togglePublish(row)">
+                <el-button size="small" text :icon="View" @click="$router.push(`/courses/${row.id}`)">查看</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
+                <el-button size="small" text :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">章节</el-button>
+                <el-button size="small" plain :loading="publishingId === row.id" @click="togglePublish(row)">
                   {{ row.is_published ? '下架' : '发布' }}
                 </el-button>
                 <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">删除</el-button>
@@ -224,27 +226,36 @@ onMounted(() => {
 
 .manager-shell {
   max-width: 1180px;
-  margin: 54px auto 0;
+  margin: 48px auto 0;
+}
+
+.manager-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 22px;
 }
 
 .manager-heading h1 {
   margin: 0;
-  font-size: 44px;
+  font-size: clamp(36px, 5vw, 46px);
+  line-height: 1.1;
 }
 
 .manager-heading p:last-child {
-  max-width: 760px;
+  margin: 0;
   color: var(--slate-600);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .filter-panel,
 .table-panel {
-  padding: 18px;
+  padding: 16px;
 }
 
 .table-panel {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .course-cell {
@@ -260,6 +271,13 @@ onMounted(() => {
 .table-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .manager-heading {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

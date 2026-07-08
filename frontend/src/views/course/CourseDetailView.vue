@@ -14,7 +14,7 @@
     <section v-loading="loading" class="detail-shell">
       <template v-if="course">
         <div class="detail-hero">
-          <div>
+          <div class="detail-copy">
             <p class="eyebrow">Course detail</p>
             <h1>{{ course.title }}</h1>
             <p>{{ course.description || '暂无课程简介' }}</p>
@@ -44,8 +44,10 @@
 
           <div v-if="chapters.length" class="growth-track">
             <article v-for="chapter in orderedChapters" :key="chapter.id" class="growth-node chapter-item">
-              <strong>{{ chapter.order }}. {{ chapter.title }}</strong>
-              <p>{{ chapter.description || '暂无章节简介' }}</p>
+              <div>
+                <strong>{{ chapter.order }}. {{ chapter.title }}</strong>
+                <p>{{ chapter.description || '暂无章节简介' }}</p>
+              </div>
               <div class="asset-row">
                 <span>{{ chapter.video ? '已上传视频' : '未上传视频' }}</span>
                 <span>{{ chapter.material ? '已上传资料' : '未上传资料' }}</span>
@@ -118,23 +120,30 @@ onMounted(() => {
 .detail-shell {
   max-width: 1120px;
   min-height: 380px;
-  margin: 54px auto 0;
+  margin: 48px auto 0;
 }
 
 .detail-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 28px;
+  gap: 24px;
   align-items: stretch;
+}
+
+.detail-copy {
+  display: grid;
+  align-content: center;
+  padding: 6px 0;
 }
 
 .detail-hero h1 {
   margin: 0;
-  font-size: 48px;
+  font-size: clamp(38px, 5vw, 50px);
   line-height: 1.08;
 }
 
 .detail-hero p {
+  max-width: 720px;
   color: var(--slate-600);
   font-size: 17px;
   line-height: 1.8;
@@ -161,15 +170,18 @@ onMounted(() => {
 
 .panel-title h2 {
   margin: 0;
+  font-size: 24px;
 }
 
 .cover {
   display: grid;
   place-items: center;
-  min-height: 240px;
+  min-height: 242px;
   overflow: hidden;
   color: var(--green-700);
-  background: var(--green-100);
+  background:
+    linear-gradient(135deg, rgba(92, 169, 130, 0.16), rgba(232, 246, 238, 0.92)),
+    var(--green-100);
   font-size: 72px;
   font-weight: 800;
 }
@@ -181,11 +193,15 @@ onMounted(() => {
 }
 
 .chapters-panel {
-  margin-top: 28px;
-  padding: 24px;
+  margin-top: 24px;
+  padding: 22px;
 }
 
 .chapter-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
   padding: 14px 16px;
   background: var(--mint-050);
   border: 1px solid var(--border-soft);
@@ -193,13 +209,22 @@ onMounted(() => {
 }
 
 .chapter-item p {
-  margin: 8px 0;
+  margin: 8px 0 0;
   color: var(--slate-600);
 }
 
 @media (max-width: 860px) {
+  .detail-hero,
+  .chapter-item {
+    grid-template-columns: 1fr;
+  }
+
   .detail-hero {
     grid-template-columns: 1fr;
+  }
+
+  .chapter-item {
+    display: grid;
   }
 }
 </style>
