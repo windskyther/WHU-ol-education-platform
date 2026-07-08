@@ -1,6 +1,6 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="把身份交代清楚，学习路径才会正确" description="注册时选择学生或教师角色，平台会在后续阶段开放对应的课程学习和教学管理入口。" />
+    <LearningPathPanel title="把身份交代清楚，课程才会长对方向" description="注册时选择学生或教师角色，平台会开放对应的学习和教学管理入口。" />
 
     <section class="auth-card" aria-label="注册表单">
       <div class="auth-card__header">
@@ -127,7 +127,7 @@ async function handleSendCode() {
   sendingCode.value = true
 
   try {
-    await sendEmailCode({ registerEmail: form.email })
+    await sendEmailCode({ registerEmail: form.email, purpose: 'register' })
     ElMessage.success('验证码已发送')
     startCountdown()
   } catch (error) {

@@ -7,6 +7,7 @@
       </div>
       <div class="topbar-actions">
         <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
+        <RouterLink to="/courses">课程列表</RouterLink>
         <RouterLink to="/login">登录</RouterLink>
         <el-button type="primary" @click="$router.push('/register')">注册</el-button>
       </div>
@@ -14,15 +15,15 @@
 
     <section class="hero">
       <div class="hero-content">
-        <p class="eyebrow">P1 Auth Ready</p>
-        <h1>清晰登录，进入自己的学习路径</h1>
+        <p class="eyebrow">P2 Course ready</p>
+        <h1>让课程像枝条一样清楚生长</h1>
         <p class="summary">
-          前端已接入注册、邮箱验证码、登录、角色跳转和路由权限拦截。学生与教师会进入不同入口，为后续课程、考试和论坛联调留好位置。
+          平台已接入课程浏览、课程详情、教师课程管理、章节维护和视频资料上传。P2 聚焦内容建设，学生端只浏览已发布课程。
         </p>
         <p class="health-message">{{ healthMessage }}</p>
         <div class="actions">
-          <el-button type="primary" size="large" :icon="Refresh" @click="refreshHealth">刷新状态</el-button>
-          <el-button size="large" plain :icon="Reading" @click="$router.push('/login')">进入平台</el-button>
+          <el-button type="primary" size="large" :icon="Reading" @click="$router.push('/courses')">浏览课程</el-button>
+          <el-button size="large" plain :icon="Refresh" @click="refreshHealth">刷新状态</el-button>
         </div>
       </div>
 
@@ -34,12 +35,12 @@
           <i></i>
           <span></span>
         </div>
-        <h2>P1 前端能力</h2>
+        <h2>P2 前端能力</h2>
         <el-descriptions :column="1" border>
-          <el-descriptions-item label="注册">邮箱验证码与角色选择</el-descriptions-item>
-          <el-descriptions-item label="登录">Token 保存与当前用户恢复</el-descriptions-item>
-          <el-descriptions-item label="权限">按 student / teacher / admin 拦截路由</el-descriptions-item>
-          <el-descriptions-item label="接口">统一处理 code/message/data 响应</el-descriptions-item>
+          <el-descriptions-item label="课程">分页、搜索、分类和难度筛选</el-descriptions-item>
+          <el-descriptions-item label="详情">课程信息与章节目录展示</el-descriptions-item>
+          <el-descriptions-item label="教师">创建、编辑、发布、下架、删除课程</el-descriptions-item>
+          <el-descriptions-item label="章节">章节增删改与视频/资料上传</el-descriptions-item>
         </el-descriptions>
       </div>
     </section>
@@ -74,10 +75,10 @@ async function refreshHealth() {
   try {
     const result = await getHealth()
     healthStatus.value = 'ok'
-    healthMessage.value = result?.message || '后端健康检查通过'
+    healthMessage.value = result?.status === 'ok' ? '后端健康检查通过' : '后端已响应'
   } catch (error) {
     healthStatus.value = 'error'
-    healthMessage.value = '后端暂未启动，前端骨架仍可正常运行'
+    healthMessage.value = '后端暂未启动，前端页面仍可正常查看'
   }
 }
 
@@ -90,7 +91,9 @@ onMounted(() => {
 .home-page {
   min-height: 100vh;
   color: var(--ink-900);
-  background: var(--blue-050);
+  background:
+    linear-gradient(180deg, rgba(232, 246, 238, 0.9), rgba(246, 251, 248, 0.7) 420px),
+    var(--mint-050);
 }
 
 .topbar {
@@ -100,24 +103,6 @@ onMounted(() => {
   max-width: 1120px;
   margin: 0 auto;
   padding: 24px;
-}
-
-.brand {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  font-weight: 700;
-}
-
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 32px;
-  color: #ffffff;
-  background: var(--blue-700);
-  border-radius: 6px;
 }
 
 .topbar-actions {
@@ -134,7 +119,7 @@ onMounted(() => {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
   gap: 32px;
   align-items: center;
   max-width: 1120px;
@@ -146,18 +131,10 @@ onMounted(() => {
   max-width: 720px;
 }
 
-.eyebrow {
-  margin: 0 0 16px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #1f6f52;
-  text-transform: uppercase;
-}
-
 h1 {
   max-width: 720px;
   margin: 0;
-  font-size: 64px;
+  font-size: 62px;
   line-height: 1.04;
 }
 
@@ -166,7 +143,7 @@ h1 {
   margin: 24px 0 0;
   font-size: 18px;
   line-height: 1.8;
-  color: var(--slate-500);
+  color: var(--slate-600);
 }
 
 .health-message {
@@ -184,9 +161,9 @@ h1 {
 .status-panel {
   padding: 24px;
   background: var(--white);
-  border: 1px solid var(--border-blue);
+  border: 1px solid var(--border-green);
   border-radius: 8px;
-  box-shadow: 0 16px 48px rgba(23, 32, 51, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .mini-path {
@@ -198,14 +175,14 @@ h1 {
 .mini-path span {
   width: 14px;
   height: 14px;
-  background: var(--blue-700);
+  background: var(--green-700);
   border-radius: 999px;
 }
 
 .mini-path i {
   width: 64px;
   height: 2px;
-  background: var(--blue-500);
+  background: var(--green-500);
 }
 
 .status-panel h2 {

@@ -6,6 +6,7 @@ const fieldMessageMap = {
   password: '密码格式不正确',
   confirmPassword: '两次输入的密码不一致',
   confirm_password: '两次输入的密码不一致',
+  password_confirm: '两次输入的密码不一致',
   email_code: '验证码错误或已过期',
   code: '验证码错误或已过期',
   role: '请选择正确的用户角色'
@@ -59,7 +60,6 @@ export function getLoginErrorMessage(error) {
     includesAny(text, [
       '用户不存在',
       '账号不存在',
-      '账户不存在',
       '邮箱不存在',
       'username not found',
       'account not found',
@@ -104,16 +104,16 @@ export function getRegisterErrorMessage(error) {
 
   const text = getErrorText(error)
 
-  if (includesAny(text, ['用户名', 'username', 'user name'])) {
+  if (includesAny(text, ['USERNAME_EXISTS', '用户名', 'username', 'user name'])) {
     return fieldMessageMap.username
   }
-  if (includesAny(text, ['邮箱', 'email', 'registerEmail'])) {
+  if (includesAny(text, ['EMAIL_EXISTS', '邮箱', 'email', 'registerEmail'])) {
     return fieldMessageMap.email
   }
-  if (includesAny(text, ['验证码', 'email_code', 'verification', 'code', '过期', 'expired'])) {
+  if (includesAny(text, ['CODE_', '验证码', 'email_code', 'verification', 'code', '过期', 'expired'])) {
     return fieldMessageMap.email_code
   }
-  if (includesAny(text, ['确认密码', 'confirmPassword', 'confirm_password'])) {
+  if (includesAny(text, ['PASSWORD_CONFIRM_MISMATCH', '确认密码', 'confirmPassword', 'confirm_password'])) {
     return fieldMessageMap.confirmPassword
   }
   if (includesAny(text, ['密码', 'password'])) {
@@ -134,15 +134,22 @@ export function getEmailCodeErrorMessage(error) {
   if (hasField(error, ['email', 'registerEmail']) && includesAny(text, ['格式', 'invalid', 'valid'])) {
     return '请输入有效邮箱'
   }
-  if (includesAny(text, ['已注册', '已存在', 'exists', 'registered', 'duplicate'])) {
+  if (includesAny(text, ['EMAIL_EXISTS', '已注册', '已存在', 'exists', 'registered', 'duplicate'])) {
     return '该邮箱已被注册'
   }
-  if (includesAny(text, ['频繁', '冷却', '稍后', 'too many', 'rate', 'cooldown'])) {
+  if (includesAny(text, ['CODE_COOLDOWN', '频繁', '冷却', '稍后', 'too many', 'rate', 'cooldown'])) {
     return '验证码发送太频繁，请稍后再试'
+  }
+  if (includesAny(text, ['EMAIL_SEND_FAILED', 'smtp', 'send failed'])) {
+    return '邮件发送失败，请稍后重试'
   }
   if (includesAny(text, ['邮箱', 'email', 'registerEmail', 'invalid', 'valid'])) {
     return '请输入有效邮箱'
   }
 
   return error?.userMessage || '验证码发送失败，请稍后重试'
+}
+
+export function getCommonErrorMessage(error, fallback = '操作失败，请稍后重试') {
+  return error?.userMessage || fallback
 }
