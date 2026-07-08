@@ -57,6 +57,19 @@ def get_chapter_for_write(chapter_id, user):
     return chapter
 
 
+def assert_chapter_read_access(user, course):
+    if user and user.is_authenticated and (get_user_role(user) == "admin" or course.teacher_id == user.id):
+        return
+    if not user or not user.is_authenticated:
+        raise BusinessError(4001, "AUTHENTICATION_REQUIRED", status.HTTP_401_UNAUTHORIZED)
+    if get_user_role(user) != "student":
+        raise BusinessError(4003, "PERMISSION_DENIED", status.HTTP_403_FORBIDDEN)
+    from apps.progress.models import Enrollment
+
+    if not Enrollment.objects.filter(student=user, course=course).exists():
+        raise BusinessError(4003, "ENROLLMENT_REQUIRED", status.HTTP_403_FORBIDDEN)
+
+
 class CourseListCreateView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
@@ -154,6 +167,7 @@ class CourseChapterListCreateView(APIView):
 
     def get(self, request, course_id):
         course = get_course_for_read(course_id, request.user)
+        assert_chapter_read_access(request.user, course)
         chapters = course.chapters.prefetch_related("materials").all()
         return api_response(ChapterSerializer(chapters, many=True, context={"request": request}).data)
 
