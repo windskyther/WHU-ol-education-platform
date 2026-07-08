@@ -1,5 +1,5 @@
 <template>
-  <main class="page-shell">
+  <main class="page-shell learn-page">
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
@@ -11,48 +11,27 @@
       </div>
     </nav>
 
-    <section v-loading="loading" class="learn-shell">
+    <section v-loading="loading" class="learn-workspace">
       <template v-if="course">
-        <header class="learn-header momentum-ribbon">
+        <header class="learn-titlebar">
           <div>
             <p class="eyebrow">Learning room</p>
             <h1>{{ course.title }}</h1>
             <p>{{ course.description || '选择章节开始学习，系统会自动保存观看进度。' }}</p>
           </div>
-          <div class="progress-card">
+          <div class="course-progress">
             <span>课程进度</span>
             <strong>{{ overallProgress }}%</strong>
             <el-progress :percentage="overallProgress" :stroke-width="10" />
           </div>
         </header>
 
-        <div class="learn-layout">
-          <aside class="surface chapter-sidebar">
-            <div class="sidebar-title">
-              <h2>章节</h2>
-              <span>{{ orderedChapters.length }} 章</span>
-            </div>
-            <button
-              v-for="chapter in orderedChapters"
-              :key="chapter.id"
-              class="chapter-button"
-              :class="{ 'is-active': selectedChapter?.id === chapter.id }"
-              type="button"
-              @click="selectChapter(chapter)"
-            >
-              <span class="chapter-no">{{ chapterOrder(chapter) }}</span>
-              <span>
-                <strong>{{ chapter.title }}</strong>
-                <small>{{ chapterProgress(chapter).percent }}% · {{ chapterProgress(chapter).is_completed ? '已完成' : '学习中' }}</small>
-              </span>
-            </button>
-          </aside>
-
-          <section class="surface player-panel">
+        <div class="study-grid">
+          <section class="player-workbench">
             <template v-if="selectedChapter">
-              <div class="player-heading">
+              <div class="now-row">
                 <div>
-                  <p class="eyebrow">Now learning</p>
+                  <p class="eyebrow">Now playing</p>
                   <h2>{{ selectedChapter.title }}</h2>
                   <p>{{ selectedChapter.description || '暂无章节简介' }}</p>
                 </div>
@@ -61,7 +40,7 @@
                 </span>
               </div>
 
-              <div class="video-box">
+              <div class="video-stage">
                 <video
                   v-if="selectedVideoUrl"
                   ref="videoRef"
@@ -78,8 +57,11 @@
                 <div v-else class="empty-video">本章暂未上传视频</div>
               </div>
 
-              <div class="chapter-tools">
-                <el-progress :percentage="currentProgress.percent" :stroke-width="10" />
+              <div class="progress-console">
+                <div>
+                  <span>本章进度</span>
+                  <el-progress :percentage="currentProgress.percent" :stroke-width="10" />
+                </div>
                 <div class="tool-actions">
                   <el-button :loading="submitting" @click="submitCurrentProgress()">保存进度</el-button>
                   <el-button type="primary" :loading="submitting" @click="markCompleted">标记完成</el-button>
@@ -89,6 +71,31 @@
             </template>
             <div v-else class="empty-state">暂无可学习章节</div>
           </section>
+
+          <aside class="chapter-rail">
+            <div class="rail-heading">
+              <div>
+                <p class="eyebrow">Chapter rail</p>
+                <h2>章节</h2>
+              </div>
+              <span>{{ orderedChapters.length }} 章</span>
+            </div>
+
+            <button
+              v-for="chapter in orderedChapters"
+              :key="chapter.id"
+              class="chapter-button"
+              :class="{ 'is-active': selectedChapter?.id === chapter.id }"
+              type="button"
+              @click="selectChapter(chapter)"
+            >
+              <span class="chapter-no">{{ chapterOrder(chapter) }}</span>
+              <span class="chapter-copy">
+                <strong>{{ chapter.title }}</strong>
+                <small>{{ chapterProgress(chapter).percent }}% · {{ chapterProgress(chapter).is_completed ? '已完成' : '学习中' }}</small>
+              </span>
+            </button>
+          </aside>
         </div>
       </template>
     </section>
@@ -101,6 +108,7 @@ import { RouterLink, onBeforeRouteLeave, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { downloadMaterial, fetchChapters, fetchCourseDetail, fetchCourseProgress, updateLearningProgress } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
+import { normalizeMediaUrl } from '../../utils/mediaUrl'
 
 const route = useRoute()
 const courseId = computed(() => route.params.courseId)
@@ -130,7 +138,8 @@ function chapterOrder(chapter) {
 
 function chapterVideoUrl(chapter) {
   const video = chapter.video
-  return chapter.video_url || video?.url || video?.file_url || video?.video_url || (typeof video === 'string' ? video : '')
+  const url = chapter.video_url || video?.url || video?.file_url || video?.video_url || (typeof video === 'string' ? video : '')
+  return normalizeMediaUrl(url)
 }
 
 function materialId(chapter) {
@@ -325,134 +334,118 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.learn-shell {
-  max-width: 1220px;
-  min-height: 420px;
-  margin: 54px auto 0;
+.learn-page {
+  background:
+    radial-gradient(circle at 16% 8%, rgba(99, 102, 241, 0.2), transparent 28%),
+    radial-gradient(circle at 86% 10%, rgba(139, 92, 246, 0.16), transparent 30%),
+    linear-gradient(180deg, #ffffff 0, #f5f4ff 380px, #fafafa 100%);
 }
 
-.learn-header {
-  position: relative;
+.learn-workspace {
+  max-width: 1280px;
+  min-height: 520px;
+  margin: 38px auto 0;
+}
+
+.learn-titlebar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 28px;
-  align-items: center;
+  gap: 24px;
+  align-items: stretch;
   padding: 30px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  color: var(--white);
+  background:
+    linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(139, 92, 246, 0.92)),
+    #6366f1;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 }
 
-.learn-header > * {
-  position: relative;
-  z-index: 1;
+.learn-titlebar .eyebrow {
+  color: rgba(255, 255, 255, 0.76) !important;
 }
 
-.learn-header h1 {
+.learn-titlebar h1 {
+  max-width: 820px;
   margin: 0;
-  font-size: clamp(34px, 5vw, 52px);
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.06;
 }
 
-.learn-header p:last-child {
-  color: var(--slate-600);
+.learn-titlebar p:last-child {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.84);
   line-height: 1.75;
 }
 
-.progress-card {
+.course-progress {
   display: grid;
   gap: 10px;
-  padding: 20px;
-  background: var(--white);
+  align-content: center;
+  padding: 22px;
+  color: var(--ink-900);
+  background: rgba(255, 255, 255, 0.96);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
 }
 
-.progress-card span {
+.course-progress span {
   color: var(--slate-500);
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.progress-card strong {
+.course-progress strong {
   font-size: 42px;
+  line-height: 1;
 }
 
-.learn-layout {
+.study-grid {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: 18px;
   margin-top: 18px;
 }
 
-.chapter-sidebar,
-.player-panel {
+.player-workbench,
+.chapter-rail {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.player-workbench {
+  display: grid;
+  gap: 18px;
+  align-content: start;
   padding: 18px;
 }
 
-.sidebar-title,
-.player-heading {
+.now-row {
   display: flex;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 16px;
+  padding: 10px 8px 0;
 }
 
-.sidebar-title h2,
-.player-heading h2 {
+.now-row h2 {
   margin: 0;
+  font-size: 30px;
 }
 
-.sidebar-title span,
-.player-heading p {
-  color: var(--slate-500);
+.now-row p:last-child {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: var(--slate-600);
+  line-height: 1.7;
 }
 
-.chapter-button {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 12px;
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  text-align: left;
-  cursor: pointer;
-  background: #fbfaff;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: var(--radius-md);
-}
-
-.chapter-button.is-active {
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.12);
-}
-
-.chapter-no {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  color: var(--white);
-  background: var(--gradient-primary);
-  border-radius: 10px;
-  font-weight: 900;
-}
-
-.chapter-button strong,
-.chapter-button small {
-  display: block;
-}
-
-.chapter-button small {
-  margin-top: 4px;
-  color: var(--slate-500);
-}
-
-.video-box {
+.video-stage {
   overflow: hidden;
-  background: #141326;
+  background: #111124;
   border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 video,
@@ -466,25 +459,134 @@ video,
   display: grid;
   place-items: center;
   color: rgba(255, 255, 255, 0.72);
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.chapter-tools {
+.progress-console {
   display: grid;
-  gap: 14px;
-  margin-top: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: 18px;
+  background: #fbfaff;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.progress-console span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--slate-500);
+  font-weight: 900;
 }
 
 .tool-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-end;
+}
+
+.chapter-rail {
+  align-self: start;
+  max-height: calc(100vh - 150px);
+  padding: 18px;
+  overflow: auto;
+}
+
+.rail-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.rail-heading h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.rail-heading > span {
+  color: var(--slate-500);
+  font-weight: 900;
+}
+
+.chapter-button {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  color: var(--ink-900);
+  text-align: left;
+  cursor: pointer;
+  background: #fbfaff;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-md);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.chapter-button:hover,
+.chapter-button.is-active {
+  border-color: rgba(99, 102, 241, 0.36);
+  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.12);
+  transform: translateY(-1px);
+}
+
+.chapter-button.is-active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+}
+
+.chapter-no {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--white);
+  background: var(--gradient-primary);
+  border-radius: var(--radius-sm);
+  font-weight: 900;
+}
+
+.chapter-copy {
+  min-width: 0;
+}
+
+.chapter-copy strong,
+.chapter-copy small {
+  display: block;
+}
+
+.chapter-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapter-copy small {
+  margin-top: 4px;
+  color: var(--slate-500);
+  font-weight: 800;
 }
 
 @media (max-width: 980px) {
-  .learn-header,
-  .learn-layout {
+  .learn-titlebar,
+  .study-grid,
+  .progress-console {
     grid-template-columns: 1fr;
+  }
+
+  .chapter-rail {
+    max-height: none;
+  }
+
+  .tool-actions {
+    justify-content: flex-start;
   }
 }
 </style>
