@@ -72,7 +72,7 @@
                   @loadedmetadata="handleLoadedMetadata"
                   @timeupdate="handleTimeUpdate"
                   @play="startProgressTimer"
-                  @pause="submitCurrentProgress"
+                  @pause="submitCurrentProgress()"
                   @ended="handleEnded"
                 ></video>
                 <div v-else class="empty-video">本章暂未上传视频</div>
@@ -81,7 +81,7 @@
               <div class="chapter-tools">
                 <el-progress :percentage="currentProgress.percent" :stroke-width="10" />
                 <div class="tool-actions">
-                  <el-button :loading="submitting" @click="submitCurrentProgress">保存进度</el-button>
+                  <el-button :loading="submitting" @click="submitCurrentProgress()">保存进度</el-button>
                   <el-button type="primary" :loading="submitting" @click="markCompleted">标记完成</el-button>
                   <el-button v-if="selectedMaterialId" plain :loading="downloading" @click="handleDownloadMaterial">下载资料</el-button>
                 </div>
@@ -241,25 +241,27 @@ function stopProgressTimer() {
 
 async function submitCurrentProgress(isCompleted = false) {
   if (!selectedChapter.value) return
+  const completed = isCompleted === true
   const chapterId = selectedChapter.value.id
   const localProgress = chapterProgress(selectedChapter.value)
   const watchedSeconds = Math.max(localProgress.watched_seconds, maxWatchedMap[chapterId] || 0)
   const duration = Math.floor(videoRef.value?.duration || selectedChapter.value.video_duration || 0)
-  const percent = isCompleted ? 100 : duration > 0 ? Math.min(100, Math.round((watchedSeconds / duration) * 100)) : localProgress.percent
+  const percent = completed ? 100 : duration > 0 ? Math.min(100, Math.round((watchedSeconds / duration) * 100)) : localProgress.percent
 
   submitting.value = true
   try {
+    const isProgressCompleted = completed || percent >= 95 || localProgress.is_completed
     const result = await updateLearningProgress({
       course_id: Number(courseId.value),
       chapter_id: chapterId,
       watched_seconds: watchedSeconds,
       percent,
-      is_completed: isCompleted || percent >= 95 || localProgress.is_completed
+      is_completed: isProgressCompleted
     })
     progressMap[chapterId] = {
       watched_seconds: watchedSeconds,
       percent,
-      is_completed: isCompleted || percent >= 95 || localProgress.is_completed
+      is_completed: isProgressCompleted
     }
     if (result) applyProgressData(result)
   } catch (error) {
