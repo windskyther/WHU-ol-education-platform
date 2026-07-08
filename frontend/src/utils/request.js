@@ -71,6 +71,14 @@ function normalizeErrorMessage(error, fallback = '请求失败，请稍后重试
   return readableMessage || fallback
 }
 
+function attachErrorContext(error, response) {
+  const rawData = response?.data
+  error.rawData = rawData
+  error.status = response?.status
+  error.businessCode = rawData?.code || error.code
+  return error
+}
+
 function markAuthExpired() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
@@ -96,6 +104,7 @@ request.interceptors.response.use(
       const error = new Error('业务请求失败')
       error.code = body.code
       error.response = response
+      attachErrorContext(error, response)
       error.userMessage = normalizeErrorMessage(error)
       if (body.code === 4001) {
         markAuthExpired()
@@ -107,6 +116,7 @@ request.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status
+    attachErrorContext(error, error.response)
     error.userMessage = normalizeErrorMessage(error)
 
     if (status === 401) {
