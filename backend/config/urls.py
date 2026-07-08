@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/auth/", include("apps.users.auth_urls")),
     path("api/users/", include("apps.users.urls")),
     path("api/", include("apps.courses.urls")),
+    path("api/", include("apps.progress.urls")),
 ]
 
 if settings.DEBUG:
