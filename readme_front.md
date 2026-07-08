@@ -994,11 +994,7 @@ Success response:
         "course": 1,
         "title": "Chapter 1",
         "description": "Introduction",
-        "order": 1,
-        "video": {},
-        "material": {},
-        "created_at": "2026-07-08T10:00:00+08:00",
-        "updated_at": "2026-07-08T10:00:00+08:00"
+        "order": 1
       },
       "watched_seconds": 120,
       "percent": 35,
@@ -1045,6 +1041,7 @@ Student response:
         "id": 1,
         "course": 1,
         "chapter": {},
+        "chapter_id": 1,
         "watched_seconds": 120,
         "percent": 50,
         "is_completed": false,
@@ -1056,6 +1053,7 @@ Student response:
         "id": 1,
         "course": 1,
         "chapter": {},
+        "chapter_id": 1,
         "watched_seconds": 120,
         "percent": 50,
         "is_completed": false,
