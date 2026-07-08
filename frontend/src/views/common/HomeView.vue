@@ -92,7 +92,7 @@ onMounted(() => {
   min-height: 100vh;
   color: var(--ink-900);
   background:
-    linear-gradient(180deg, rgba(232, 246, 238, 0.9), rgba(246, 251, 248, 0.7) 420px),
+    linear-gradient(180deg, rgba(232, 246, 238, 0.78), rgba(246, 251, 248, 0.88) 420px),
     var(--mint-050);
 }
 
@@ -101,12 +101,14 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   max-width: 1120px;
+  min-height: 44px;
   margin: 0 auto;
   padding: 24px;
 }
 
 .topbar-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: center;
 }
@@ -119,12 +121,12 @@ onMounted(() => {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+  gap: 30px;
   align-items: center;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 72px 24px;
+  padding: 68px 24px;
 }
 
 .hero-content {
@@ -134,13 +136,13 @@ onMounted(() => {
 h1 {
   max-width: 720px;
   margin: 0;
-  font-size: 62px;
-  line-height: 1.04;
+  font-size: clamp(42px, 6vw, 62px);
+  line-height: 1.05;
 }
 
 .summary {
   max-width: 680px;
-  margin: 24px 0 0;
+  margin: 22px 0 0;
   font-size: 18px;
   line-height: 1.8;
   color: var(--slate-600);
@@ -155,34 +157,34 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 32px;
+  margin-top: 30px;
 }
 
 .status-panel {
-  padding: 24px;
+  padding: 22px;
   background: var(--white);
   border: 1px solid var(--border-green);
   border-radius: 8px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-card);
 }
 
 .mini-path {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .mini-path span {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   background: var(--green-700);
   border-radius: 999px;
 }
 
 .mini-path i {
-  width: 64px;
+  width: 58px;
   height: 2px;
-  background: var(--green-500);
+  background: var(--green-300);
 }
 
 .status-panel h2 {
@@ -200,10 +202,6 @@ h1 {
     align-items: flex-start;
     gap: 16px;
     flex-direction: column;
-  }
-
-  h1 {
-    font-size: 40px;
   }
 }
 </style>

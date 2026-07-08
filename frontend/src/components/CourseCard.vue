@@ -42,13 +42,14 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 <style scoped>
 .course-card {
   display: grid;
-  grid-template-columns: 148px 1fr;
-  min-height: 156px;
+  grid-template-columns: 136px minmax(0, 1fr);
+  min-height: 152px;
   overflow: hidden;
   cursor: pointer;
   background: var(--white);
   border: 1px solid var(--border-soft);
   border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(16, 37, 26, 0.03);
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
@@ -57,19 +58,19 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 
 .course-card:hover {
   border-color: var(--border-green);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-card);
   transform: translateY(-2px);
 }
 
 .cover {
   display: grid;
   place-items: center;
-  min-height: 156px;
+  min-height: 152px;
   color: var(--green-700);
   background:
-    linear-gradient(135deg, rgba(92, 169, 130, 0.24), rgba(232, 246, 238, 0.9)),
+    linear-gradient(135deg, rgba(92, 169, 130, 0.18), rgba(232, 246, 238, 0.92)),
     var(--green-100);
-  font-size: 42px;
+  font-size: 40px;
   font-weight: 800;
 }
 
@@ -81,8 +82,9 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 
 .content {
   display: grid;
-  gap: 12px;
-  padding: 18px;
+  gap: 10px;
+  align-content: start;
+  padding: 18px 18px 16px;
 }
 
 .meta-row,
@@ -98,7 +100,9 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 
 h3 {
   margin: 0;
+  color: var(--ink-900);
   font-size: 20px;
+  line-height: 1.3;
 }
 
 p {

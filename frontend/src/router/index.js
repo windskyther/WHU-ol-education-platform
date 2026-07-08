@@ -114,6 +114,13 @@ router.beforeEach(async (to) => {
     }
   }
 
+  if (to.name === 'home' && userStore.isLoggedIn) {
+    const dashboardPath = userStore.redirectPathByRole()
+    if (dashboardPath !== '/') {
+      return dashboardPath
+    }
+  }
+
   if (to.meta?.requiresAuth && !userStore.isLoggedIn) {
     return {
       path: '/login',

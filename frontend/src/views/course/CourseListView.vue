@@ -16,8 +16,10 @@
 
     <section class="course-list-shell">
       <div class="list-heading">
-        <p class="eyebrow">Course catalog</p>
-        <h1>课程列表</h1>
+        <div>
+          <p class="eyebrow">Course catalog</p>
+          <h1>课程列表</h1>
+        </div>
         <p>浏览已发布课程。教师登录后可在管理页查看自己的草稿和已发布课程。</p>
       </div>
 
@@ -115,33 +117,43 @@ onMounted(() => {
 
 .course-list-shell {
   max-width: 1160px;
-  margin: 54px auto 0;
+  margin: 48px auto 0;
+}
+
+.list-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 22px;
 }
 
 .list-heading h1 {
   margin: 0;
-  font-size: 44px;
+  font-size: clamp(36px, 5vw, 46px);
+  line-height: 1.1;
 }
 
 .list-heading p:last-child {
-  max-width: 720px;
+  margin: 0;
   color: var(--slate-600);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .filter-panel {
-  padding: 18px;
+  padding: 16px;
 }
 
 .course-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 14px;
   min-height: 180px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 @media (max-width: 900px) {
+  .list-heading,
   .course-grid {
     grid-template-columns: 1fr;
   }
