@@ -18,7 +18,7 @@ class LearningProgressSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LearningProgress
-        fields = ("id", "course", "chapter", "watched_seconds", "is_completed", "updated_at")
+        fields = ("id", "course", "chapter", "watched_seconds", "percent", "is_completed", "updated_at")
         read_only_fields = fields
 
 
@@ -26,6 +26,7 @@ class ProgressUpdateSerializer(serializers.Serializer):
     course_id = serializers.IntegerField(required=False)
     chapter_id = serializers.IntegerField()
     watched_seconds = serializers.IntegerField(min_value=0)
+    percent = serializers.FloatField(min_value=0, max_value=100, required=False)
     is_completed = serializers.BooleanField(required=False)
 
 
