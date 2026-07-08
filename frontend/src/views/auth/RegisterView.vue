@@ -130,7 +130,7 @@ async function handleSendCode() {
     ElMessage.success('验证码已发送')
     startCountdown()
   } catch (error) {
-    ElMessage.error(error.message || '验证码发送失败')
+    ElMessage.error(error.userMessage || '验证码发送失败，请稍后重试')
   } finally {
     sendingCode.value = false
   }
@@ -145,7 +145,7 @@ async function handleRegister() {
     ElMessage.success('注册成功，请登录')
     router.push('/login')
   } catch (error) {
-    ElMessage.error(error.message || '注册失败，请检查填写信息')
+    ElMessage.error(error.userMessage || '注册失败，请检查填写信息')
   } finally {
     submitting.value = false
   }

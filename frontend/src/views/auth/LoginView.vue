@@ -66,7 +66,7 @@ async function handleLogin() {
     ElMessage.success('登录成功')
     router.push(route.query.redirect || nextPath)
   } catch (error) {
-    ElMessage.error(error.message || '登录失败，请检查账号和密码')
+    ElMessage.error(error.userMessage || '登录失败，请检查账号和密码')
   } finally {
     submitting.value = false
   }
