@@ -57,7 +57,8 @@
             </el-tag>
           </div>
 
-          <div v-if="chapters.length" class="chapter-list">
+          <div v-if="!canViewChapters" class="empty-state">加入学习后查看章节内容</div>
+          <div v-else-if="chapters.length" class="chapter-list">
             <article v-for="chapter in orderedChapters" :key="chapter.id" class="chapter-item">
               <div class="chapter-index">{{ chapterOrder(chapter) }}</div>
               <div>
@@ -104,6 +105,7 @@ const levelText = computed(() => levelMap[course.value?.level] || '初级')
 const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapterOrder(a) - chapterOrder(b)))
 const canManage = computed(() => ['teacher', 'admin'].includes(userStore.role))
 const isEnrolled = computed(() => Boolean(course.value?.is_enrolled || course.value?.enrolled || course.value?.enrollment))
+const canViewChapters = computed(() => canManage.value || isEnrolled.value)
 
 function chapterOrder(chapter) {
   return chapter.order ?? chapter.order_no ?? 0
@@ -146,9 +148,14 @@ async function handleEnroll() {
 async function loadDetail() {
   loading.value = true
   try {
-    const [courseData, chapterData] = await Promise.all([fetchCourseDetail(courseId.value), fetchChapters(courseId.value)])
+    const courseData = await fetchCourseDetail(courseId.value)
     course.value = courseData
-    chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
+    chapters.value = []
+
+    if (canViewChapters.value) {
+      const chapterData = await fetchChapters(courseId.value)
+      chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
+    }
   } catch (error) {
     ElMessage.error(getCommonErrorMessage(error, '课程详情加载失败'))
   } finally {
