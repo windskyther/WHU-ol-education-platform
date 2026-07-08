@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 10000
 })
 
@@ -10,7 +10,7 @@ const codeMessageMap = {
   4001: '登录状态已失效，请重新登录',
   4003: '当前账号没有操作权限',
   4040: '请求的资源不存在',
-  4090: '该操作已存在，请勿重复提交',
+  4090: '该操作已存在，请不要重复提交',
   5000: '服务器暂时不可用，请稍后重试'
 }
 
@@ -19,12 +19,12 @@ const statusMessageMap = {
   401: '登录状态已失效，请重新登录',
   403: '当前账号没有操作权限',
   404: '请求的资源不存在',
-  409: '该操作已存在，请勿重复提交',
+  409: '该操作已存在，请不要重复提交',
   500: '服务器暂时不可用，请稍后重试'
 }
 
 function hasReadableChinese(message) {
-  return typeof message === 'string' && /[\u4e00-\u9fa5]/.test(message) && !/[锟�]/.test(message)
+  return typeof message === 'string' && /[\u4e00-\u9fa5]/.test(message) && !/[閿燂拷]/.test(message)
 }
 
 function pickReadableMessage(value) {

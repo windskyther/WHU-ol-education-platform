@@ -1,12 +1,12 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="从一个清晰入口开始学习" description="登录后会根据你的角色进入对应工作台，后续课程、考试和论坛都会从这里展开。" />
+    <LearningPathPanel title="从清晰入口开始学习" description="登录后平台会根据你的角色进入对应工作台，学生浏览课程，教师建设课程内容。" />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">
         <RouterLink class="back-link" to="/">返回首页</RouterLink>
         <h2>登录</h2>
-        <p>使用用户名或邮箱登录在线教育平台。</p>
+        <p>使用用户名或邮箱登录 WHU 在线教育平台。</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
