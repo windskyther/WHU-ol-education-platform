@@ -1,6 +1,6 @@
-# Frontend Integration README - P1
+# Frontend Integration README - P1/P2
 
-This file is the frontend/backend contract for the P1 user-auth stage.
+This file is the frontend/backend contract for the P1 user-auth stage and P2 course/chapter stage.
 
 Whenever the backend request fields, response fields, URL paths, auth rules, or error messages change, this file must be updated in the same commit.
 
@@ -443,9 +443,375 @@ Backend `.env` should include the frontend dev origin:
 CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
+## P2 Course And Chapter APIs
+
+P2 scope:
+
+- Teacher creates, edits, publishes, unpublishes, and soft-deletes own courses.
+- Teacher creates, edits, deletes chapters for own courses.
+- Teacher uploads one video file and one material file for each chapter.
+- Public and student users can only see published courses.
+- P3 will add enrollment and learning-progress restrictions. Do not assume P2 includes enroll/progress APIs.
+
+### P2 API Summary
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `GET` | `/api/courses/` | No | Published course list; teacher sees own courses after login |
+| `POST` | `/api/courses/` | Teacher/Admin | Create course |
+| `GET` | `/api/courses/{course_id}/` | No | Course detail if published; owner teacher can view draft |
+| `PUT/PATCH` | `/api/courses/{course_id}/` | Course teacher/Admin | Update course |
+| `DELETE` | `/api/courses/{course_id}/` | Course teacher/Admin | Soft-delete course |
+| `POST` | `/api/courses/{course_id}/publish/` | Course teacher/Admin | Publish or unpublish course |
+| `GET` | `/api/courses/{course_id}/chapters/` | No | Chapter list for visible course |
+| `POST` | `/api/courses/{course_id}/chapters/` | Course teacher/Admin | Create chapter |
+| `PUT/PATCH` | `/api/chapters/{chapter_id}/` | Course teacher/Admin | Update chapter |
+| `DELETE` | `/api/chapters/{chapter_id}/` | Course teacher/Admin | Delete chapter |
+| `POST` | `/api/chapters/{chapter_id}/upload-video/` | Course teacher/Admin | Upload chapter video |
+| `POST` | `/api/chapters/{chapter_id}/upload-material/` | Course teacher/Admin | Upload chapter material |
+
+### Course Object
+
+```json
+{
+  "id": 1,
+  "title": "Python Basics",
+  "description": "Intro course",
+  "cover_url": "http://127.0.0.1:8000/media/covers/demo.png",
+  "category": "programming",
+  "level": "beginner",
+  "teacher": {
+    "id": 2,
+    "username": "teacher01",
+    "email": "teacher@example.com"
+  },
+  "teacher_role": "teacher",
+  "is_published": false,
+  "published_at": null,
+  "chapter_count": 0,
+  "created_at": "2026-07-08T10:00:00+08:00",
+  "updated_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+`level` must be one of `beginner`, `intermediate`, `advanced`.
+
+### 8. Course List
+
+#### GET `/api/courses/`
+
+Query params:
+
+| Param | Required | Notes |
+|---|---|---|
+| `page` | No | Page number, default `1` |
+| `page_size` | No | Default `10`, max `100` |
+| `category` | No | Exact category filter |
+| `level` | No | `beginner`, `intermediate`, `advanced` |
+| `keyword` | No | Search by course title |
+| `search` | No | Alias of `keyword` |
+| `is_published` | No | Only effective for teacher/admin; `true` or `false` |
+
+Response is paginated. Course items are in `data.results`:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "count": 1,
+    "page": 1,
+    "page_size": 10,
+    "results": [
+      {
+        "id": 1,
+        "title": "Python Basics",
+        "description": "Intro course",
+        "cover_url": null,
+        "category": "programming",
+        "level": "beginner",
+        "teacher": {
+          "id": 2,
+          "username": "teacher01",
+          "email": "teacher@example.com"
+        },
+        "teacher_role": "teacher",
+        "is_published": true,
+        "published_at": "2026-07-08T10:00:00+08:00",
+        "chapter_count": 2,
+        "created_at": "2026-07-08T10:00:00+08:00",
+        "updated_at": "2026-07-08T10:00:00+08:00"
+      }
+    ]
+  }
+}
+```
+
+Visibility rule:
+
+- No token/student token: only published and not deleted courses.
+- Teacher token: teacher's own not deleted courses, including drafts.
+- Admin token: all not deleted courses.
+
+### 9. Create Course
+
+#### POST `/api/courses/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+JSON request body:
+
+```json
+{
+  "title": "Python Basics",
+  "description": "Intro course",
+  "category": "programming",
+  "level": "beginner"
+}
+```
+
+If uploading a cover at creation/update time, use `multipart/form-data`.
+
+Cover limits:
+
+- Max size: 5 MB
+- Extensions: `.jpg`, `.jpeg`, `.png`, `.webp`
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `ONLY_TEACHER_CAN_MANAGE_COURSE` | Student cannot create/manage courses |
+| `COURSE_OWNER_REQUIRED` | Teacher is not the owner of this course |
+| `COVER_TYPE_NOT_ALLOWED` | Cover extension not allowed |
+| `COVER_SIZE_EXCEEDED` | Cover is larger than 5 MB |
+
+### 10. Course Detail
+
+#### GET `/api/courses/{course_id}/`
+
+Visible course returns the same `Course Object` shape.
+
+Draft visibility:
+
+- Owner teacher/admin can view draft courses.
+- Students/public users receive `COURSE_NOT_FOUND` for draft or deleted courses.
+
+### 11. Update Course
+
+#### PUT/PATCH `/api/courses/{course_id}/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request body supports the same fields as create.
+
+### 12. Delete Course
+
+#### DELETE `/api/courses/{course_id}/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+This is a soft delete. The course will not appear in course lists after deletion.
+
+### 13. Publish Or Unpublish Course
+
+#### POST `/api/courses/{course_id}/publish/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Publish:
+
+```json
+{
+  "is_published": true
+}
+```
+
+Unpublish:
+
+```json
+{
+  "is_published": false
+}
+```
+
+If request body is empty, backend treats it as publish.
+
+### Chapter Object
+
+```json
+{
+  "id": 1,
+  "course": 1,
+  "title": "Chapter 1",
+  "description": "Introduction",
+  "order": 1,
+  "video": null,
+  "material": null,
+  "created_at": "2026-07-08T10:00:00+08:00",
+  "updated_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+When files are uploaded, `video` and `material` contain:
+
+```json
+{
+  "id": 1,
+  "kind": "video",
+  "url": "http://127.0.0.1:8000/media/materials/demo.mp4",
+  "original_name": "demo.mp4",
+  "content_type": "video/mp4",
+  "size": 123456,
+  "created_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+### 14. Chapter List
+
+#### GET `/api/courses/{course_id}/chapters/`
+
+Response `data` is an array of chapter objects.
+
+### 15. Create Chapter
+
+#### POST `/api/courses/{course_id}/chapters/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request body:
+
+```json
+{
+  "title": "Chapter 1",
+  "description": "Introduction",
+  "order": 1
+}
+```
+
+`order` must be unique inside one course. Duplicate order returns `CHAPTER_ORDER_EXISTS`.
+
+### 16. Update Chapter
+
+#### PUT/PATCH `/api/chapters/{chapter_id}/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request body:
+
+```json
+{
+  "title": "Chapter 1 Updated",
+  "description": "Updated introduction",
+  "order": 2
+}
+```
+
+### 17. Delete Chapter
+
+#### DELETE `/api/chapters/{chapter_id}/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+### 18. Upload Chapter Video
+
+#### POST `/api/chapters/{chapter_id}/upload-video/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+Content-Type: multipart/form-data
+```
+
+Form field:
+
+| Field | Required | Notes |
+|---|---|---|
+| `file` | Yes | Video file |
+
+Video limits:
+
+- Max size: 200 MB
+- Extensions: `.mp4`, `.webm`, `.mov`
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `VIDEO_TYPE_NOT_ALLOWED` | Video extension not allowed |
+| `VIDEO_SIZE_EXCEEDED` | Video larger than 200 MB |
+
+### 19. Upload Chapter Material
+
+#### POST `/api/chapters/{chapter_id}/upload-material/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+Content-Type: multipart/form-data
+```
+
+Form field:
+
+| Field | Required | Notes |
+|---|---|---|
+| `file` | Yes | Material file |
+
+Material limits:
+
+- Max size: 20 MB
+- Extensions: `.pdf`, `.doc`, `.docx`, `.ppt`, `.pptx`, `.xls`, `.xlsx`, `.txt`, `.zip`
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `MATERIAL_TYPE_NOT_ALLOWED` | Material extension not allowed |
+| `MATERIAL_SIZE_EXCEEDED` | Material larger than 20 MB |
+
+## P2 Frontend Integration Checklist
+
+1. Course create/update/upload APIs require teacher token.
+2. Student token cannot create courses or chapters.
+3. Use `multipart/form-data` for `cover`, chapter video, and chapter material.
+4. Upload file field name must be exactly `file` for video/material endpoints.
+5. Publish and unpublish both use `/api/courses/{course_id}/publish/` with `is_published`.
+6. Course list is paginated; read list items from `data.results`.
+7. Do not use P3 enrollment/progress APIs yet; they are not part of P2.
+
 ## Maintenance Rule
 
-When backend P1 auth/user APIs change, update this file in the same commit. This includes:
+When backend auth/user/course/chapter APIs change, update this file in the same commit. This includes:
 
 - URL path changes
 - Request field changes
