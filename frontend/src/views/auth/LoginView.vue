@@ -40,6 +40,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { useUserStore } from '../../stores/user'
+import { getLoginErrorMessage } from '../../utils/errorMessage'
 
 const route = useRoute()
 const router = useRouter()
@@ -66,7 +67,7 @@ async function handleLogin() {
     ElMessage.success('登录成功')
     router.push(route.query.redirect || nextPath)
   } catch (error) {
-    ElMessage.error(error.userMessage || '登录失败，请检查账号和密码')
+    ElMessage.error(getLoginErrorMessage(error))
   } finally {
     submitting.value = false
   }

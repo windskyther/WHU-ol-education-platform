@@ -58,6 +58,7 @@ import { ElMessage } from 'element-plus'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { sendEmailCode } from '../../api/auth'
 import { useUserStore } from '../../stores/user'
+import { getEmailCodeErrorMessage, getRegisterErrorMessage } from '../../utils/errorMessage'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -130,7 +131,7 @@ async function handleSendCode() {
     ElMessage.success('验证码已发送')
     startCountdown()
   } catch (error) {
-    ElMessage.error(error.userMessage || '验证码发送失败，请稍后重试')
+    ElMessage.error(getEmailCodeErrorMessage(error))
   } finally {
     sendingCode.value = false
   }
@@ -145,7 +146,7 @@ async function handleRegister() {
     ElMessage.success('注册成功，请登录')
     router.push('/login')
   } catch (error) {
-    ElMessage.error(error.userMessage || '注册失败，请检查填写信息')
+    ElMessage.error(getRegisterErrorMessage(error))
   } finally {
     submitting.value = false
   }
