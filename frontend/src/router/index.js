@@ -29,6 +29,22 @@ const routes = [
     }
   },
   {
+    path: '/courses',
+    name: 'course-list',
+    component: () => import('../views/course/CourseListView.vue'),
+    meta: {
+      title: '课程列表'
+    }
+  },
+  {
+    path: '/courses/:id',
+    name: 'course-detail',
+    component: () => import('../views/course/CourseDetailView.vue'),
+    meta: {
+      title: '课程详情'
+    }
+  },
+  {
     path: '/student/dashboard',
     name: 'student-dashboard',
     component: () => import('../views/dashboard/RoleDashboard.vue'),
@@ -46,6 +62,26 @@ const routes = [
       title: '教师首页',
       requiresAuth: true,
       roles: ['teacher']
+    }
+  },
+  {
+    path: '/teacher/courses',
+    name: 'teacher-courses',
+    component: () => import('../views/teacher/TeacherCoursesView.vue'),
+    meta: {
+      title: '课程管理',
+      requiresAuth: true,
+      roles: ['teacher', 'admin']
+    }
+  },
+  {
+    path: '/teacher/courses/:id/chapters',
+    name: 'teacher-course-chapters',
+    component: () => import('../views/teacher/TeacherChaptersView.vue'),
+    meta: {
+      title: '章节管理',
+      requiresAuth: true,
+      roles: ['teacher', 'admin']
     }
   },
   {
@@ -75,6 +111,13 @@ router.beforeEach(async (to) => {
       await userStore.fetchCurrentUser()
     } catch (error) {
       userStore.clearAuth()
+    }
+  }
+
+  if (to.name === 'home' && userStore.isLoggedIn) {
+    const dashboardPath = userStore.redirectPathByRole()
+    if (dashboardPath !== '/') {
+      return dashboardPath
     }
   }
 
