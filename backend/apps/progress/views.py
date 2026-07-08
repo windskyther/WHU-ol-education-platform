@@ -40,12 +40,12 @@ def sync_enrollment_progress(enrollment):
     if total_chapters == 0:
         progress = 0
     else:
-        completed_count = LearningProgress.objects.filter(
+        progress_items = LearningProgress.objects.filter(
             student=enrollment.student,
             course=enrollment.course,
-            is_completed=True,
-        ).count()
-        progress = round(completed_count / total_chapters * 100, 2)
+        )
+        watched_percent = sum(100 if item.is_completed else item.percent for item in progress_items)
+        progress = round(watched_percent / total_chapters, 2)
     enrollment.progress = progress
     enrollment.last_learned_at = timezone.now()
     enrollment.save(update_fields=["progress", "last_learned_at"])
@@ -117,11 +117,25 @@ class ProgressUpdateView(APIView):
         incoming_seconds = serializer.validated_data["watched_seconds"]
         if incoming_seconds > progress.watched_seconds:
             progress.watched_seconds = incoming_seconds
+        incoming_percent = serializer.validated_data.get("percent")
+        if incoming_percent is not None and incoming_percent > progress.percent:
+            progress.percent = incoming_percent
         if serializer.validated_data.get("is_completed") is True:
             progress.is_completed = True
-        progress.save(update_fields=["watched_seconds", "is_completed", "updated_at"])
-        sync_enrollment_progress(enrollment)
-        return api_response(LearningProgressSerializer(progress, context={"request": request}).data, "progress updated")
+        if progress.is_completed:
+            progress.percent = 100
+        progress.save(update_fields=["watched_seconds", "percent", "is_completed", "updated_at"])
+        enrollment = sync_enrollment_progress(enrollment)
+        progress_data = LearningProgressSerializer(progress, context={"request": request}).data
+        return api_response(
+            {
+                "progress": enrollment.progress,
+                "enrollment": EnrollmentSerializer(enrollment, context={"request": request}).data,
+                "progress_item": progress_data,
+                "chapter_progress": [progress_data],
+            },
+            "progress updated",
+        )
 
 
 class CourseProgressView(APIView):
@@ -146,6 +160,7 @@ class CourseProgressView(APIView):
                 "enrollment": EnrollmentSerializer(enrollment, context={"request": request}).data,
                 "progress_items": LearningProgressSerializer(progress_items, many=True, context={"request": request}).data,
             }
+            data["chapter_progress"] = data["progress_items"]
             return api_response(data)
 
         if role in {"teacher", "admin"}:

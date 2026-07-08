@@ -30,6 +30,7 @@ class LearningProgress(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="learning_progress")
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name="learning_progress")
     watched_seconds = models.PositiveIntegerField(default=0)
+    percent = models.FloatField(default=0)
     is_completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
