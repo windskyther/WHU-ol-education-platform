@@ -55,6 +55,26 @@ const routes = [
     }
   },
   {
+    path: '/student/courses',
+    name: 'student-courses',
+    component: () => import('../views/student/MyCoursesView.vue'),
+    meta: {
+      title: '我的课程',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  },
+  {
+    path: '/student/learn/:courseId',
+    name: 'student-learn',
+    component: () => import('../views/student/CourseLearnView.vue'),
+    meta: {
+      title: '课程学习',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  },
+  {
     path: '/teacher/dashboard',
     name: 'teacher-dashboard',
     component: () => import('../views/dashboard/RoleDashboard.vue'),

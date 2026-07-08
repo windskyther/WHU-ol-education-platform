@@ -1,6 +1,6 @@
 <template>
   <article class="course-card" @click="$router.push(`/courses/${course.id}`)">
-    <div class="cover">
+    <div class="cover momentum-ribbon">
       <img v-if="course.cover_url" :src="course.cover_url" :alt="course.title" />
       <span v-else>{{ coverInitial }}</span>
     </div>
@@ -12,8 +12,8 @@
       <h3>{{ course.title }}</h3>
       <p>{{ course.description || '暂无课程简介' }}</p>
       <div class="footer">
-        <span>{{ course.teacher?.username || '教师未命名' }}</span>
-        <span>{{ course.chapter_count || 0 }} 章</span>
+        <span>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</span>
+        <span>{{ course.chapter_count || course.chapters_count || 0 }} 章</span>
       </div>
     </div>
   </article>
@@ -42,14 +42,14 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 <style scoped>
 .course-card {
   display: grid;
-  grid-template-columns: 136px minmax(0, 1fr);
-  min-height: 152px;
+  grid-template-columns: 150px minmax(0, 1fr);
+  min-height: 168px;
   overflow: hidden;
   cursor: pointer;
   background: var(--white);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
-  box-shadow: 0 1px 0 rgba(16, 37, 26, 0.03);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 0 rgba(23, 22, 41, 0.03);
   transition:
     border-color 0.2s ease,
     transform 0.2s ease,
@@ -57,34 +57,42 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
 }
 
 .course-card:hover {
-  border-color: var(--border-green);
-  box-shadow: var(--shadow-card);
-  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.32);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
 }
 
 .cover {
   display: grid;
   place-items: center;
-  min-height: 152px;
-  color: var(--green-700);
+  min-height: 168px;
+  overflow: hidden;
+  color: var(--brand-indigo);
   background:
-    linear-gradient(135deg, rgba(92, 169, 130, 0.18), rgba(232, 246, 238, 0.92)),
-    var(--green-100);
-  font-size: 40px;
-  font-weight: 800;
+    linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(245, 158, 11, 0.18)),
+    #f7f5ff;
+  font-size: 46px;
+  font-weight: 900;
 }
 
 .cover img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.cover span {
+  position: relative;
+  z-index: 1;
 }
 
 .content {
   display: grid;
   gap: 10px;
   align-content: start;
-  padding: 18px 18px 16px;
+  padding: 20px 20px 18px;
 }
 
 .meta-row,
@@ -96,12 +104,13 @@ const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
   justify-content: space-between;
   color: var(--slate-500);
   font-size: 13px;
+  font-weight: 700;
 }
 
 h3 {
   margin: 0;
   color: var(--ink-900);
-  font-size: 20px;
+  font-size: 21px;
   line-height: 1.3;
 }
 

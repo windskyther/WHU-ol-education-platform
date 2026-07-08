@@ -56,38 +56,16 @@ export function getLoginErrorMessage(error) {
 
   const text = getErrorText(error)
 
-  if (
-    includesAny(text, [
-      '用户不存在',
-      '账号不存在',
-      '邮箱不存在',
-      'username not found',
-      'account not found',
-      'email not found',
-      'user not found',
-      'not found'
-    ])
-  ) {
+  if (includesAny(text, ['用户不存在', '账号不存在', '邮箱不存在', 'username not found', 'account not found', 'email not found', 'user not found', 'not found'])) {
     return '账号不存在'
   }
 
-  if (
-    includesAny(text, [
-      '密码',
-      'password',
-      'credentials',
-      'unable to log in',
-      'no active account',
-      'invalid login',
-      'incorrect',
-      'invalid'
-    ])
-  ) {
+  if (includesAny(text, ['密码', 'password', 'credentials', 'unable to log in', 'no active account', 'invalid login', 'incorrect', 'invalid'])) {
     return '密码错误'
   }
 
   if ([400, 401].includes(error?.status) || [4000, 4001].includes(error?.businessCode || error?.code)) {
-    return '密码错误'
+    return '账号或密码错误'
   }
 
   return error?.userMessage || '登录失败，请检查账号和密码'
@@ -104,24 +82,12 @@ export function getRegisterErrorMessage(error) {
 
   const text = getErrorText(error)
 
-  if (includesAny(text, ['USERNAME_EXISTS', '用户名', 'username', 'user name'])) {
-    return fieldMessageMap.username
-  }
-  if (includesAny(text, ['EMAIL_EXISTS', '邮箱', 'email', 'registerEmail'])) {
-    return fieldMessageMap.email
-  }
-  if (includesAny(text, ['CODE_', '验证码', 'email_code', 'verification', 'code', '过期', 'expired'])) {
-    return fieldMessageMap.email_code
-  }
-  if (includesAny(text, ['PASSWORD_CONFIRM_MISMATCH', '确认密码', 'confirmPassword', 'confirm_password'])) {
-    return fieldMessageMap.confirmPassword
-  }
-  if (includesAny(text, ['密码', 'password'])) {
-    return fieldMessageMap.password
-  }
-  if (includesAny(text, ['角色', 'role'])) {
-    return fieldMessageMap.role
-  }
+  if (includesAny(text, ['USERNAME_EXISTS', '用户名', 'username', 'user name'])) return fieldMessageMap.username
+  if (includesAny(text, ['EMAIL_EXISTS', '邮箱', 'email', 'registerEmail'])) return fieldMessageMap.email
+  if (includesAny(text, ['CODE_', '验证码', 'email_code', 'verification', 'code', '过期', 'expired'])) return fieldMessageMap.email_code
+  if (includesAny(text, ['PASSWORD_CONFIRM_MISMATCH', '确认密码', 'confirmPassword', 'confirm_password'])) return fieldMessageMap.confirmPassword
+  if (includesAny(text, ['密码', 'password'])) return fieldMessageMap.password
+  if (includesAny(text, ['角色', 'role'])) return fieldMessageMap.role
 
   return error?.userMessage || '注册失败，请检查填写信息'
 }

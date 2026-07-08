@@ -1,6 +1,6 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="从清晰入口开始学习" description="登录后平台会根据你的角色进入对应工作台，学生浏览课程，教师建设课程内容。" />
+    <LearningPathPanel title="回到你的学习节奏" description="登录后会根据角色进入对应工作台。学生继续课程进度，教师维护课程内容，每一次进入都更接近完成。" />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">

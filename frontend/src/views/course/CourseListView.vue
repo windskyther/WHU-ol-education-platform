@@ -7,6 +7,7 @@
       </RouterLink>
       <div class="nav-actions">
         <RouterLink to="/">首页</RouterLink>
+        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">我的课程</RouterLink>
         <RouterLink v-if="!userStore.isLoggedIn" to="/login">登录</RouterLink>
         <el-button v-if="userStore.role === 'teacher' || userStore.role === 'admin'" type="primary" @click="$router.push('/teacher/courses')">
           管理课程
@@ -18,9 +19,9 @@
       <div class="list-heading">
         <div>
           <p class="eyebrow">Course catalog</p>
-          <h1>课程列表</h1>
+          <h1>找到下一门想完成的课</h1>
         </div>
-        <p>浏览已发布课程。教师登录后可在管理页查看自己的草稿和已发布课程。</p>
+        <p>筛选已发布课程，查看难度、分类和章节数量。学生加入后即可进入学习页并记录进度。</p>
       </div>
 
       <section class="surface filter-panel">
@@ -40,7 +41,7 @@
         <CourseCard v-for="course in courses" :key="course.id" :course="course" />
       </div>
 
-      <div v-if="!loading && courses.length === 0" class="empty-state">暂无匹配课程</div>
+      <div v-if="!loading && courses.length === 0" class="empty-state">暂无匹配课程，换个关键词试试。</div>
 
       <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCourses" />
     </section>
@@ -102,22 +103,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.nav-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .course-list-shell {
-  max-width: 1160px;
-  margin: 48px auto 0;
+  max-width: 1180px;
+  margin: 54px auto 0;
 }
 
 .list-heading {
@@ -130,8 +118,8 @@ onMounted(() => {
 
 .list-heading h1 {
   margin: 0;
-  font-size: clamp(36px, 5vw, 46px);
-  line-height: 1.1;
+  font-size: clamp(38px, 5vw, 54px);
+  line-height: 1.06;
 }
 
 .list-heading p:last-child {
@@ -147,9 +135,9 @@ onMounted(() => {
 .course-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
   min-height: 180px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 @media (max-width: 900px) {

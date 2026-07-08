@@ -7,13 +7,14 @@
       </RouterLink>
       <div class="nav-actions">
         <RouterLink to="/courses">课程列表</RouterLink>
+        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">我的课程</RouterLink>
         <el-button v-if="canManage" type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">管理章节</el-button>
       </div>
     </nav>
 
     <section v-loading="loading" class="detail-shell">
       <template v-if="course">
-        <div class="detail-hero">
+        <div class="detail-hero momentum-ribbon">
           <div class="detail-copy">
             <p class="eyebrow">Course detail</p>
             <h1>{{ course.title }}</h1>
@@ -21,8 +22,22 @@
             <div class="meta-row">
               <el-tag effect="light">{{ levelText }}</el-tag>
               <span>{{ course.category || '未分类' }}</span>
-              <span>{{ course.teacher?.username || '教师未命名' }}</span>
+              <span>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</span>
               <span>{{ course.chapter_count || chapters.length }} 章</span>
+            </div>
+            <div class="actions">
+              <el-button v-if="!userStore.isLoggedIn" type="primary" size="large" @click="goLogin">登录后学习</el-button>
+              <el-button v-else-if="userStore.role === 'student' && isEnrolled" type="primary" size="large" @click="goLearn">继续学习</el-button>
+              <el-button
+                v-else-if="userStore.role === 'student'"
+                type="primary"
+                size="large"
+                :loading="enrolling"
+                @click="handleEnroll"
+              >
+                加入学习
+              </el-button>
+              <el-button v-if="canManage" size="large" plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">维护内容</el-button>
             </div>
           </div>
           <div class="cover surface">
@@ -34,7 +49,7 @@
         <section class="surface chapters-panel">
           <div class="panel-title">
             <div>
-              <p class="eyebrow">Growth track</p>
+              <p class="eyebrow">Chapter map</p>
               <h2>章节目录</h2>
             </div>
             <el-tag :type="course.is_published ? 'success' : 'warning'" effect="light">
@@ -42,15 +57,16 @@
             </el-tag>
           </div>
 
-          <div v-if="chapters.length" class="growth-track">
-            <article v-for="chapter in orderedChapters" :key="chapter.id" class="growth-node chapter-item">
+          <div v-if="chapters.length" class="chapter-list">
+            <article v-for="chapter in orderedChapters" :key="chapter.id" class="chapter-item">
+              <div class="chapter-index">{{ chapterOrder(chapter) }}</div>
               <div>
-                <strong>{{ chapter.order }}. {{ chapter.title }}</strong>
+                <strong>{{ chapter.title }}</strong>
                 <p>{{ chapter.description || '暂无章节简介' }}</p>
               </div>
               <div class="asset-row">
-                <span>{{ chapter.video ? '已上传视频' : '未上传视频' }}</span>
-                <span>{{ chapter.material ? '已上传资料' : '未上传资料' }}</span>
+                <span class="status-pill" :class="{ 'is-done': chapterVideo(chapter) }">{{ chapterVideo(chapter) ? '有视频' : '无视频' }}</span>
+                <span class="status-pill is-warm" :class="{ 'is-done': chapterMaterial(chapter) }">{{ chapterMaterial(chapter) ? '有资料' : '无资料' }}</span>
               </div>
             </article>
           </div>
@@ -63,16 +79,18 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { fetchChapters, fetchCourseDetail } from '../../api/course'
+import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const courseId = computed(() => route.params.id)
 const loading = ref(false)
+const enrolling = ref(false)
 const course = ref(null)
 const chapters = ref([])
 
@@ -83,15 +101,54 @@ const levelMap = {
 }
 
 const levelText = computed(() => levelMap[course.value?.level] || '初级')
-const orderedChapters = computed(() => [...chapters.value].sort((a, b) => (a.order || 0) - (b.order || 0)))
+const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapterOrder(a) - chapterOrder(b)))
 const canManage = computed(() => ['teacher', 'admin'].includes(userStore.role))
+const isEnrolled = computed(() => Boolean(course.value?.is_enrolled || course.value?.enrolled || course.value?.enrollment))
+
+function chapterOrder(chapter) {
+  return chapter.order ?? chapter.order_no ?? 0
+}
+
+function chapterVideo(chapter) {
+  return chapter.video_url || chapter.video?.url || chapter.video?.file_url || chapter.video
+}
+
+function chapterMaterial(chapter) {
+  return chapter.material_id || chapter.material?.id || chapter.material_url || chapter.material?.url || chapter.material
+}
+
+function goLogin() {
+  router.push({ path: '/login', query: { redirect: route.fullPath } })
+}
+
+function goLearn() {
+  router.push(`/student/learn/${courseId.value}`)
+}
+
+async function handleEnroll() {
+  enrolling.value = true
+  try {
+    await enrollCourse(courseId.value)
+    ElMessage.success('已加入课程')
+    course.value = {
+      ...course.value,
+      is_enrolled: true
+    }
+    goLearn()
+  } catch (error) {
+    ElMessage.error(getCommonErrorMessage(error, '加入课程失败'))
+    await loadDetail()
+  } finally {
+    enrolling.value = false
+  }
+}
 
 async function loadDetail() {
   loading.value = true
   try {
     const [courseData, chapterData] = await Promise.all([fetchCourseDetail(courseId.value), fetchChapters(courseId.value)])
     course.value = courseData
-    chapters.value = Array.isArray(chapterData) ? chapterData : []
+    chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
   } catch (error) {
     ElMessage.error(getCommonErrorMessage(error, '课程详情加载失败'))
   } finally {
@@ -105,41 +162,39 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.nav-actions {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .detail-shell {
-  max-width: 1120px;
+  max-width: 1180px;
   min-height: 380px;
-  margin: 48px auto 0;
+  margin: 54px auto 0;
 }
 
 .detail-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 1fr) 330px;
   gap: 24px;
   align-items: stretch;
+  padding: 26px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.detail-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .detail-copy {
   display: grid;
   align-content: center;
-  padding: 6px 0;
 }
 
 .detail-hero h1 {
   margin: 0;
-  font-size: clamp(38px, 5vw, 50px);
-  line-height: 1.08;
+  font-size: clamp(38px, 5vw, 56px);
+  line-height: 1.06;
 }
 
 .detail-hero p {
@@ -151,16 +206,25 @@ onMounted(() => {
 
 .meta-row,
 .asset-row,
-.panel-title {
+.panel-title,
+.actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
 }
 
-.meta-row,
-.asset-row {
+.actions {
+  margin-top: 8px;
+}
+
+.meta-row {
   color: var(--slate-500);
+  font-weight: 700;
+}
+
+.asset-row {
+  justify-content: flex-end;
 }
 
 .panel-title {
@@ -178,12 +242,10 @@ onMounted(() => {
   place-items: center;
   min-height: 242px;
   overflow: hidden;
-  color: var(--green-700);
-  background:
-    linear-gradient(135deg, rgba(92, 169, 130, 0.16), rgba(232, 246, 238, 0.92)),
-    var(--green-100);
-  font-size: 72px;
-  font-weight: 800;
+  color: var(--brand-indigo);
+  background: var(--gradient-warm);
+  font-size: 76px;
+  font-weight: 900;
 }
 
 .cover img {
@@ -194,18 +256,34 @@ onMounted(() => {
 
 .chapters-panel {
   margin-top: 24px;
-  padding: 22px;
+  padding: 24px;
+}
+
+.chapter-list {
+  display: grid;
+  gap: 12px;
 }
 
 .chapter-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
   gap: 16px;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 14px 16px;
-  background: var(--mint-050);
-  border: 1px solid var(--border-soft);
-  border-radius: 8px;
+  align-items: center;
+  padding: 16px;
+  background: #fbfaff;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.chapter-index {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--white);
+  background: var(--gradient-primary);
+  border-radius: 12px;
+  font-weight: 900;
 }
 
 .chapter-item p {
@@ -219,12 +297,8 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .detail-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .chapter-item {
-    display: grid;
+  .asset-row {
+    justify-content: flex-start;
   }
 }
 </style>
