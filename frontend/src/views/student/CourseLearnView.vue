@@ -126,7 +126,7 @@ let progressTimer = null
 const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapterOrder(a) - chapterOrder(b)))
 const currentProgress = computed(() => (selectedChapter.value ? chapterProgress(selectedChapter.value) : { percent: 0, watched_seconds: 0, is_completed: false }))
 const overallProgress = computed(() => {
-  const raw = course.value?.progress ?? course.value?.course_progress ?? progressMap.__course__?.progress ?? progressMap.__course__?.percent ?? 0
+  const raw = progressMap.__course__?.progress ?? progressMap.__course__?.percent ?? course.value?.progress ?? course.value?.course_progress ?? 0
   return Math.max(0, Math.min(100, Math.round(Number(raw) || 0)))
 })
 const selectedVideoUrl = computed(() => (selectedChapter.value ? chapterVideoUrl(selectedChapter.value) : ''))
@@ -161,23 +161,46 @@ function chapterProgress(chapter) {
   }
 }
 
+function applyChapterProgressItem(item) {
+  const chapterId = item?.chapter_id || item?.chapter?.id || item?.id
+  if (!chapterId) return
+
+  progressMap[chapterId] = {
+    watched_seconds: item.watched_seconds || 0,
+    percent: item.percent || 0,
+    is_completed: item.is_completed || false
+  }
+  maxWatchedMap[chapterId] = Math.max(maxWatchedMap[chapterId] || 0, Number(item.watched_seconds) || 0)
+}
+
 function applyProgressData(data) {
-  const courseProgress = data?.course || data?.course_progress || data?.enrollment || data
   progressMap.__course__ = {
-    progress: courseProgress?.progress ?? courseProgress?.percent ?? data?.progress ?? 0
+    progress: data?.progress ?? data?.enrollment?.progress ?? data?.course_progress?.progress ?? 0
   }
 
-  const chapterItems = data?.chapters || data?.chapter_progress || data?.results || []
-  chapterItems.forEach((item) => {
-    const chapterId = item.chapter_id || item.chapter?.id || item.id
-    if (!chapterId) return
-    progressMap[chapterId] = {
-      watched_seconds: item.watched_seconds || 0,
-      percent: item.percent || 0,
-      is_completed: item.is_completed || false
+  const chapterItems = data?.chapter_progress || data?.progress_items || data?.results || data?.chapters || []
+  chapterItems.forEach(applyChapterProgressItem)
+}
+
+function applyProgressUpdateResult(result, fallbackChapterId) {
+  if (!result) return
+
+  if (result.progress !== undefined) {
+    progressMap.__course__ = {
+      progress: result.progress
     }
-    maxWatchedMap[chapterId] = Math.max(maxWatchedMap[chapterId] || 0, Number(item.watched_seconds) || 0)
-  })
+  }
+
+  if (result.progress_item) {
+    applyChapterProgressItem({
+      ...result.progress_item,
+      chapter_id: result.progress_item.chapter_id || result.progress_item.chapter?.id || fallbackChapterId
+    })
+  }
+
+  if (Array.isArray(result.chapter_progress)) {
+    result.chapter_progress.forEach(applyChapterProgressItem)
+  }
 }
 
 async function loadPage() {
@@ -272,7 +295,7 @@ async function submitCurrentProgress(isCompleted = false) {
       percent,
       is_completed: isProgressCompleted
     }
-    if (result) applyProgressData(result)
+    applyProgressUpdateResult(result, chapterId)
   } catch (error) {
     ElMessage.error(getCommonErrorMessage(error, '进度保存失败'))
   } finally {
