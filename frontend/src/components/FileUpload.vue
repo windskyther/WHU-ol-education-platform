@@ -91,6 +91,7 @@ async function handleFileChange(event) {
 <style scoped>
 .file-upload {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
 }
@@ -102,5 +103,6 @@ async function handleFileChange(event) {
 .hint {
   color: var(--slate-500);
   font-size: 12px;
+  font-weight: 700;
 }
 </style>

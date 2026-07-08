@@ -1,6 +1,6 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="把身份交代清楚，课程才会长对方向" description="注册时选择学生或教师角色，平台会开放对应的学习和教学管理入口。" />
+    <LearningPathPanel title="从一封验证码开始你的课程旅程" description="选择学生或教师身份，平台会开放对应的学习与课程管理入口。清晰的角色让协作更顺畅。" />
 
     <section class="auth-card" aria-label="注册表单">
       <div class="auth-card__header">

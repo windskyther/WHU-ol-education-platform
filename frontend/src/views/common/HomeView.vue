@@ -13,12 +13,12 @@
       </div>
     </section>
 
-    <section class="hero">
-      <div class="hero-content">
-        <p class="eyebrow">P2 Course ready</p>
-        <h1>让课程像枝条一样清楚生长</h1>
+    <section class="home-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">P3 Learning flow</p>
+        <h1>让每一段学习都有清晰的下一步</h1>
         <p class="summary">
-          平台已接入课程浏览、课程详情、教师课程管理、章节维护和视频资料上传。P2 聚焦内容建设，学生端只浏览已发布课程。
+          平台已支持课程浏览、教师课程管理、章节上传，以及学生选课、视频学习、资料下载和进度记录。学习过程更轻快，也更容易坚持。
         </p>
         <p class="health-message">{{ healthMessage }}</p>
         <div class="actions">
@@ -27,21 +27,31 @@
         </div>
       </div>
 
-      <div class="status-panel">
-        <div class="mini-path" aria-hidden="true">
+      <div class="hero-board momentum-ribbon">
+        <div class="momentum-ticks" aria-hidden="true">
           <span></span>
-          <i></i>
           <span></span>
-          <i></i>
           <span></span>
         </div>
-        <h2>P2 前端能力</h2>
-        <el-descriptions :column="1" border>
-          <el-descriptions-item label="课程">分页、搜索、分类和难度筛选</el-descriptions-item>
-          <el-descriptions-item label="详情">课程信息与章节目录展示</el-descriptions-item>
-          <el-descriptions-item label="教师">创建、编辑、发布、下架、删除课程</el-descriptions-item>
-          <el-descriptions-item label="章节">章节增删改与视频/资料上传</el-descriptions-item>
-        </el-descriptions>
+        <h2>学习主流程</h2>
+        <div class="flow-list">
+          <div>
+            <strong>01</strong>
+            <span>选择课程</span>
+          </div>
+          <div>
+            <strong>02</strong>
+            <span>加入学习</span>
+          </div>
+          <div>
+            <strong>03</strong>
+            <span>观看章节视频</span>
+          </div>
+          <div>
+            <strong>04</strong>
+            <span>保存学习进度</span>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -90,67 +100,48 @@ onMounted(() => {
 <style scoped>
 .home-page {
   min-height: 100vh;
+  padding: 24px;
+  overflow: hidden;
   color: var(--ink-900);
   background:
-    linear-gradient(180deg, rgba(232, 246, 238, 0.78), rgba(246, 251, 248, 0.88) 420px),
-    var(--mint-050);
+    radial-gradient(circle at 14% 12%, rgba(245, 158, 11, 0.2), transparent 28%),
+    radial-gradient(circle at 88% 10%, rgba(99, 102, 241, 0.22), transparent 32%),
+    var(--bg-warm);
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1120px;
-  min-height: 44px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.topbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  align-items: center;
-}
-
-.topbar-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.hero {
+.home-hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-  gap: 30px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 34px;
   align-items: center;
-  max-width: 1120px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 68px 24px;
+  padding: 74px 0 40px;
 }
 
-.hero-content {
-  max-width: 720px;
+.hero-copy {
+  max-width: 760px;
 }
 
 h1 {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0;
-  font-size: clamp(42px, 6vw, 62px);
-  line-height: 1.05;
+  font-size: clamp(44px, 6vw, 70px);
+  line-height: 1.02;
 }
 
 .summary {
   max-width: 680px;
   margin: 22px 0 0;
+  color: var(--slate-600);
   font-size: 18px;
   line-height: 1.8;
-  color: var(--slate-600);
 }
 
 .health-message {
   margin: 18px 0 0;
   color: var(--slate-500);
+  font-weight: 700;
 }
 
 .actions {
@@ -160,48 +151,55 @@ h1 {
   margin-top: 30px;
 }
 
-.status-panel {
-  padding: 22px;
+.hero-board {
+  position: relative;
+  padding: 28px;
+  overflow: hidden;
   background: var(--white);
-  border: 1px solid var(--border-green);
-  border-radius: 8px;
-  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
 }
 
-.mini-path {
+.hero-board > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-board h2 {
+  margin: 20px 0 18px;
+  font-size: 26px;
+}
+
+.flow-list {
+  display: grid;
+  gap: 12px;
+}
+
+.flow-list div {
   display: flex;
   align-items: center;
-  margin-bottom: 18px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(99, 102, 241, 0.07);
+  border-radius: var(--radius-md);
 }
 
-.mini-path span {
-  width: 12px;
-  height: 12px;
-  background: var(--green-700);
-  border-radius: 999px;
+.flow-list strong {
+  color: var(--accent-orange);
+  font-size: 24px;
 }
 
-.mini-path i {
-  width: 58px;
-  height: 2px;
-  background: var(--green-300);
+.flow-list span {
+  color: var(--ink-700);
+  font-weight: 800;
 }
 
-.status-panel h2 {
-  margin: 0 0 18px;
-  font-size: 20px;
-}
-
-@media (max-width: 820px) {
-  .hero {
+@media (max-width: 860px) {
+  .home-hero {
     grid-template-columns: 1fr;
-    padding-top: 40px;
-  }
-
-  .topbar {
-    align-items: flex-start;
-    gap: 16px;
-    flex-direction: column;
+    padding-top: 44px;
   }
 }
 </style>
