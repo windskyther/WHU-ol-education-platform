@@ -3,20 +3,21 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/teacher/courses">课程管理</RouterLink>
-        <RouterLink :to="`/courses/${courseId}`">查看课程</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建章节</el-button>
+        <RouterLink to="/teacher/courses">Course manager</RouterLink>
+        <RouterLink :to="`/courses/${courseId}`">View course</RouterLink>
+        <RouterLink :to="`/teacher/courses/${courseId}/exams`">Exams</RouterLink>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create chapter</el-button>
       </div>
     </nav>
 
     <section class="chapters-shell">
-      <div class="manager-heading momentum-ribbon">
+      <div class="manager-heading kinetic-panel">
         <div>
           <p class="eyebrow">Chapter manager</p>
-          <h1>{{ course?.title || '章节管理' }}</h1>
+          <h1>{{ course?.title || 'Chapter index' }}</h1>
           <p>维护章节排序、简介、视频和资料。学生学习页会直接使用这些内容和资源。</p>
         </div>
       </div>
@@ -25,7 +26,7 @@
         <div class="panel-title">
           <div>
             <p class="eyebrow">Learning content</p>
-            <h2>章节内容</h2>
+            <h2>Content rail</h2>
           </div>
           <el-tag effect="light">{{ orderedChapters.length }} 章</el-tag>
         </div>
@@ -212,35 +213,24 @@ onMounted(() => {
 
 <style scoped>
 .chapters-shell {
-  max-width: 1180px;
-  margin: 54px auto 0;
+  margin: 64px auto 0;
 }
 
 .manager-heading {
-  position: relative;
-  padding: 30px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  display: grid;
+  align-content: end;
+  min-height: 360px;
+  padding: 42px;
 }
 
-.manager-heading > * {
-  position: relative;
-  z-index: 1;
+.manager-heading h1,
+.manager-heading p {
+  color: var(--paper);
 }
 
-.manager-heading h1 {
-  margin: 0;
-  font-size: clamp(34px, 5vw, 52px);
-  line-height: 1.1;
-}
-
-.manager-heading p:last-child {
+.manager-heading p:not(.eyebrow) {
   max-width: 720px;
-  color: var(--slate-600);
-  line-height: 1.75;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .chapter-panel {
@@ -259,7 +249,10 @@ onMounted(() => {
 
 .panel-title h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
 }
 
 .chapter-cell,
@@ -268,16 +261,15 @@ onMounted(() => {
   gap: 8px;
 }
 
-.chapter-cell span,
-.asset-cell span {
-  color: var(--slate-500);
-  font-size: 13px;
+.chapter-cell strong {
+  font-size: 22px;
+  font-weight: 900;
 }
 
-.table-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
+.chapter-cell span,
+.asset-cell span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
 }
 </style>

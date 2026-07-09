@@ -75,6 +75,26 @@ const routes = [
     }
   },
   {
+    path: '/student/exams/:examId',
+    name: 'student-exam',
+    component: () => import('../views/student/ExamView.vue'),
+    meta: {
+      title: '在线考试',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  },
+  {
+    path: '/student/scores',
+    name: 'student-scores',
+    component: () => import('../views/student/ScoresView.vue'),
+    meta: {
+      title: '我的成绩',
+      requiresAuth: true,
+      roles: ['student']
+    }
+  },
+  {
     path: '/teacher/dashboard',
     name: 'teacher-dashboard',
     component: () => import('../views/dashboard/RoleDashboard.vue'),
@@ -100,6 +120,36 @@ const routes = [
     component: () => import('../views/teacher/TeacherChaptersView.vue'),
     meta: {
       title: '章节管理',
+      requiresAuth: true,
+      roles: ['teacher', 'admin']
+    }
+  },
+  {
+    path: '/teacher/courses/:id/exams',
+    name: 'teacher-course-exams',
+    component: () => import('../views/teacher/TeacherExamsView.vue'),
+    meta: {
+      title: '考试管理',
+      requiresAuth: true,
+      roles: ['teacher', 'admin']
+    }
+  },
+  {
+    path: '/teacher/exams/:examId/questions',
+    name: 'teacher-exam-questions',
+    component: () => import('../views/teacher/TeacherExamQuestionsView.vue'),
+    meta: {
+      title: '题目管理',
+      requiresAuth: true,
+      roles: ['teacher', 'admin']
+    }
+  },
+  {
+    path: '/teacher/exams/:examId/submissions',
+    name: 'teacher-exam-submissions',
+    component: () => import('../views/teacher/TeacherExamSubmissionsView.vue'),
+    meta: {
+      title: '答卷管理',
       requiresAuth: true,
       roles: ['teacher', 'admin']
     }

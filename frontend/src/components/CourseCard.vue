@@ -1,12 +1,12 @@
 <template>
   <article class="course-card" @click="$router.push(`/courses/${course.id}`)">
-    <div class="cover momentum-ribbon">
+    <div class="course-poster">
       <img v-if="course.cover_url" :src="course.cover_url" :alt="course.title" />
       <span v-else>{{ coverInitial }}</span>
     </div>
-    <div class="content">
+    <div class="course-copy">
       <div class="meta-row">
-        <el-tag size="small" effect="light">{{ levelText }}</el-tag>
+        <strong>{{ levelText }}</strong>
         <span>{{ course.category || '未分类' }}</span>
       </div>
       <h3>{{ course.title }}</h3>
@@ -15,6 +15,9 @@
         <span>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</span>
         <span>{{ course.chapter_count || course.chapters_count || 0 }} 章</span>
       </div>
+    </div>
+    <div class="course-arrow" aria-hidden="true">
+      <span></span>
     </div>
   </article>
 </template>
@@ -30,104 +33,135 @@ const props = defineProps({
 })
 
 const levelMap = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级'
+  beginner: 'Beginner',
+  intermediate: 'Intermediate',
+  advanced: 'Advanced'
 }
 
-const levelText = computed(() => levelMap[props.course.level] || '初级')
-const coverInitial = computed(() => (props.course.title || '课').slice(0, 1))
+const levelText = computed(() => levelMap[props.course.level] || 'Beginner')
+const coverInitial = computed(() => (props.course.title || '课').slice(0, 1).toUpperCase())
 </script>
 
 <style scoped>
 .course-card {
+  position: relative;
   display: grid;
-  grid-template-columns: 150px minmax(0, 1fr);
-  min-height: 168px;
+  grid-template-columns: 180px minmax(0, 1fr) 70px;
+  min-height: 220px;
   overflow: hidden;
   cursor: pointer;
-  background: var(--white);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 0 rgba(23, 22, 41, 0.03);
-  transition:
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hard);
+  transition: transform 360ms var(--ease), border-color 360ms var(--ease), background 360ms var(--ease);
 }
 
 .course-card:hover {
-  border-color: rgba(99, 102, 241, 0.32);
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-3px);
+  background: var(--ink);
+  border-color: var(--ink);
+  transform: translateY(-6px);
 }
 
-.cover {
+.course-poster {
   display: grid;
   place-items: center;
-  min-height: 168px;
+  min-height: 220px;
   overflow: hidden;
-  color: var(--brand-indigo);
+  color: var(--ink);
   background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(245, 158, 11, 0.18)),
-    #f7f5ff;
-  font-size: 46px;
+    linear-gradient(135deg, rgba(243, 167, 72, 0.84), rgba(255, 79, 216, 0.44)),
+    var(--hot);
+  font-size: 96px;
   font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.1em;
 }
 
-.cover img {
-  position: relative;
-  z-index: 1;
+.course-poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.cover span {
-  position: relative;
-  z-index: 1;
-}
-
-.content {
+.course-copy {
   display: grid;
-  gap: 10px;
-  align-content: start;
-  padding: 20px 20px 18px;
+  gap: 14px;
+  align-content: center;
+  padding: 28px;
 }
 
 .meta-row,
 .footer {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 10px 18px;
   align-items: center;
-  justify-content: space-between;
-  color: var(--slate-500);
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 h3 {
   margin: 0;
-  color: var(--ink-900);
-  font-size: 21px;
-  line-height: 1.3;
+  color: var(--ink);
+  font-size: clamp(36px, 5vw, 72px);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.075em;
 }
 
 p {
   display: -webkit-box;
-  min-height: 44px;
+  max-width: 560px;
   margin: 0;
   overflow: hidden;
-  color: var(--slate-600);
-  line-height: 1.6;
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.2;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
-@media (max-width: 680px) {
+.course-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--hot);
+}
+
+.course-arrow span {
+  width: 46px;
+  height: 46px;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+}
+
+.course-arrow span::after {
+  display: block;
+  width: 80px;
+  height: 3px;
+  margin: 19px 0 0 -24px;
+  content: "";
+  background: currentColor;
+}
+
+.course-card:hover h3,
+.course-card:hover p,
+.course-card:hover .meta-row,
+.course-card:hover .footer {
+  color: var(--paper);
+}
+
+@media (max-width: 760px) {
   .course-card {
     grid-template-columns: 1fr;
+  }
+
+  .course-arrow {
+    display: none;
   }
 }
 </style>

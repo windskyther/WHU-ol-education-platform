@@ -3,7 +3,7 @@
     <nav class="dashboard-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="dashboard-actions">
         <el-button v-if="userStore.role === 'student'" type="primary" :icon="Reading" @click="$router.push('/student/courses')">
@@ -18,7 +18,7 @@
     </nav>
 
     <section class="dashboard-hero">
-      <div class="hero-card momentum-ribbon">
+      <div class="hero-card kinetic-panel">
         <p class="eyebrow">{{ roleCopy.eyebrow }}</p>
         <h1>{{ roleCopy.title }}</h1>
         <p>{{ roleCopy.description }}</p>
@@ -29,13 +29,13 @@
         </div>
       </div>
       <div class="dashboard-card">
-        <span class="card-label">当前用户</span>
+        <span class="card-label">Current user</span>
         <strong>{{ userStore.userInfo?.username || userStore.userInfo?.email || '已登录用户' }}</strong>
         <span class="status-pill">{{ roleCopy.roleName }}</span>
-        <div class="momentum-ticks" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
+        <div class="mini-index" aria-hidden="true">
+          <span>01</span>
+          <span>02</span>
+          <span>03</span>
         </div>
       </div>
     </section>
@@ -55,18 +55,19 @@ const userStore = useUserStore()
 const roleText = {
   student: {
     eyebrow: 'Student workspace',
-    title: '继续你正在推进的课程',
-    description: '查看已加入课程，回到视频学习页，系统会持续记录章节进度。P3 阶段聚焦学习闭环，不包含考试和论坛。',
+    title: 'Keep the course moving.',
+    description: '查看已加入课程，回到视频学习页，系统会持续记录章节进度。P4 阶段已接入考试和成绩能力。',
     roleName: '学生',
     actions: [
       { label: '我的课程', path: '/student/courses', primary: true },
+      { label: '我的成绩', path: '/student/scores' },
       { label: '发现课程', path: '/courses' }
     ]
   },
   teacher: {
     eyebrow: 'Teacher workspace',
-    title: '让课程内容保持清晰可学',
-    description: '创建课程、维护章节、上传视频和资料，并控制课程发布状态。学生端会基于这些内容进入学习页。',
+    title: 'Shape the learning material.',
+    description: '创建课程、维护章节、上传视频资料，并控制课程发布状态。学生端会基于这些内容进入学习和考试流程。',
     roleName: '教师',
     actions: [
       { label: '管理课程', path: '/teacher/courses', primary: true },
@@ -75,8 +76,8 @@ const roleText = {
   },
   admin: {
     eyebrow: 'Admin workspace',
-    title: '协助检查课程与权限边界',
-    description: '管理员可辅助查看课程数据和教师内容管理入口，具体后台治理能力由后续阶段扩展。',
+    title: 'Audit the system boundary.',
+    description: '管理员可辅助查看课程数据和教师内容管理入口，检查课程、权限、考试与提交记录的边界。',
     roleName: '管理员',
     actions: [
       { label: '课程管理', path: '/teacher/courses', primary: true },
@@ -95,25 +96,69 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.hero-card {
-  position: relative;
-  padding: 36px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  align-items: stretch;
+  min-height: calc(100vh - 150px);
+  margin: 64px auto 0;
 }
 
-.hero-card > * {
-  position: relative;
-  z-index: 1;
+.hero-card {
+  display: grid;
+  align-content: end;
+  min-height: 520px;
+  padding: 42px;
+}
+
+.hero-card h1,
+.hero-card p {
+  color: var(--paper);
+}
+
+.hero-card p:not(.eyebrow) {
+  max-width: 740px;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .quick-actions {
+  margin-top: 34px;
+}
+
+.dashboard-card {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+  padding: 32px;
+}
+
+.card-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-card strong {
+  font-size: clamp(36px, 4vw, 62px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+}
+
+.mini-index {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 26px;
+  gap: 10px;
+  margin-top: 30px;
+  color: var(--hot);
+  font-weight: 900;
+}
+
+@media (max-width: 960px) {
+  .dashboard-hero {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

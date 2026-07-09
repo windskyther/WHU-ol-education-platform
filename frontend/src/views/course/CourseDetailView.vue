@@ -3,12 +3,13 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/courses">课程列表</RouterLink>
-        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">我的课程</RouterLink>
-        <el-button v-if="canManage" type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">管理章节</el-button>
+        <RouterLink to="/courses">Courses</RouterLink>
+        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">My courses</RouterLink>
+        <el-button v-if="canManage" type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">Manage chapters</el-button>
+        <el-button v-if="canManage" plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">Manage exams</el-button>
       </div>
     </nav>
 
@@ -19,12 +20,6 @@
             <p class="eyebrow">Course overview</p>
             <h1>{{ course.title }}</h1>
             <p class="course-summary">{{ course.description || '暂无课程简介' }}</p>
-            <div class="course-meta">
-              <span>{{ levelText }}</span>
-              <span>{{ course.category || '未分类' }}</span>
-              <span>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</span>
-              <span>{{ course.chapter_count || chapters.length }} 章</span>
-            </div>
           </div>
 
           <aside class="join-panel">
@@ -33,8 +28,8 @@
               <span v-else>{{ (course.title || '课').slice(0, 1) }}</span>
             </div>
             <div class="join-state">
-              <span class="state-label">{{ accessLabel }}</span>
-              <strong>{{ isEnrolled || canManage ? '内容已开放' : '先加入，再开始学习' }}</strong>
+              <span class="status-pill">{{ accessLabel }}</span>
+              <strong>{{ isEnrolled || canManage ? 'Content unlocked' : 'Join to unlock' }}</strong>
               <p>{{ isEnrolled || canManage ? '可以查看章节内容并进入学习空间。' : '课程介绍公开可见，章节资源会在加入学习后开放。' }}</p>
             </div>
             <div class="join-actions">
@@ -54,11 +49,34 @@
           </aside>
         </header>
 
+        <section class="course-facts">
+          <div>
+            <span>Level</span>
+            <strong>{{ levelText }}</strong>
+          </div>
+          <div>
+            <span>Category</span>
+            <strong>{{ course.category || '未分类' }}</strong>
+          </div>
+          <div>
+            <span>Teacher</span>
+            <strong>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</strong>
+          </div>
+          <div>
+            <span>Chapters</span>
+            <strong>{{ course.chapter_count || chapters.length }}</strong>
+          </div>
+          <div>
+            <span>Exams</span>
+            <strong>{{ exams.length }}</strong>
+          </div>
+        </section>
+
         <section class="chapter-access">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Chapter access</p>
-              <h2>章节与资源</h2>
+              <h2>Content rail</h2>
             </div>
             <el-tag :type="course.is_published ? 'success' : 'warning'" effect="light">
               {{ course.is_published ? '已发布' : '草稿' }}
@@ -86,6 +104,38 @@
 
           <div v-else class="empty-state">暂无章节</div>
         </section>
+
+        <section v-if="canViewChapters" class="exam-access">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Exam access</p>
+              <h2>Assessment rail</h2>
+            </div>
+            <el-tag effect="light">{{ exams.length }} 场考试</el-tag>
+          </div>
+
+          <div v-if="exams.length" class="exam-grid">
+            <article v-for="examItem in exams" :key="examItem.id" class="exam-tile">
+              <div>
+                <span class="status-pill" :class="{ 'is-done': examItem.is_published }">
+                  {{ examItem.is_published ? '已发布' : '草稿' }}
+                </span>
+                <h3>{{ examItem.title }}</h3>
+                <p>{{ examItem.description || '暂无考试说明' }}</p>
+              </div>
+              <div class="exam-meta">
+                <span>{{ examItem.duration || examItem.duration_minutes || '-' }} 分钟</span>
+                <span>及格线 {{ examItem.pass_score ?? '-' }}</span>
+              </div>
+              <div class="table-actions">
+                <el-button v-if="userStore.role === 'student'" type="primary" @click="$router.push(`/student/exams/${examItem.id}`)">进入考试</el-button>
+                <el-button v-if="canManage" plain @click="$router.push(`/teacher/exams/${examItem.id}/questions`)">维护题目</el-button>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="empty-state">暂无考试</div>
+        </section>
       </template>
     </section>
   </main>
@@ -96,6 +146,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
+import { fetchCourseExams } from '../../api/exam'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
@@ -108,6 +159,7 @@ const loading = ref(false)
 const enrolling = ref(false)
 const course = ref(null)
 const chapters = ref([])
+const exams = ref([])
 
 const levelMap = {
   beginner: '初级',
@@ -171,10 +223,15 @@ async function loadDetail() {
     const courseData = await fetchCourseDetail(courseId.value)
     course.value = courseData
     chapters.value = []
+    exams.value = []
 
     if (canViewChapters.value) {
-      const chapterData = await fetchChapters(courseId.value)
+      const [chapterData, examData] = await Promise.all([
+        fetchChapters(courseId.value),
+        fetchCourseExams(courseId.value)
+      ])
       chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
+      exams.value = Array.isArray(examData) ? examData : examData?.results || []
     }
   } catch (error) {
     ElMessage.error(getCommonErrorMessage(error, '课程详情加载失败'))
@@ -189,17 +246,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.detail-page {
-  background:
-    radial-gradient(circle at 12% 12%, rgba(99, 102, 241, 0.18), transparent 28%),
-    radial-gradient(circle at 86% 4%, rgba(139, 92, 246, 0.16), transparent 30%),
-    linear-gradient(180deg, #ffffff 0, #f7f7ff 420px, #fafafa 100%);
-}
-
 .detail-workspace {
-  max-width: 1180px;
   min-height: 420px;
-  margin: 46px auto 0;
+  margin: 64px auto 0;
 }
 
 .detail-intro {
@@ -211,72 +260,37 @@ onMounted(() => {
 
 .intro-copy {
   display: grid;
-  align-content: center;
-  min-height: 430px;
+  align-content: end;
+  min-height: 520px;
   padding: 42px;
-  color: var(--white);
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(139, 92, 246, 0.92)),
-    #6366f1;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-}
-
-.intro-copy .eyebrow {
-  color: rgba(255, 255, 255, 0.78) !important;
-}
-
-.intro-copy h1 {
-  max-width: 760px;
-  margin: 0;
-  font-size: clamp(42px, 6vw, 72px);
-  line-height: 1.02;
+  background: rgba(255, 250, 240, 0.82);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
 }
 
 .course-summary {
   max-width: 760px;
-  margin: 22px 0 0;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 18px;
-  line-height: 1.8;
-}
-
-.course-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 30px;
-}
-
-.course-meta span {
-  padding: 8px 12px;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-sm);
-  font-weight: 800;
+  margin: 28px 0 0;
 }
 
 .join-panel {
   display: grid;
-  grid-template-rows: 170px 1fr auto;
+  grid-template-rows: 190px 1fr auto;
   overflow: hidden;
-  background: var(--white);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-md);
 }
 
 .cover-strip {
   display: grid;
   place-items: center;
   overflow: hidden;
-  color: var(--brand-indigo);
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(245, 158, 11, 0.18)),
-    #f4f2ff;
-  font-size: 70px;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--hot), var(--pink));
+  font-size: 96px;
   font-weight: 900;
+  letter-spacing: -0.1em;
 }
 
 .cover-strip img {
@@ -287,46 +301,68 @@ onMounted(() => {
 
 .join-state {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   align-content: start;
-  padding: 24px;
-}
-
-.state-label {
-  width: fit-content;
-  padding: 6px 10px;
-  color: var(--brand-indigo);
-  background: rgba(99, 102, 241, 0.1);
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 900;
+  padding: 26px;
 }
 
 .join-state strong {
-  font-size: 26px;
-  line-height: 1.2;
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.06em;
 }
 
 .join-state p {
   margin: 0;
-  color: var(--slate-600);
-  line-height: 1.7;
+  color: rgba(246, 241, 230, 0.68);
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .join-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 0 24px 24px;
+  padding: 0 26px 26px;
 }
 
-.chapter-access {
-  margin-top: 26px;
+.course-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.course-facts div {
+  display: grid;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(255, 250, 240, 0.9);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.course-facts span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.course-facts strong {
+  overflow: hidden;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 0.95;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapter-access,
+.exam-access {
+  margin-top: 18px;
   padding: 28px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
 }
 
 .section-heading {
@@ -339,26 +375,23 @@ onMounted(() => {
 
 .section-heading h2 {
   margin: 0;
-  font-size: 28px;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
 }
 
-.locked-panel {
-  display: grid;
-  gap: 8px;
-  padding: 34px;
-  color: var(--ink-700);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(245, 158, 11, 0.1));
-  border: 1px dashed rgba(99, 102, 241, 0.3);
+.locked-panel,
+.chapter-tile {
+  padding: 24px;
+  border: 2px solid var(--line);
   border-radius: var(--radius-md);
 }
 
 .locked-panel strong {
-  font-size: 22px;
-}
-
-.locked-panel p {
-  margin: 0;
-  color: var(--slate-600);
+  display: block;
+  font-size: 28px;
+  font-weight: 900;
 }
 
 .chapter-grid {
@@ -367,36 +400,36 @@ onMounted(() => {
   gap: 14px;
 }
 
+.exam-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .chapter-tile {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
+  grid-template-columns: 58px minmax(0, 1fr);
   gap: 14px;
-  padding: 18px;
-  background: #fbfaff;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.36);
 }
 
 .chapter-order {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  color: var(--white);
-  background: var(--gradient-primary);
-  border-radius: var(--radius-sm);
+  font-size: 48px;
   font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.08em;
 }
 
 .chapter-tile h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 24px;
+  font-weight: 900;
 }
 
 .chapter-tile p {
   margin: 8px 0 0;
-  color: var(--slate-600);
-  line-height: 1.6;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .resource-tags {
@@ -406,28 +439,62 @@ onMounted(() => {
 }
 
 .resource-tags span {
-  padding: 5px 9px;
-  color: var(--slate-500);
-  background: rgba(122, 129, 148, 0.1);
+  padding: 6px 10px;
+  color: var(--muted);
+  border: 2px solid var(--line);
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .resource-tags span.active {
-  color: #047857;
-  background: rgba(16, 185, 129, 0.14);
+  color: var(--ink);
+  background: var(--acid);
+  border-color: var(--acid);
 }
 
-@media (max-width: 900px) {
-  .detail-intro,
-  .chapter-grid {
-    grid-template-columns: 1fr;
-  }
+.exam-tile {
+  display: grid;
+  gap: 16px;
+  align-content: space-between;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.36);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+}
 
-  .intro-copy {
-    min-height: 360px;
-    padding: 30px;
+.exam-tile h3 {
+  margin: 12px 0 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.exam-tile p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.exam-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exam-meta span {
+  padding: 7px 10px;
+  background: rgba(25, 25, 23, 0.06);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+@media (max-width: 980px) {
+  .detail-intro,
+  .course-facts,
+  .chapter-grid,
+  .exam-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -3,20 +3,20 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/teacher/dashboard">教师首页</RouterLink>
-        <RouterLink to="/courses">公开课程</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建课程</el-button>
+        <RouterLink to="/teacher/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/courses">Public courses</RouterLink>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create course</el-button>
       </div>
     </nav>
 
     <section class="manager-shell">
-      <div class="manager-heading momentum-ribbon">
+      <div class="manager-heading kinetic-panel">
         <div>
           <p class="eyebrow">Teacher course manager</p>
-          <h1>课程管理</h1>
+          <h1>Build the catalog.</h1>
           <p>维护课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
         </div>
       </div>
@@ -59,6 +59,7 @@
                 <el-button size="small" text :icon="View" @click="$router.push(`/courses/${row.id}`)">查看</el-button>
                 <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
                 <el-button size="small" text :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">章节</el-button>
+                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/courses/${row.id}/exams`)">考试</el-button>
                 <el-button size="small" plain :loading="publishingId === row.id" @click="togglePublish(row)">
                   {{ row.is_published ? '下架' : '发布' }}
                 </el-button>
@@ -81,7 +82,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Collection, Delete, Edit, Plus, Search, View } from '@element-plus/icons-vue'
+import { Collection, Delete, Edit, Plus, Search, Tickets, View } from '@element-plus/icons-vue'
 import CourseFormDialog from '../../components/CourseFormDialog.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { createCourse, deleteCourse, fetchCourses, publishCourse, updateCourse } from '../../api/course'
@@ -212,35 +213,24 @@ onMounted(() => {
 
 <style scoped>
 .manager-shell {
-  max-width: 1180px;
-  margin: 54px auto 0;
+  margin: 64px auto 0;
 }
 
 .manager-heading {
-  position: relative;
-  padding: 30px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  min-height: 360px;
+  padding: 42px;
+  display: grid;
+  align-content: end;
 }
 
-.manager-heading > * {
-  position: relative;
-  z-index: 1;
+.manager-heading h1,
+.manager-heading p {
+  color: var(--paper);
 }
 
-.manager-heading h1 {
-  margin: 0;
-  font-size: clamp(38px, 5vw, 54px);
-  line-height: 1.06;
-}
-
-.manager-heading p:last-child {
+.manager-heading p:not(.eyebrow) {
   max-width: 720px;
-  color: var(--slate-600);
-  line-height: 1.75;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .filter-panel,
@@ -258,18 +248,17 @@ onMounted(() => {
 
 .course-cell {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+}
+
+.course-cell strong {
+  font-size: 22px;
+  font-weight: 900;
 }
 
 .course-cell span {
-  color: var(--slate-500);
+  color: var(--muted);
   font-size: 13px;
-}
-
-.table-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
+  font-weight: 800;
 }
 </style>
