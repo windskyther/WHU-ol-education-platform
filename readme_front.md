@@ -519,12 +519,19 @@ P2 scope:
   "is_published": false,
   "published_at": null,
   "chapter_count": 0,
+  "is_enrolled": false,
   "created_at": "2026-07-08T10:00:00+08:00",
   "updated_at": "2026-07-08T10:00:00+08:00"
 }
 ```
 
 `level` must be one of `beginner`, `intermediate`, `advanced`.
+
+`is_enrolled` indicates whether the current authenticated student has joined this course:
+
+- Student token: `true` if the current student has an `Enrollment` for the course, otherwise `false`.
+- No token, teacher token, or admin token: always `false`.
+- Frontend course plaza and course detail pages should use this field to render "joined/not joined" state.
 
 ### 8. Course List
 
@@ -569,6 +576,7 @@ Response is paginated. Course items are in `data.results`:
         "is_published": true,
         "published_at": "2026-07-08T10:00:00+08:00",
         "chapter_count": 2,
+        "is_enrolled": true,
         "created_at": "2026-07-08T10:00:00+08:00",
         "updated_at": "2026-07-08T10:00:00+08:00"
       }
@@ -582,6 +590,7 @@ Visibility rule:
 - No token/student token: only published and not deleted courses.
 - Teacher token: teacher's own not deleted courses, including drafts.
 - Admin token: all not deleted courses.
+- Student token: each course item includes accurate `is_enrolled`.
 
 ### 9. Create Course
 
@@ -625,6 +634,7 @@ Common errors:
 #### GET `/api/courses/{course_id}/`
 
 Visible course returns the same `Course Object` shape.
+Student token responses include accurate `is_enrolled`, so the detail page can render continue-learning or join-course state without calling `/api/my/courses/`.
 
 Draft visibility:
 
