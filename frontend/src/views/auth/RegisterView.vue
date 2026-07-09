@@ -1,56 +1,56 @@
 <template>
   <main class="auth-page">
     <LearningPathPanel
-      title="从一个可验证的身份开始。"
-      description="选择学生或教师身份，平台会开放对应的学习与课程管理入口。角色清晰，协作更顺畅。"
+      :title="t('auth.identityFlowTitle')"
+      :description="t('auth.identityFlowDesc')"
     />
 
     <section class="auth-card" aria-label="注册表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">返回首页</RouterLink>
-        <p class="eyebrow">创建账号</p>
-        <h2>注册</h2>
-        <p>邮箱验证码用于确认账号归属。</p>
+        <RouterLink class="back-link" to="/">{{ t('auth.backHome') }}</RouterLink>
+        <p class="eyebrow">{{ t('auth.registerEyebrow') }}</p>
+        <h2>{{ t('auth.registerTitle') }}</h2>
+        <p>{{ t('auth.registerSubtitle') }}</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model.trim="form.username" size="large" placeholder="请输入用户名" autocomplete="username" />
+        <el-form-item :label="t('auth.usernameLabel')" prop="username">
+          <el-input v-model.trim="form.username" size="large" :placeholder="t('auth.usernamePlaceholder')" autocomplete="username" />
         </el-form-item>
-        <el-form-item label="邮箱" prop="email">
+        <el-form-item :label="t('auth.emailLabel')" prop="email">
           <el-input v-model.trim="form.email" size="large" placeholder="name@example.com" autocomplete="email" />
         </el-form-item>
-        <el-form-item label="验证码" prop="email_code">
+        <el-form-item :label="t('auth.codeLabel')" prop="email_code">
           <div class="code-row">
-            <el-input v-model.trim="form.email_code" size="large" placeholder="6 位验证码" />
+            <el-input v-model.trim="form.email_code" size="large" :placeholder="t('auth.codePlaceholder')" />
             <el-button size="large" :disabled="codeDisabled" :loading="sendingCode" @click="handleSendCode">
               {{ codeButtonText }}
             </el-button>
           </div>
         </el-form-item>
-        <el-form-item label="角色" prop="role">
+        <el-form-item :label="t('auth.roleLabel')" prop="role">
           <el-segmented v-model="form.role" :options="roleOptions" block />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" size="large" type="password" placeholder="至少 6 位" autocomplete="new-password" show-password />
+        <el-form-item :label="t('auth.passwordLabel')" prop="password">
+          <el-input v-model="form.password" size="large" type="password" :placeholder="t('auth.passwordMinPlaceholder')" autocomplete="new-password" show-password />
         </el-form-item>
-        <el-form-item label="确认密码" prop="confirmPassword">
+        <el-form-item :label="t('auth.confirmPasswordLabel')" prop="confirmPassword">
           <el-input
             v-model="form.confirmPassword"
             size="large"
             type="password"
-            placeholder="再次输入密码"
+            :placeholder="t('auth.confirmPasswordPlaceholder')"
             autocomplete="new-password"
             show-password
             @keyup.enter="handleRegister"
           />
         </el-form-item>
         <el-button class="auth-submit" type="primary" size="large" :loading="submitting" @click="handleRegister">
-          创建账号
+          {{ t('auth.submitCreateAccount') }}
         </el-button>
       </el-form>
 
-      <p class="auth-switch">已有账号？<RouterLink to="/login">去登录</RouterLink></p>
+      <p class="auth-switch">{{ t('auth.alreadyHaveAccount') }}<RouterLink to="/login">{{ t('auth.goLogin') }}</RouterLink></p>
     </section>
   </main>
 </template>
@@ -59,11 +59,13 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { sendEmailCode } from '../../api/auth'
 import { useUserStore } from '../../stores/user'
 import { getEmailCodeErrorMessage, getRegisterErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref()
@@ -81,39 +83,39 @@ const form = reactive({
   confirmPassword: ''
 })
 
-const roleOptions = [
-  { label: '学生', value: 'student' },
-  { label: '教师', value: 'teacher' }
-]
+const roleOptions = computed(() => [
+  { label: t('auth.roleStudent'), value: 'student' },
+  { label: t('auth.roleTeacher'), value: 'teacher' }
+])
 
 const validateConfirmPassword = (rule, value, callback) => {
   if (value !== form.password) {
-    callback(new Error('两次输入的密码不一致'))
+    callback(new Error(t('auth.passwordMismatch')))
     return
   }
   callback()
 }
 
-const rules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+const rules = computed(() => ({
+  username: [{ required: true, message: t('auth.usernameRequired'), trigger: 'blur' }],
   email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '请输入有效邮箱', trigger: ['blur', 'change'] }
+    { required: true, message: t('auth.emailRequired'), trigger: 'blur' },
+    { type: 'email', message: t('auth.emailInvalid'), trigger: ['blur', 'change'] }
   ],
-  email_code: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
+  email_code: [{ required: true, message: t('auth.codeRequired'), trigger: 'blur' }],
+  role: [{ required: true, message: t('auth.roleRequired'), trigger: 'change' }],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少 6 位', trigger: 'blur' }
+    { required: true, message: t('auth.passwordRequired'), trigger: 'blur' },
+    { min: 6, message: t('auth.passwordMin6'), trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: '请再次输入密码', trigger: 'blur' },
+    { required: true, message: t('auth.confirmPasswordRequired'), trigger: 'blur' },
     { validator: validateConfirmPassword, trigger: 'blur' }
   ]
-}
+}))
 
 const codeDisabled = computed(() => countdown.value > 0)
-const codeButtonText = computed(() => (countdown.value > 0 ? `${countdown.value}s 后重发` : '发送验证码'))
+const codeButtonText = computed(() => (countdown.value > 0 ? t('auth.resendCountdown', { n: countdown.value }) : t('auth.sendCode')))
 
 function startCountdown() {
   countdown.value = 60
@@ -132,7 +134,7 @@ async function handleSendCode() {
 
   try {
     await sendEmailCode({ registerEmail: form.email, purpose: 'register' })
-    ElMessage.success('验证码已发送')
+    ElMessage.success(t('auth.codeSent'))
     startCountdown()
   } catch (error) {
     ElMessage.error(getEmailCodeErrorMessage(error))
@@ -147,7 +149,7 @@ async function handleRegister() {
 
   try {
     await userStore.registerUser({ ...form })
-    ElMessage.success('注册成功，请登录')
+    ElMessage.success(t('auth.registerSuccess'))
     router.push('/login')
   } catch (error) {
     ElMessage.error(getRegisterErrorMessage(error))

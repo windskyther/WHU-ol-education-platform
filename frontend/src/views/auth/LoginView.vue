@@ -1,51 +1,53 @@
 <template>
   <main class="auth-page">
     <LearningPathPanel
-      title="回到你的学习节奏。"
-      description="登录后会根据身份进入对应工作区。学生继续学习，教师维护课程，每一次进入都更接近完成。"
+      :title="t('auth.learningFlowTitle')"
+      :description="t('auth.learningFlowDesc')"
     />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">返回首页</RouterLink>
-        <p class="eyebrow">安全登录</p>
-        <h2>登录</h2>
-        <p>使用用户名或邮箱进入 WHU 在线教育平台。</p>
+        <RouterLink class="back-link" to="/">{{ t('auth.backHome') }}</RouterLink>
+        <p class="eyebrow">{{ t('auth.secureAccess') }}</p>
+        <h2>{{ t('auth.loginTitle') }}</h2>
+        <p>{{ t('auth.loginSubtitle') }}</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
-        <el-form-item label="账号" prop="account">
-          <el-input v-model.trim="form.account" size="large" placeholder="用户名或邮箱" autocomplete="username" />
+        <el-form-item :label="t('auth.accountLabel')" prop="account">
+          <el-input v-model.trim="form.account" size="large" :placeholder="t('auth.accountPlaceholder')" autocomplete="username" />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
+        <el-form-item :label="t('auth.passwordLabel')" prop="password">
           <el-input
             v-model="form.password"
             size="large"
             type="password"
-            placeholder="请输入密码"
+            :placeholder="t('auth.passwordPlaceholder')"
             autocomplete="current-password"
             show-password
             @keyup.enter="handleLogin"
           />
         </el-form-item>
         <el-button class="auth-submit" type="primary" size="large" :loading="submitting" @click="handleLogin">
-          登录并进入平台
+          {{ t('auth.loginSubmit') }}
         </el-button>
       </el-form>
 
-      <p class="auth-switch">还没有账号？<RouterLink to="/register">创建账号</RouterLink></p>
+      <p class="auth-switch">{{ t('auth.noAccount') }}<RouterLink to="/register">{{ t('auth.createAccount') }}</RouterLink></p>
     </section>
   </main>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { useUserStore } from '../../stores/user'
 import { getLoginErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
@@ -57,10 +59,10 @@ const form = reactive({
   password: ''
 })
 
-const rules = {
-  account: [{ required: true, message: '请输入用户名或邮箱', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  account: [{ required: true, message: t('auth.accountRequired'), trigger: 'blur' }],
+  password: [{ required: true, message: t('auth.passwordRequired'), trigger: 'blur' }]
+}))
 
 async function handleLogin() {
   await formRef.value.validate()
@@ -68,7 +70,7 @@ async function handleLogin() {
 
   try {
     const nextPath = await userStore.loginUser(form)
-    ElMessage.success('登录成功')
+    ElMessage.success(t('auth.loginSuccess'))
     router.push(route.query.redirect || nextPath)
   } catch (error) {
     ElMessage.error(getLoginErrorMessage(error))

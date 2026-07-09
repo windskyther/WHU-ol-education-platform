@@ -2,11 +2,11 @@
   <aside class="learning-path-panel">
     <div class="path-brand">
       <span class="path-logo">WHU</span>
-      <span>在线教育</span>
+      <span>{{ t('nav.brandSuffix') }}</span>
     </div>
 
     <div class="path-copy">
-      <p class="path-eyebrow">安全通道</p>
+      <p class="path-eyebrow">{{ t('auth.accessLayer') }}</p>
       <h1>{{ title }}</h1>
       <p>{{ description }}</p>
     </div>
@@ -20,14 +20,18 @@
     </div>
 
     <div class="path-steps">
-      <span>身份</span>
-      <span>课程</span>
-      <span>进度</span>
+      <span>{{ t('auth.identity') }}</span>
+      <span>{{ t('auth.courses') }}</span>
+      <span>{{ t('auth.progressStep') }}</span>
     </div>
   </aside>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
   title: {
     type: String,

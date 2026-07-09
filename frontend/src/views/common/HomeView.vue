@@ -3,49 +3,49 @@
     <section class="topbar">
       <div class="brand">
         <span class="brand-mark">WHU</span>
-        <span>在线教育</span>
+        <span>{{ t('nav.brandSuffix') }}</span>
       </div>
       <div class="topbar-actions">
         <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
-        <RouterLink to="/courses">课程广场</RouterLink>
-        <RouterLink to="/login">登录</RouterLink>
-        <el-button type="primary" @click="$router.push('/register')">注册</el-button>
+        <RouterLink to="/courses">{{ t('home.coursesSquare') }}</RouterLink>
+        <RouterLink to="/login">{{ t('home.login') }}</RouterLink>
+        <el-button type="primary" @click="$router.push('/register')">{{ t('home.register') }}</el-button>
       </div>
     </section>
 
     <section class="home-stage">
       <aside class="home-index">
-        <p class="eyebrow">WHU 学习系统</p>
+        <p class="eyebrow">{{ t('home.learningSystem') }}</p>
         <ul class="rally-index">
           <li class="index-row is-active">
-            <span class="index-letter">课</span>
-            <span class="index-name">课程</span>
+            <span class="index-letter">{{ t('home.course').slice(0, 1) }}</span>
+            <span class="index-name">{{ t('home.course') }}</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">视</span>
-            <span class="index-name">视频</span>
+            <span class="index-letter">{{ t('home.video').slice(0, 1) }}</span>
+            <span class="index-name">{{ t('home.video') }}</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">考</span>
-            <span class="index-name">考试</span>
+            <span class="index-letter">{{ t('home.exam').slice(0, 1) }}</span>
+            <span class="index-name">{{ t('home.exam') }}</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">进</span>
-            <span class="index-name">进度</span>
+            <span class="index-letter">{{ t('home.progress').slice(0, 1) }}</span>
+            <span class="index-name">{{ t('home.progress') }}</span>
           </li>
         </ul>
       </aside>
 
       <section class="hero-copy">
-        <p class="eyebrow">互动教育平台</p>
-        <h1 class="mega-title">让学习动起来。</h1>
+        <p class="eyebrow">{{ t('home.interactiveEducationPlatform') }}</p>
+        <h1 class="mega-title">{{ t('home.heroTitle') }}</h1>
         <p class="summary">
-          课程、章节、视频、资料、学习进度和考试成绩被组织成一条清晰的学习轨迹。界面像作品集一样醒目，逻辑仍然稳定地连接后端。
+          {{ t('home.heroSummary') }}
         </p>
         <p class="health-message">{{ healthMessage }}</p>
         <div class="actions">
-          <el-button type="primary" size="large" :icon="Reading" @click="$router.push('/courses')">浏览课程</el-button>
-          <el-button size="large" plain :icon="Refresh" @click="refreshHealth">刷新状态</el-button>
+          <el-button type="primary" size="large" :icon="Reading" @click="$router.push('/courses')">{{ t('home.browseCourses') }}</el-button>
+          <el-button size="large" plain :icon="Refresh" @click="refreshHealth">{{ t('home.refreshStatus') }}</el-button>
         </div>
       </section>
     </section>
@@ -55,17 +55,21 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Reading, Refresh } from '@element-plus/icons-vue'
 import { getHealth } from '../../api/health'
 
+const { t } = useI18n()
 const healthStatus = ref('checking')
-const healthMessage = ref('正在检查后端健康状态')
+const healthMessageKey = ref('home.healthChecking')
 
 const healthText = computed(() => {
-  if (healthStatus.value === 'ok') return '后端已连接'
-  if (healthStatus.value === 'error') return '后端未连接'
-  return '检查中'
+  if (healthStatus.value === 'ok') return t('home.backendConnected')
+  if (healthStatus.value === 'error') return t('home.backendDisconnected')
+  return t('home.checking')
 })
+
+const healthMessage = computed(() => t(healthMessageKey.value))
 
 const healthTagType = computed(() => {
   if (healthStatus.value === 'ok') return 'success'
@@ -75,15 +79,15 @@ const healthTagType = computed(() => {
 
 async function refreshHealth() {
   healthStatus.value = 'checking'
-  healthMessage.value = '正在检查后端健康状态'
+  healthMessageKey.value = 'home.healthChecking'
 
   try {
     const result = await getHealth()
     healthStatus.value = 'ok'
-    healthMessage.value = result?.status === 'ok' ? '后端健康检查通过' : '后端已响应'
+    healthMessageKey.value = result?.status === 'ok' ? 'home.healthOk' : 'home.healthResponded'
   } catch (error) {
     healthStatus.value = 'error'
-    healthMessage.value = '后端暂未启动，前端页面仍可正常查看'
+    healthMessageKey.value = 'home.healthDown'
   }
 }
 

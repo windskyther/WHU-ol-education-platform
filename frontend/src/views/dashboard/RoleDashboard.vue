@@ -14,8 +14,8 @@
         </div>
       </div>
       <div class="dashboard-card">
-        <span>当前用户</span>
-        <strong>{{ userStore.userInfo?.username || userStore.userInfo?.email || '已登录用户' }}</strong>
+        <span class="card-label">{{ t('dashboard.currentUser') }}</span>
+        <strong>{{ userStore.userInfo?.username || userStore.userInfo?.email || t('dashboard.loggedInUser') }}</strong>
         <span class="status-pill">{{ roleCopy.roleName }}</span>
         <div class="mini-index" aria-hidden="true">
           <span>01</span>
@@ -29,46 +29,48 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import { useUserStore } from '../../stores/user'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 
-const roleText = {
+const roleText = computed(() => ({
   student: {
-    eyebrow: '学生工作台',
-    title: 'Keep the course moving.',
-    description: '查看已加入课程，回到视频学习页，系统会持续记录章节进度。P4 阶段已接入考试和成绩能力。',
-    roleName: '学生',
+    eyebrow: t('dashboard.studentWorkspace'),
+    title: t('dashboard.studentTitle'),
+    description: t('dashboard.studentDescription'),
+    roleName: t('dashboard.studentRoleName'),
     actions: [
-      { label: '我的课程', path: '/student/courses', primary: true },
-      { label: '我的成绩', path: '/student/scores' },
-      { label: '课程广场', path: '/courses' }
+      { label: t('dashboard.myCourses'), path: '/student/courses', primary: true },
+      { label: t('dashboard.myScores'), path: '/student/scores' },
+      { label: t('dashboard.coursesSquare'), path: '/courses' }
     ]
   },
   teacher: {
-    eyebrow: '教师工作台',
-    title: 'Shape the learning material.',
-    description: '创建课程、维护章节、上传视频资料，并控制课程发布状态。学生端会基于这些内容进入学习和考试流程。',
-    roleName: '教师',
+    eyebrow: t('dashboard.teacherWorkspace'),
+    title: t('dashboard.teacherTitle'),
+    description: t('dashboard.teacherDescription'),
+    roleName: t('dashboard.teacherRoleName'),
     actions: [
-      { label: '管理课程', path: '/teacher/courses', primary: true },
-      { label: '课程广场', path: '/courses' }
+      { label: t('dashboard.manageCourses'), path: '/teacher/courses', primary: true },
+      { label: t('dashboard.coursesSquare'), path: '/courses' }
     ]
   },
   admin: {
-    eyebrow: '管理员工作台',
-    title: 'Audit the system boundary.',
-    description: '管理员可辅助查看课程数据和教师内容管理入口，检查课程、权限、考试与提交记录的边界。',
-    roleName: '管理员',
+    eyebrow: t('dashboard.adminWorkspace'),
+    title: t('dashboard.adminTitle'),
+    description: t('dashboard.adminDescription'),
+    roleName: t('dashboard.adminRoleName'),
     actions: [
-      { label: '课程管理', path: '/teacher/courses', primary: true },
-      { label: '课程广场', path: '/courses' }
+      { label: t('dashboard.courseManagement'), path: '/teacher/courses', primary: true },
+      { label: t('dashboard.coursesSquare'), path: '/courses' }
     ]
   }
-}
+}))
 
-const roleCopy = computed(() => roleText[userStore.role] || roleText.student)
+const roleCopy = computed(() => roleText.value[userStore.role] || roleText.value.student)
 </script>
 
 <style scoped>

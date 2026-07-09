@@ -2,7 +2,7 @@
   <nav class="app-nav">
     <RouterLink class="brand-link" :to="brandPath">
       <span class="brand-mark">WHU</span>
-      <span>在线教育</span>
+      <span>{{ t('nav.brandSuffix') }}</span>
     </RouterLink>
 
     <div class="nav-actions">
@@ -23,7 +23,7 @@
           <template #dropdown>
             <div class="user-dropdown-panel">
               <div class="user-dropdown-head">
-                <span>当前状态</span>
+                <span>{{ t('nav.currentStatus') }}</span>
                 <strong>{{ currentMood.text }}</strong>
               </div>
               <div class="mood-capsule-grid mood-capsule-grid--compact">
@@ -41,16 +41,16 @@
                 </button>
               </div>
               <div class="user-dropdown-actions">
-                <button type="button" class="user-dropdown-link" @click="goSettings">个人设置</button>
-                <button type="button" class="user-dropdown-link is-danger" @click="handleLogout">退出登录</button>
+                <button type="button" class="user-dropdown-link" @click="goSettings">{{ t('nav.personalSettings') }}</button>
+                <button type="button" class="user-dropdown-link is-danger" @click="handleLogout">{{ t('nav.logout') }}</button>
               </div>
             </div>
           </template>
         </el-dropdown>
       </template>
       <template v-else>
-        <RouterLink to="/login">登录</RouterLink>
-        <RouterLink to="/register">注册</RouterLink>
+        <RouterLink to="/login">{{ t('nav.login') }}</RouterLink>
+        <RouterLink to="/register">{{ t('nav.register') }}</RouterLink>
       </template>
     </div>
   </nav>
@@ -60,11 +60,13 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import UserCapsule from './UserCapsule.vue'
 import { MOOD_OPTIONS, getMoodDisplay } from '../constants/userMood'
 import { useUserStore } from '../stores/user'
 import { getCommonErrorMessage, getProfileErrorMessage } from '../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
@@ -80,27 +82,27 @@ const brandPath = computed(() => {
 const currentMood = computed(() => getMoodDisplay(userStore.mood))
 
 const mainLinks = computed(() => {
-  const links = [{ label: '课程广场', to: '/courses' }]
+  const links = [{ label: t('nav.coursesSquare'), to: '/courses' }]
 
   if (userStore.role === 'student') {
     links.unshift(
-      { label: '工作台', to: '/student/dashboard' },
-      { label: '我的课程', to: '/student/courses' },
-      { label: '我的成绩', to: '/student/scores' }
+      { label: t('nav.workspace'), to: '/student/dashboard' },
+      { label: t('nav.myCourses'), to: '/student/courses' },
+      { label: t('nav.myScores'), to: '/student/scores' }
     )
   } else if (userStore.role === 'teacher' || userStore.role === 'admin') {
     links.unshift(
-      { label: '工作台', to: userStore.redirectPathByRole() },
-      { label: '课程管理', to: '/teacher/courses' }
+      { label: t('nav.workspace'), to: userStore.redirectPathByRole() },
+      { label: t('nav.courseManagement'), to: '/teacher/courses' }
     )
   }
 
   if (userStore.role === 'student' || userStore.role === 'teacher') {
-    links.push({ label: '社区中心', to: '/community/forum' })
+    links.push({ label: t('nav.community'), to: '/community/forum' })
   }
 
   if (userStore.role === 'student') {
-    links.push({ label: '我的证书', to: '/certificates' })
+    links.push({ label: t('nav.myCertificates'), to: '/certificates' })
   }
 
   return links
@@ -135,9 +137,9 @@ async function handleMoodChange(moodKey) {
   moodUpdating.value = moodKey
   try {
     await userStore.updateProfile({ mood: moodKey })
-    ElMessage.success('状态已更新')
+    ElMessage.success(t('nav.statusUpdated'))
   } catch (error) {
-    ElMessage.error(getProfileErrorMessage(error, '状态更新失败，请稍后重试'))
+    ElMessage.error(getProfileErrorMessage(error, t('nav.statusUpdateFailed')))
   } finally {
     moodUpdating.value = ''
   }
@@ -145,7 +147,7 @@ async function handleMoodChange(moodKey) {
 
 async function handleLogout() {
   await userStore.logoutUser()
-  ElMessage.success('已退出登录')
+  ElMessage.success(t('nav.loggedOut'))
   router.push('/login')
 }
 </script>
