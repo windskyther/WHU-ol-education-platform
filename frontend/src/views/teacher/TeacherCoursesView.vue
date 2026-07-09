@@ -59,6 +59,7 @@
                 <el-button size="small" text :icon="View" @click="$router.push(`/courses/${row.id}`)">查看</el-button>
                 <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
                 <el-button size="small" text :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">章节</el-button>
+                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/courses/${row.id}/exams`)">考试</el-button>
                 <el-button size="small" plain :loading="publishingId === row.id" @click="togglePublish(row)">
                   {{ row.is_published ? '下架' : '发布' }}
                 </el-button>
@@ -81,7 +82,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Collection, Delete, Edit, Plus, Search, View } from '@element-plus/icons-vue'
+import { Collection, Delete, Edit, Plus, Search, Tickets, View } from '@element-plus/icons-vue'
 import CourseFormDialog from '../../components/CourseFormDialog.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { createCourse, deleteCourse, fetchCourses, publishCourse, updateCourse } from '../../api/course'

@@ -8,6 +8,7 @@
       <div class="nav-actions">
         <RouterLink to="/teacher/courses">Course manager</RouterLink>
         <RouterLink :to="`/courses/${courseId}`">View course</RouterLink>
+        <RouterLink :to="`/teacher/courses/${courseId}/exams`">Exams</RouterLink>
         <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create chapter</el-button>
       </div>
     </nav>
