@@ -1,12 +1,16 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="回到你的学习节奏" description="登录后会根据角色进入对应工作台。学生继续课程进度，教师维护课程内容，每一次进入都更接近完成。" />
+    <LearningPathPanel
+      title="Return to the learning flow."
+      description="登录后会根据身份进入对应工作区。学生继续学习，教师维护课程，每一次进入都更接近完成。"
+    />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">返回首页</RouterLink>
-        <h2>登录</h2>
-        <p>使用用户名或邮箱登录 WHU 在线教育平台。</p>
+        <RouterLink class="back-link" to="/">Back home</RouterLink>
+        <p class="eyebrow">Secure access</p>
+        <h2>Login</h2>
+        <p>使用用户名或邮箱进入 WHU 在线教育平台。</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
@@ -73,3 +77,53 @@ async function handleLogin() {
   }
 }
 </script>
+
+<style scoped>
+.auth-page {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(360px, 1.08fr);
+  padding: 0;
+}
+
+.auth-card {
+  align-self: center;
+  width: min(560px, calc(100% - 48px));
+  margin: 48px auto;
+  padding: 42px;
+}
+
+.auth-card__header {
+  margin-bottom: 28px;
+}
+
+.auth-card__header h2 {
+  margin-top: 12px;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-switch {
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-weight: 900;
+  text-align: center;
+}
+
+.auth-switch a {
+  border-bottom: 2px solid currentColor;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    width: calc(100% - 32px);
+    padding: 30px;
+  }
+}
+</style>
