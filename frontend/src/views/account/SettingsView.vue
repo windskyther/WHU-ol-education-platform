@@ -7,7 +7,7 @@
     <section class="settings-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Account settings</p>
+          <p class="eyebrow">账号设置</p>
           <h1>个人设置</h1>
           <p>管理头像、资料、情绪状态和登录密码。Nav 右上角胶囊会实时反映你的展示状态。</p>
         </div>
@@ -16,7 +16,7 @@
       <section class="surface settings-capsule-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Profile capsule</p>
+            <p class="eyebrow">个人胶囊</p>
             <h2>展示预览</h2>
           </div>
         </div>
@@ -35,7 +35,7 @@
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Basic profile</p>
+            <p class="eyebrow">基础资料</p>
             <h2>基本资料</h2>
           </div>
         </div>
@@ -59,7 +59,7 @@
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Mood status</p>
+            <p class="eyebrow">心情状态</p>
             <h2>情绪状态</h2>
           </div>
         </div>
@@ -84,7 +84,7 @@
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">Security</p>
+            <p class="eyebrow">安全设置</p>
             <h2>修改密码</h2>
           </div>
         </div>

@@ -11,7 +11,7 @@
     <section class="submissions-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Submission ledger</p>
+          <p class="eyebrow">提交记录</p>
           <h1>{{ exam?.title || 'Exam submissions' }}</h1>
           <p>查看学生提交和后端判分结果。此页只读，不修改成绩。</p>
         </div>

@@ -2,7 +2,7 @@
   <nav class="app-nav">
     <RouterLink class="brand-link" :to="brandPath">
       <span class="brand-mark">WHU</span>
-      <span>Online Education</span>
+      <span>在线教育</span>
     </RouterLink>
 
     <div class="nav-actions">

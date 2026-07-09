@@ -9,7 +9,7 @@
     <section class="manager-shell">
       <div class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Teacher course manager</p>
+          <p class="eyebrow">教师课程管理</p>
           <h1>Build the catalog.</h1>
           <p>维护课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
         </div>

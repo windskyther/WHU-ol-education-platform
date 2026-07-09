@@ -1,15 +1,15 @@
 <template>
   <main class="auth-page">
     <LearningPathPanel
-      title="Return to the learning flow."
+      title="回到你的学习节奏。"
       description="登录后会根据身份进入对应工作区。学生继续学习，教师维护课程，每一次进入都更接近完成。"
     />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">Back home</RouterLink>
-        <p class="eyebrow">Secure access</p>
-        <h2>Login</h2>
+        <RouterLink class="back-link" to="/">返回首页</RouterLink>
+        <p class="eyebrow">安全登录</p>
+        <h2>登录</h2>
         <p>使用用户名或邮箱进入 WHU 在线教育平台。</p>
       </div>
 

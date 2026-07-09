@@ -5,7 +5,7 @@
     <section class="my-workspace">
       <header class="learning-board kinetic-panel">
         <div>
-          <p class="eyebrow">Learning dashboard</p>
+          <p class="eyebrow">学习看板</p>
           <h1>Track the work in motion.</h1>
           <p>继续推进已经加入的课程，优先回到最需要完成的学习内容。</p>
         </div>

@@ -13,7 +13,7 @@
       <template v-if="course">
         <header class="detail-intro">
           <div class="intro-copy">
-            <p class="eyebrow">Course overview</p>
+            <p class="eyebrow">课程概览</p>
             <h1>{{ course.title }}</h1>
             <p class="course-summary">{{ course.description || '暂无课程简介' }}</p>
           </div>
@@ -47,23 +47,23 @@
 
         <section class="course-facts">
           <div>
-            <span>Level</span>
+            <span>难度</span>
             <strong>{{ levelText }}</strong>
           </div>
           <div>
-            <span>Category</span>
+            <span>分类</span>
             <strong>{{ course.category || '未分类' }}</strong>
           </div>
           <div>
-            <span>Teacher</span>
+            <span>教师</span>
             <strong>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</strong>
           </div>
           <div>
-            <span>Chapters</span>
+            <span>章节数</span>
             <strong>{{ course.chapter_count || chapters.length }}</strong>
           </div>
           <div>
-            <span>Exams</span>
+            <span>考试数</span>
             <strong>{{ exams.length }}</strong>
           </div>
         </section>
@@ -71,8 +71,8 @@
         <section class="chapter-access">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Chapter access</p>
-              <h2>Content rail</h2>
+              <p class="eyebrow">章节入口</p>
+              <h2>章节列表</h2>
             </div>
             <el-tag :type="course.is_published ? 'success' : 'warning'" effect="light">
               {{ course.is_published ? '已发布' : '草稿' }}
@@ -104,8 +104,8 @@
         <section v-if="canViewChapters" class="exam-access">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Exam access</p>
-              <h2>Assessment rail</h2>
+              <p class="eyebrow">考试入口</p>
+              <h2>考试列表</h2>
             </div>
             <el-tag effect="light">{{ exams.length }} 场考试</el-tag>
           </div>

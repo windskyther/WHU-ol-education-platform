@@ -5,7 +5,7 @@
     <section class="community-shell">
       <header class="list-heading">
         <div>
-          <p class="eyebrow">Community</p>
+          <p class="eyebrow">社区中心</p>
           <h1>社区中心</h1>
         </div>
         <p>在这里发帖交流、分享学习资料，管理自己的发布和收藏。</p>

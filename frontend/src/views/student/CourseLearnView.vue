@@ -8,7 +8,7 @@
       <template v-if="course">
         <header class="learn-titlebar">
           <div>
-            <p class="eyebrow">Learning room</p>
+            <p class="eyebrow">学习空间</p>
             <h1>{{ course.title }}</h1>
             <p>{{ course.description || '选择章节开始学习，系统会自动保存观看进度。' }}</p>
           </div>
@@ -24,7 +24,7 @@
             <template v-if="selectedChapter">
               <div class="now-row">
                 <div>
-                  <p class="eyebrow">Now playing</p>
+                  <p class="eyebrow">正在播放</p>
                   <h2>{{ selectedChapter.title }}</h2>
                   <p>{{ selectedChapter.description || '暂无章节简介' }}</p>
                 </div>
@@ -68,8 +68,8 @@
           <aside class="chapter-rail">
             <div class="rail-heading">
               <div>
-                <p class="eyebrow">Chapter rail</p>
-                <h2>Index</h2>
+                <p class="eyebrow">章节列表</p>
+                <h2>目录</h2>
               </div>
               <span>{{ orderedChapters.length }} 章</span>
             </div>

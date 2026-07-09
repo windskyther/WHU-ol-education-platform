@@ -8,7 +8,7 @@
       <template v-if="exam">
         <header class="exam-hero">
           <div>
-            <p class="eyebrow">Exam room</p>
+            <p class="eyebrow">考试空间</p>
             <h1>{{ exam.title || '在线考试' }}</h1>
             <p>{{ exam.description || '按题目要求完成作答，提交后由后端统一判分。' }}</p>
           </div>
@@ -25,7 +25,7 @@
         <section class="surface exam-paper">
           <div class="paper-heading">
             <div>
-              <p class="eyebrow">Answer sheet</p>
+              <p class="eyebrow">答题卡</p>
               <h2>作答区</h2>
             </div>
             <el-tag effect="light">{{ answeredCount }} / {{ safeQuestions.length }} 已答</el-tag>

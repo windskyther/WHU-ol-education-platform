@@ -5,7 +5,7 @@
     <section class="certificates-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Certificate wall</p>
+          <p class="eyebrow">证书墙</p>
           <h1>我的证书</h1>
           <p>考试成绩达到课程设置的优秀线后，系统会自动为你颁发对应证书。</p>
         </div>
@@ -21,7 +21,7 @@
           >
             <div class="certificate-card-inner">
               <span class="certificate-card-seal">🎖️</span>
-              <p class="certificate-card-eyebrow">CERTIFICATE OF EXCELLENCE</p>
+              <p class="certificate-card-eyebrow">优秀证书</p>
               <h3 class="certificate-card-course">{{ cert.course_title }}</h3>
               <p class="certificate-card-exam">{{ cert.exam_title }}</p>
               <p class="certificate-card-student">{{ cert.student_name }}</p>

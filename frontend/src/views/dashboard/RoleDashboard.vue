@@ -14,7 +14,7 @@
         </div>
       </div>
       <div class="dashboard-card">
-        <span class="card-label">Current user</span>
+        <span>当前用户</span>
         <strong>{{ userStore.userInfo?.username || userStore.userInfo?.email || '已登录用户' }}</strong>
         <span class="status-pill">{{ roleCopy.roleName }}</span>
         <div class="mini-index" aria-hidden="true">
@@ -36,7 +36,7 @@ const userStore = useUserStore()
 
 const roleText = {
   student: {
-    eyebrow: 'Student workspace',
+    eyebrow: '学生工作台',
     title: 'Keep the course moving.',
     description: '查看已加入课程，回到视频学习页，系统会持续记录章节进度。P4 阶段已接入考试和成绩能力。',
     roleName: '学生',
@@ -47,7 +47,7 @@ const roleText = {
     ]
   },
   teacher: {
-    eyebrow: 'Teacher workspace',
+    eyebrow: '教师工作台',
     title: 'Shape the learning material.',
     description: '创建课程、维护章节、上传视频资料，并控制课程发布状态。学生端会基于这些内容进入学习和考试流程。',
     roleName: '教师',
@@ -57,7 +57,7 @@ const roleText = {
     ]
   },
   admin: {
-    eyebrow: 'Admin workspace',
+    eyebrow: '管理员工作台',
     title: 'Audit the system boundary.',
     description: '管理员可辅助查看课程数据和教师内容管理入口，检查课程、权限、考试与提交记录的边界。',
     roleName: '管理员',

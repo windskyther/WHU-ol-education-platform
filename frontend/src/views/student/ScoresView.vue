@@ -5,7 +5,7 @@
     <section class="scores-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Score ledger</p>
+          <p class="eyebrow">成绩记录</p>
           <h1>成绩记录</h1>
           <p>查看已经提交的考试成绩，分数以后端判分结果为准。</p>
         </div>

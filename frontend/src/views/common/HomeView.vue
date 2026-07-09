@@ -3,7 +3,7 @@
     <section class="topbar">
       <div class="brand">
         <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
+        <span>在线教育</span>
       </div>
       <div class="topbar-actions">
         <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
@@ -15,30 +15,30 @@
 
     <section class="home-stage">
       <aside class="home-index">
-        <p class="eyebrow">WHU learning system</p>
+        <p class="eyebrow">WHU 学习系统</p>
         <ul class="rally-index">
           <li class="index-row is-active">
-            <span class="index-letter">C</span>
-            <span class="index-name">Courses</span>
+            <span class="index-letter">课</span>
+            <span class="index-name">课程</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">V</span>
-            <span class="index-name">Video</span>
+            <span class="index-letter">视</span>
+            <span class="index-name">视频</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">E</span>
-            <span class="index-name">Exams</span>
+            <span class="index-letter">考</span>
+            <span class="index-name">考试</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">P</span>
-            <span class="index-name">Progress</span>
+            <span class="index-letter">进</span>
+            <span class="index-name">进度</span>
           </li>
         </ul>
       </aside>
 
       <section class="hero-copy">
-        <p class="eyebrow">Interactive education platform</p>
-        <h1 class="mega-title">Make learning feel kinetic.</h1>
+        <p class="eyebrow">互动教育平台</p>
+        <h1 class="mega-title">让学习动起来。</h1>
         <p class="summary">
           课程、章节、视频、资料、学习进度和考试成绩被组织成一条清晰的学习轨迹。界面像作品集一样醒目，逻辑仍然稳定地连接后端。
         </p>

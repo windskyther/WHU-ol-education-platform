@@ -1,15 +1,15 @@
 <template>
   <main class="auth-page">
     <LearningPathPanel
-      title="Start with one verified identity."
+      title="从一个可验证的身份开始。"
       description="选择学生或教师身份，平台会开放对应的学习与课程管理入口。角色清晰，协作更顺畅。"
     />
 
     <section class="auth-card" aria-label="注册表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">Back home</RouterLink>
-        <p class="eyebrow">Create account</p>
-        <h2>Register</h2>
+        <RouterLink class="back-link" to="/">返回首页</RouterLink>
+        <p class="eyebrow">创建账号</p>
+        <h2>注册</h2>
         <p>邮箱验证码用于确认账号归属。</p>
       </div>
 

@@ -2,11 +2,11 @@
   <aside class="learning-path-panel">
     <div class="path-brand">
       <span class="path-logo">WHU</span>
-      <span>Online Education</span>
+      <span>在线教育</span>
     </div>
 
     <div class="path-copy">
-      <p class="path-eyebrow">Access layer</p>
+      <p class="path-eyebrow">安全通道</p>
       <h1>{{ title }}</h1>
       <p>{{ description }}</p>
     </div>
@@ -20,9 +20,9 @@
     </div>
 
     <div class="path-steps">
-      <span>Identity</span>
-      <span>Courses</span>
-      <span>Progress</span>
+      <span>身份</span>
+      <span>课程</span>
+      <span>进度</span>
     </div>
   </aside>
 </template>

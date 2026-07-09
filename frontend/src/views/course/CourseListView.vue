@@ -9,7 +9,7 @@
     <section class="course-list-shell">
       <header class="list-heading">
         <div>
-          <p class="eyebrow">Course catalog</p>
+          <p class="eyebrow">课程目录</p>
           <h1>Pick your next project.</h1>
         </div>
         <p>已发布课程以项目卡片的方式排列。筛选分类、难度和关键词，然后进入详情页开始学习。</p>

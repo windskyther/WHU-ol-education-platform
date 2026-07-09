@@ -12,7 +12,7 @@
     <section class="chapters-shell">
       <div class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Chapter manager</p>
+          <p class="eyebrow">章节管理</p>
           <h1>{{ course?.title || 'Chapter index' }}</h1>
           <p>维护章节排序、简介、视频和资料。学生学习页会直接使用这些内容和资源。</p>
         </div>
@@ -21,8 +21,8 @@
       <section v-loading="loading" class="surface chapter-panel">
         <div class="panel-title">
           <div>
-            <p class="eyebrow">Learning content</p>
-            <h2>Content rail</h2>
+            <p class="eyebrow">学习内容</p>
+            <h2>内容列表</h2>
           </div>
           <el-tag effect="light">{{ orderedChapters.length }} 章</el-tag>
         </div>

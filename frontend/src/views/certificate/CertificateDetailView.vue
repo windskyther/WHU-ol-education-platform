@@ -16,7 +16,7 @@
           <span class="corner corner-br"></span>
 
           <div class="certificate-seal">🎖️</div>
-          <p class="certificate-eyebrow">CERTIFICATE OF EXCELLENCE</p>
+          <p class="certificate-eyebrow">优秀证书</p>
           <h1 class="certificate-title">优秀学员证书</h1>
           <div class="certificate-divider"><span></span></div>
 

@@ -2,7 +2,7 @@
   <section class="surface question-panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">Course Q&amp;A</p>
+        <p class="eyebrow">课程问答</p>
         <h2>{{ heading }}</h2>
       </div>
       <div class="question-toolbar">
@@ -49,7 +49,7 @@
 
           <div v-if="question.answer" class="answer-block">
             <div>
-              <span>Teacher answer</span>
+              <span>教师回复</span>
               <strong>{{ question.answer.teacher?.username || '教师' }}</strong>
             </div>
             <p>{{ question.answer.content }}</p>

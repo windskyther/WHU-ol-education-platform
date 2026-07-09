@@ -12,7 +12,7 @@
     <section class="question-manager-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Question editor</p>
+          <p class="eyebrow">题目编辑</p>
           <h1>{{ exam?.title || 'Exam questions' }}</h1>
           <p>维护题干、选项、标准答案和分值。学生作答页不会展示答案字段。</p>
         </div>

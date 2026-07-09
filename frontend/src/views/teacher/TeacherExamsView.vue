@@ -12,7 +12,7 @@
     <section class="teacher-exams-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">Exam manager</p>
+          <p class="eyebrow">考试管理</p>
           <h1>{{ course?.title || 'Course exams' }}</h1>
           <p>创建课程考试并进入题目维护。学生端只会展示已发布考试和不含答案的题目。</p>
         </div>
