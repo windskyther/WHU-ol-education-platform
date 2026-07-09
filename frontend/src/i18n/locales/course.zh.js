@@ -8,7 +8,7 @@ export default {
     list: {
       courseManagement: '课程管理',
       catalogEyebrow: '课程目录',
-      heroTitle: 'Pick your next project.',
+      heroTitle: '挑选你的下一门课程。',
       heroDesc: '已发布课程以项目卡片的方式排列。筛选分类、难度和关键词，然后进入详情页开始学习。',
       searchPlaceholder: '搜索课程标题',
       categoryPlaceholder: '分类，例如 programming',
