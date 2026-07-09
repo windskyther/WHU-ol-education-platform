@@ -420,10 +420,13 @@ Response:
     "avatar_url": null,
     "date_joined": "2026-07-07T18:00:00+08:00",
     "avatar": null,
-    "bio": ""
+    "bio": "",
+    "mood": "happy"
   }
 }
 ```
+
+`mood` 表示用户情绪状态，前端会映射为 emoji 展示。
 
 ## 7. Update Current User
 
@@ -440,7 +443,8 @@ JSON request body:
 ```json
 {
   "username": "new_student_name",
-  "bio": "My profile"
+  "bio": "My profile",
+  "mood": "studying"
 }
 ```
 
@@ -448,11 +452,37 @@ Avatar upload should use `multipart/form-data`:
 
 | Field | Type | Notes |
 |---|---|---|
-| `avatar` | file | Optional avatar image |
+| `avatar` | file | Optional avatar image, max 5 MB, jpg/jpeg/png/webp |
 | `username` | string | Optional |
 | `bio` | string | Optional |
+| `mood` | string | Optional mood key |
 
 Response fields are the same as `GET /api/users/me/`.
+
+## 8. Change Password
+
+### POST `/api/users/me/password/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+JSON request body:
+
+```json
+{
+  "old_password": "Pass123456",
+  "new_password": "Pass654321",
+  "new_password_confirm": "Pass654321"
+}
+```
+
+Common errors:
+
+- `OLD_PASSWORD_INCORRECT`
+- `PASSWORD_CONFIRM_MISMATCH`
 
 ## Frontend Integration Checklist
 

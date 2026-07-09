@@ -23,3 +23,11 @@ export function logout() {
 export function fetchMe() {
   return request.get('/users/me/')
 }
+
+export function updateMe(payload) {
+  return request.put('/users/me/', payload)
+}
+
+export function changePassword(payload) {
+  return request.post('/users/me/password/', payload)
+}

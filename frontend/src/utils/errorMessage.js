@@ -141,3 +141,38 @@ export function getEmailCodeErrorMessage(error) {
 export function getCommonErrorMessage(error, fallback = '操作失败，请稍后重试') {
   return error?.userMessage || fallback
 }
+
+const profileMessageMap = {
+  INVALID_MOOD: '无效的情绪状态',
+  AVATAR_TYPE_NOT_ALLOWED: '头像格式不支持，请上传 jpg、jpeg、png 或 webp',
+  AVATAR_SIZE_EXCEEDED: '头像大小不能超过 5 MB',
+  OLD_PASSWORD_INCORRECT: '当前密码不正确',
+  PASSWORD_CONFIRM_MISMATCH: '两次输入的新密码不一致'
+}
+
+export function getProfileErrorMessage(error, fallback = '资料更新失败，请稍后重试') {
+  const message = getBackendMessage(error)
+  if (profileMessageMap[message]) return profileMessageMap[message]
+
+  const text = getErrorText(error)
+  if (includesAny(text, ['INVALID_MOOD'])) return profileMessageMap.INVALID_MOOD
+  if (includesAny(text, ['AVATAR_TYPE_NOT_ALLOWED'])) return profileMessageMap.AVATAR_TYPE_NOT_ALLOWED
+  if (includesAny(text, ['AVATAR_SIZE_EXCEEDED'])) return profileMessageMap.AVATAR_SIZE_EXCEEDED
+  if (includesAny(text, ['username', 'USERNAME'])) return '用户名已存在或格式不正确'
+
+  return getCommonErrorMessage(error, fallback)
+}
+
+export function getPasswordErrorMessage(error, fallback = '密码更新失败，请稍后重试') {
+  const message = getBackendMessage(error)
+  if (profileMessageMap[message]) return profileMessageMap[message]
+
+  const text = getErrorText(error)
+  if (includesAny(text, ['OLD_PASSWORD_INCORRECT', 'old_password'])) return profileMessageMap.OLD_PASSWORD_INCORRECT
+  if (includesAny(text, ['PASSWORD_CONFIRM_MISMATCH', 'confirmPassword', 'new_password_confirm'])) {
+    return profileMessageMap.PASSWORD_CONFIRM_MISMATCH
+  }
+  if (includesAny(text, ['password', '密码'])) return '密码格式不正确'
+
+  return getCommonErrorMessage(error, fallback)
+}

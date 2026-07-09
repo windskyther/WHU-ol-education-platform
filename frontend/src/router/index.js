@@ -163,6 +163,15 @@ const routes = [
       requiresAuth: true,
       roles: ['admin']
     }
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('../views/account/SettingsView.vue'),
+    meta: {
+      title: '个人设置',
+      requiresAuth: true
+    }
   }
 ]
 

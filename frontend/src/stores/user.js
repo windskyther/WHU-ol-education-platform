@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { fetchMe, login, logout, register } from '../api/auth'
+import { changePassword, fetchMe, login, logout, register, updateMe } from '../api/auth'
+import { normalizeMediaUrl } from '../utils/mediaUrl'
 
 function normalizeAuthPayload(data) {
   return {
@@ -17,7 +18,10 @@ export const useUserStore = defineStore('user', {
   }),
   getters: {
     isLoggedIn: (state) => Boolean(state.accessToken),
-    role: (state) => state.userInfo?.role || ''
+    role: (state) => state.userInfo?.role || '',
+    avatarUrl: (state) => normalizeMediaUrl(state.userInfo?.avatar_url || ''),
+    mood: (state) => state.userInfo?.mood || 'happy',
+    displayName: (state) => state.userInfo?.username || state.userInfo?.email || '已登录用户'
   },
   actions: {
     setAuth({ accessToken = '', refreshToken = '', userInfo = null }) {
@@ -66,6 +70,14 @@ export const useUserStore = defineStore('user', {
       const data = await fetchMe()
       this.userInfo = data?.user || data?.userInfo || data
       return this.userInfo
+    },
+    async updateProfile(payload) {
+      const data = await updateMe(payload)
+      this.userInfo = data?.user || data?.userInfo || data
+      return this.userInfo
+    },
+    async changeUserPassword(payload) {
+      return changePassword(payload)
     },
     async logoutUser() {
       try {

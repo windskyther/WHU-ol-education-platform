@@ -66,6 +66,7 @@
 | POST | `/api/auth/logout/` | 登录用户 | 退出登录 |
 | GET | `/api/users/me/` | 登录用户 | 获取当前用户 |
 | PUT | `/api/users/me/` | 登录用户 | 修改个人资料 |
+| POST | `/api/users/me/password/` | 登录用户 | 修改密码 |
 
 ### 发送邮箱验证码
 
@@ -245,11 +246,33 @@ DEFAULT_FROM_EMAIL=your_email@qq.com
 ```json
 {
   "username": "new_name",
-  "bio": "个人简介"
+  "bio": "个人简介",
+  "mood": "happy"
 }
 ```
 
-头像上传可使用 `multipart/form-data` 字段 `avatar`。
+`mood` 可选值：`happy`、`studying`、`slacking`、`focused`、`tired`、`excited`、`coding`。
+
+头像上传可使用 `multipart/form-data` 字段 `avatar`。头像限制：最大 5 MB，支持 `.jpg`、`.jpeg`、`.png`、`.webp`。
+
+### 修改密码
+
+`POST /api/users/me/password/`
+
+请求头：`Authorization: Bearer <access_token>`
+
+```json
+{
+  "old_password": "Pass123456",
+  "new_password": "Pass654321",
+  "new_password_confirm": "Pass654321"
+}
+```
+
+常见错误：
+
+- `OLD_PASSWORD_INCORRECT`：当前密码不正确
+- `PASSWORD_CONFIRM_MISMATCH`：两次新密码不一致
 
 ## P2 计划接口：课程与章节
 

@@ -221,6 +221,134 @@ textarea {
   color: var(--ink-soft, #4a6356);
 }
 
+.user-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 4px 12px 4px 4px;
+  color: var(--ink);
+  background: rgba(255, 250, 240, 0.92);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 8px 0 rgba(25, 25, 23, 0.06);
+  cursor: pointer;
+  transition: transform 220ms var(--ease), border-color 220ms var(--ease);
+}
+
+.user-capsule--interactive:not(:disabled):hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.user-capsule--preview {
+  height: 48px;
+  padding: 5px 16px 5px 5px;
+}
+
+.user-capsule__avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.user-capsule--preview .user-capsule__avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+
+.user-capsule__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-capsule__mood {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.user-capsule--preview .user-capsule__mood {
+  font-size: 18px;
+}
+
+.user-capsule__name {
+  max-width: 88px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-capsule--preview .user-capsule__name {
+  max-width: 160px;
+  font-size: 15px;
+}
+
+.user-capsule__caret {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mood-capsule-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mood-capsule-grid--compact {
+  gap: 8px;
+}
+
+.mood-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  color: var(--ink);
+  background: rgba(255, 250, 240, 0.92);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 220ms var(--ease), border-color 220ms var(--ease), background 220ms var(--ease);
+}
+
+.mood-capsule:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.mood-capsule.is-active {
+  background: var(--acid);
+  border-color: var(--ink);
+}
+
+.user-capsule-dropdown.el-popper {
+  padding: 0;
+  background: rgba(255, 250, 240, 0.96);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-hard);
+}
+
+.user-capsule-dropdown .el-popper__arrow::before {
+  background: rgba(255, 250, 240, 0.96);
+  border: 2px solid var(--line);
+}
+
 .eyebrow,
 .path-eyebrow {
   margin: 0 0 14px;

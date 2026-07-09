@@ -10,10 +10,21 @@ class UserProfile(models.Model):
         ("admin", "Admin"),
     )
 
+    MOOD_CHOICES = (
+        ("happy", "Happy"),
+        ("studying", "Studying"),
+        ("slacking", "Slacking"),
+        ("focused", "Focused"),
+        ("tired", "Tired"),
+        ("excited", "Excited"),
+        ("coding", "Coding"),
+    )
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField(max_length=16, choices=ROLE_CHOICES, default="student", db_index=True)
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     bio = models.TextField(blank=True)
+    mood = models.CharField(max_length=16, choices=MOOD_CHOICES, default="happy", db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
