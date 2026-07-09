@@ -97,6 +97,9 @@ const mainLinks = computed(() => {
 
   if (userStore.role === 'student' || userStore.role === 'teacher') {
     links.push({ label: '社区中心', to: '/community/forum' })
+  }
+
+  if (userStore.role === 'student') {
     links.push({ label: '我的证书', to: '/certificates' })
   }
 

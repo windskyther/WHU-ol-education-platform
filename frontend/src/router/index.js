@@ -171,7 +171,7 @@ const routes = [
     meta: {
       title: '我的证书',
       requiresAuth: true,
-      roles: ['student', 'teacher']
+      roles: ['student']
     }
   },
   {
