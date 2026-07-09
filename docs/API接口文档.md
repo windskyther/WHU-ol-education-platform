@@ -290,3 +290,46 @@ DEFAULT_FROM_EMAIL=your_email@qq.com
 | POST | `/api/exams/{id}/submit/` | 学生 | 提交考试 |
 | GET | `/api/my/scores/` | 学生 | 我的成绩 |
 | GET | `/api/exams/{id}/submissions/` | 课程教师 | 查看答卷 |
+
+## P5 已实现接口：课程问答
+
+| 方法 | 路径 | 权限 | 功能 |
+|---|---|---|---|
+| GET | `/api/courses/{id}/questions/` | 课程教师/管理员/已报名学生 | 课程问答列表 |
+| POST | `/api/courses/{id}/questions/` | 已报名学生 | 提交课程问题 |
+| GET | `/api/course-questions/{id}/` | 课程教师/管理员/提问学生 | 问答详情 |
+| POST | `/api/course-questions/{id}/answer/` | 课程教师/管理员 | 回答或更新回答 |
+| POST | `/api/course-questions/{id}/resolve/` | 课程教师/管理员/提问学生 | 标记问题已解决 |
+
+### 问题对象
+
+```json
+{
+  "id": 1,
+  "course": 1,
+  "student": {
+    "id": 3,
+    "username": "student01",
+    "email": "student@example.com"
+  },
+  "title": "第二章矩阵秩怎么理解？",
+  "content": "我不理解例题中的化简步骤。",
+  "status": "answered",
+  "answer": {
+    "id": 1,
+    "teacher": {
+      "id": 2,
+      "username": "teacher01",
+      "email": "teacher@example.com"
+    },
+    "content": "先做初等行变换，再统计非零行数。",
+    "created_at": "2026-07-09T14:00:00+08:00",
+    "updated_at": "2026-07-09T14:00:00+08:00"
+  },
+  "resolved_at": null,
+  "created_at": "2026-07-09T13:55:00+08:00",
+  "updated_at": "2026-07-09T14:00:00+08:00"
+}
+```
+
+`status` 可取 `open`、`answered`、`resolved`。学生列表只返回自己在该课程下提交的问题；课程教师和管理员可查看课程全部问题。

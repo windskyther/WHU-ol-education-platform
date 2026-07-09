@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "apps.courses",
     "apps.progress",
     "apps.exams",
+    "apps.qa",
 ]
 
 MIDDLEWARE = [

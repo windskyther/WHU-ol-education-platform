@@ -97,6 +97,12 @@
             </button>
           </aside>
         </div>
+
+        <CourseQuestionPanel
+          :course-id="courseId"
+          can-ask
+          heading="Learning questions"
+        />
       </template>
     </section>
   </main>
@@ -106,6 +112,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { RouterLink, onBeforeRouteLeave, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import CourseQuestionPanel from '../../components/CourseQuestionPanel.vue'
 import { downloadMaterial, fetchChapters, fetchCourseDetail, fetchCourseProgress, updateLearningProgress } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'

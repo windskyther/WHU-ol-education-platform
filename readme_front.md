@@ -1529,9 +1529,109 @@ Only the course teacher/admin can view submissions.
 4. Treat `EXAM_ALREADY_SUBMITTED` as "already submitted"; then load `/api/my/scores/`.
 5. Teacher/admin question management should keep `order` unique inside each exam.
 
+## P5 Course Q&A APIs
+
+Course Q&A is scoped to one course. It is not a public community feed.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `GET` | `/api/courses/{course_id}/questions/` | Course teacher/admin/enrolled student | List course questions |
+| `POST` | `/api/courses/{course_id}/questions/` | Enrolled student | Create a question |
+| `GET` | `/api/course-questions/{question_id}/` | Course teacher/admin/question owner | Get question detail |
+| `POST` | `/api/course-questions/{question_id}/answer/` | Course teacher/admin | Answer or update answer |
+| `POST` | `/api/course-questions/{question_id}/resolve/` | Course teacher/admin/question owner | Mark resolved |
+
+### Question Status
+
+| status | Meaning |
+|---|---|
+| `open` | Waiting for teacher answer |
+| `answered` | Teacher has answered |
+| `resolved` | Question has been resolved |
+
+### 32. List Course Questions
+
+#### GET `/api/courses/{course_id}/questions/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Query params:
+
+| Field | Required | Notes |
+|---|---|---|
+| `page` | No | Default pagination |
+| `page_size` | No | Default pagination |
+| `status` | No | `open`, `answered`, or `resolved` |
+
+Students only receive their own questions in this course. Teachers/admins receive all questions in the course.
+
+### 33. Create Course Question
+
+#### POST `/api/courses/{course_id}/questions/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Request:
+
+```json
+{
+  "title": "第二章矩阵秩怎么理解？",
+  "content": "我不理解例题中的化简步骤。"
+}
+```
+
+The student must already be enrolled in this published course.
+
+### 34. Answer Course Question
+
+#### POST `/api/course-questions/{question_id}/answer/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request:
+
+```json
+{
+  "content": "先做初等行变换，再统计非零行数。"
+}
+```
+
+Only the course teacher/admin can answer. Calling this endpoint again updates the existing answer.
+
+### 35. Resolve Course Question
+
+#### POST `/api/course-questions/{question_id}/resolve/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+The course teacher/admin or the question owner can mark the question resolved.
+
+### P5 Frontend Integration Checklist
+
+1. Show Q&A inside course detail and student learning pages.
+2. Allow enrolled students to create questions.
+3. Allow course teachers/admins to answer and mark questions resolved.
+4. Keep this feature course-scoped; do not mix it with future community feed UI.
+
 ## Maintenance Rule
 
-When backend auth/user/course/chapter/enrollment/progress/exam APIs change, update this file in the same commit. This includes:
+When backend auth/user/course/chapter/enrollment/progress/exam/Q&A APIs change, update this file in the same commit. This includes:
 
 - URL path changes
 - Request field changes

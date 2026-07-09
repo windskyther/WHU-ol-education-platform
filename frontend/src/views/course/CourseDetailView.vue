@@ -136,6 +136,13 @@
 
           <div v-else class="empty-state">暂无考试</div>
         </section>
+
+        <CourseQuestionPanel
+          :course-id="courseId"
+          :can-ask="canAskQuestions"
+          :can-manage="canManage"
+          heading="Course questions"
+        />
       </template>
     </section>
   </main>
@@ -147,6 +154,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
 import { fetchCourseExams } from '../../api/exam'
+import CourseQuestionPanel from '../../components/CourseQuestionPanel.vue'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
@@ -172,6 +180,7 @@ const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapte
 const canManage = computed(() => ['teacher', 'admin'].includes(userStore.role))
 const isEnrolled = computed(() => Boolean(course.value?.is_enrolled || course.value?.enrolled || course.value?.enrollment))
 const canViewChapters = computed(() => canManage.value || isEnrolled.value)
+const canAskQuestions = computed(() => userStore.role === 'student' && isEnrolled.value)
 const coverUrl = computed(() => normalizeMediaUrl(course.value?.cover_url || ''))
 const accessLabel = computed(() => {
   if (canManage.value) return '教师/管理员'
