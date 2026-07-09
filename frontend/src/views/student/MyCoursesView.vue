@@ -1,15 +1,6 @@
 <template>
   <main class="page-shell my-page">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/student/dashboard">Dashboard</RouterLink>
-        <RouterLink to="/courses">Discover</RouterLink>
-      </div>
-    </nav>
+    <AppNav />
 
     <section class="my-workspace">
       <header class="learning-board kinetic-panel">
@@ -77,8 +68,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyCourses } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'

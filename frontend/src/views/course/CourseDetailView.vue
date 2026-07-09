@@ -1,17 +1,13 @@
 <template>
   <main class="page-shell detail-page">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/courses">Courses</RouterLink>
-        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">My courses</RouterLink>
-        <el-button v-if="canManage" type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">Manage chapters</el-button>
-        <el-button v-if="canManage" plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">Manage exams</el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template v-if="canManage" #actions>
+        <el-button type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">章节管理</el-button>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">考试管理</el-button>
+      </template>
+    </AppNav>
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section v-loading="loading" class="detail-workspace">
       <template v-if="course">
@@ -150,10 +146,12 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
 import { fetchCourseExams } from '../../api/exam'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import CourseQuestionPanel from '../../components/CourseQuestionPanel.vue'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
@@ -187,6 +185,11 @@ const accessLabel = computed(() => {
   if (isEnrolled.value) return '已加入'
   return '未加入'
 })
+
+const breadcrumbItems = computed(() => [
+  { label: '课程广场', to: '/courses' },
+  { label: course.value?.title || '课程详情' }
+])
 
 function chapterOrder(chapter) {
   return chapter.order ?? chapter.order_no ?? 0

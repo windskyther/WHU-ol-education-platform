@@ -1,15 +1,12 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink v-if="courseId" :to="`/teacher/courses/${courseId}/exams`">Course exams</RouterLink>
-        <RouterLink :to="`/teacher/exams/${examId}/questions`">Questions</RouterLink>
-      </div>
-    </nav>
+    <AppNav>
+      <template #actions>
+        <el-button plain @click="$router.push(`/teacher/exams/${examId}/questions`)">题目管理</el-button>
+      </template>
+    </AppNav>
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section class="submissions-shell">
       <header class="manager-heading kinetic-panel">
@@ -53,8 +50,10 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchExamDetail, fetchExamSubmissions } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
@@ -69,6 +68,19 @@ const page = ref(1)
 const pageSize = ref(10)
 
 const courseId = computed(() => exam.value?.course_id || exam.value?.course?.id || exam.value?.course)
+
+const breadcrumbItems = computed(() => {
+  const items = [{ label: '课程管理', to: '/teacher/courses' }]
+  if (courseId.value) {
+    items.push({
+      label: exam.value?.course_title || exam.value?.course?.title || '课程',
+      to: `/teacher/courses/${courseId.value}/exams`
+    })
+  }
+  items.push({ label: exam.value?.title || '考试', to: `/teacher/exams/${examId.value}/questions` })
+  items.push({ label: '答卷管理' })
+  return items
+})
 
 function normalizeList(data) {
   if (Array.isArray(data)) return data

@@ -1,21 +1,6 @@
 <template>
   <main class="dashboard-page">
-    <nav class="dashboard-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="dashboard-actions">
-        <el-button v-if="userStore.role === 'student'" type="primary" :icon="Reading" @click="$router.push('/student/courses')">
-          我的课程
-        </el-button>
-        <el-button v-if="userStore.role === 'teacher' || userStore.role === 'admin'" type="primary" :icon="Collection" @click="$router.push('/teacher/courses')">
-          课程管理
-        </el-button>
-        <el-button plain @click="$router.push('/courses')">课程列表</el-button>
-        <el-button plain @click="handleLogout">退出登录</el-button>
-      </div>
-    </nav>
+    <AppNav />
 
     <section class="dashboard-hero">
       <div class="hero-card kinetic-panel">
@@ -44,12 +29,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { Collection, Reading } from '@element-plus/icons-vue'
+import AppNav from '../../components/AppNav.vue'
 import { useUserStore } from '../../stores/user'
 
-const router = useRouter()
 const userStore = useUserStore()
 
 const roleText = {
@@ -61,7 +43,7 @@ const roleText = {
     actions: [
       { label: '我的课程', path: '/student/courses', primary: true },
       { label: '我的成绩', path: '/student/scores' },
-      { label: '发现课程', path: '/courses' }
+      { label: '课程广场', path: '/courses' }
     ]
   },
   teacher: {
@@ -71,7 +53,7 @@ const roleText = {
     roleName: '教师',
     actions: [
       { label: '管理课程', path: '/teacher/courses', primary: true },
-      { label: '公开课程', path: '/courses' }
+      { label: '课程广场', path: '/courses' }
     ]
   },
   admin: {
@@ -81,18 +63,12 @@ const roleText = {
     roleName: '管理员',
     actions: [
       { label: '课程管理', path: '/teacher/courses', primary: true },
-      { label: '课程列表', path: '/courses' }
+      { label: '课程广场', path: '/courses' }
     ]
   }
 }
 
 const roleCopy = computed(() => roleText[userStore.role] || roleText.student)
-
-async function handleLogout() {
-  await userStore.logoutUser()
-  ElMessage.success('已退出登录')
-  router.push('/login')
-}
 </script>
 
 <style scoped>

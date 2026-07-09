@@ -1,16 +1,10 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/teacher/dashboard">Dashboard</RouterLink>
-        <RouterLink to="/courses">Public courses</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create course</el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template #actions>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建课程</el-button>
+      </template>
+    </AppNav>
 
     <section class="manager-shell">
       <div class="manager-heading kinetic-panel">
@@ -80,9 +74,9 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Collection, Delete, Edit, Plus, Search, Tickets, View } from '@element-plus/icons-vue'
+import AppNav from '../../components/AppNav.vue'
 import CourseFormDialog from '../../components/CourseFormDialog.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { createCourse, deleteCourse, fetchCourses, publishCourse, updateCourse } from '../../api/course'

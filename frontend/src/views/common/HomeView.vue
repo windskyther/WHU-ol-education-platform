@@ -7,9 +7,9 @@
       </div>
       <div class="topbar-actions">
         <el-tag :type="healthTagType" effect="light">{{ healthText }}</el-tag>
-        <RouterLink to="/courses">Courses</RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
-        <el-button type="primary" @click="$router.push('/register')">Register</el-button>
+        <RouterLink to="/courses">课程广场</RouterLink>
+        <RouterLink to="/login">登录</RouterLink>
+        <el-button type="primary" @click="$router.push('/register')">注册</el-button>
       </div>
     </section>
 

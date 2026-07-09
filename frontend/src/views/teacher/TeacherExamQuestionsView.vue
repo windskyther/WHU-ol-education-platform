@@ -1,16 +1,13 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink v-if="courseId" :to="`/teacher/courses/${courseId}/exams`">Course exams</RouterLink>
-        <RouterLink :to="`/teacher/exams/${examId}/submissions`">Submissions</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create question</el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template #actions>
+        <el-button plain @click="$router.push(`/teacher/exams/${examId}/submissions`)">答卷管理</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建题目</el-button>
+      </template>
+    </AppNav>
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section class="question-manager-shell">
       <header class="manager-heading kinetic-panel">
@@ -94,9 +91,11 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import {
   createExamQuestion,
   deleteExamQuestion,
@@ -137,6 +136,19 @@ const rules = {
 const courseId = computed(() => exam.value?.course_id || exam.value?.course?.id || exam.value?.course)
 const orderedQuestions = computed(() => [...questions.value].sort((a, b) => questionOrder(a) - questionOrder(b)))
 const needsOptions = computed(() => ['single', 'multiple'].includes(form.type))
+
+const breadcrumbItems = computed(() => {
+  const items = [{ label: '课程管理', to: '/teacher/courses' }]
+  if (courseId.value) {
+    items.push({
+      label: exam.value?.course_title || exam.value?.course?.title || '课程',
+      to: `/teacher/courses/${courseId.value}/exams`
+    })
+  }
+  items.push({ label: exam.value?.title || '考试', to: courseId.value ? `/teacher/courses/${courseId.value}/exams` : undefined })
+  items.push({ label: '题目管理' })
+  return items
+})
 
 function questionOrder(question) {
   return question.order_no ?? question.order ?? 0

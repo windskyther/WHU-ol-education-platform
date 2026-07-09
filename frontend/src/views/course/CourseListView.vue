@@ -1,19 +1,10 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">My courses</RouterLink>
-        <RouterLink v-if="!userStore.isLoggedIn" to="/login">Login</RouterLink>
-        <el-button v-if="userStore.role === 'teacher' || userStore.role === 'admin'" type="primary" @click="$router.push('/teacher/courses')">
-          Manage
-        </el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template v-if="userStore.role === 'teacher' || userStore.role === 'admin'" #actions>
+        <el-button type="primary" @click="$router.push('/teacher/courses')">课程管理</el-button>
+      </template>
+    </AppNav>
 
     <section class="course-list-shell">
       <header class="list-heading">
@@ -50,9 +41,9 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
 import CourseCard from '../../components/CourseCard.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchCourses } from '../../api/course'

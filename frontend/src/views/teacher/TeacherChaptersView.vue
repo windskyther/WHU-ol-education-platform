@@ -1,17 +1,13 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/teacher/courses">Course manager</RouterLink>
-        <RouterLink :to="`/courses/${courseId}`">View course</RouterLink>
-        <RouterLink :to="`/teacher/courses/${courseId}/exams`">Exams</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create chapter</el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template #actions>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">考试管理</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建章节</el-button>
+      </template>
+    </AppNav>
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section class="chapters-shell">
       <div class="manager-heading kinetic-panel">
@@ -101,9 +97,11 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import ChapterFormDialog from '../../components/ChapterFormDialog.vue'
 import FileUpload from '../../components/FileUpload.vue'
 import {
@@ -133,6 +131,12 @@ const nextOrder = computed(() => {
   const maxOrder = orderedChapters.value.reduce((max, chapter) => Math.max(max, chapterOrder(chapter)), 0)
   return maxOrder + 1
 })
+
+const breadcrumbItems = computed(() => [
+  { label: '课程管理', to: '/teacher/courses' },
+  { label: course.value?.title || '课程', to: `/courses/${courseId.value}` },
+  { label: '章节管理' }
+])
 
 function chapterOrder(chapter) {
   return chapter.order ?? chapter.order_no ?? 0

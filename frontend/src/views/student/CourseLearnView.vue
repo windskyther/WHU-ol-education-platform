@@ -1,15 +1,8 @@
 <template>
   <main class="page-shell learn-page">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/student/courses">My courses</RouterLink>
-        <RouterLink :to="`/courses/${courseId}`">Course detail</RouterLink>
-      </div>
-    </nav>
+    <AppNav />
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section v-loading="loading" class="learn-workspace">
       <template v-if="course">
@@ -110,8 +103,10 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { RouterLink, onBeforeRouteLeave, useRoute } from 'vue-router'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import CourseQuestionPanel from '../../components/CourseQuestionPanel.vue'
 import { downloadMaterial, fetchChapters, fetchCourseDetail, fetchCourseProgress, updateLearningProgress } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
@@ -139,6 +134,12 @@ const overallProgress = computed(() => {
 })
 const selectedVideoUrl = computed(() => (selectedChapter.value ? chapterVideoUrl(selectedChapter.value) : ''))
 const selectedMaterialId = computed(() => (selectedChapter.value ? materialId(selectedChapter.value) : ''))
+
+const breadcrumbItems = computed(() => [
+  { label: '我的课程', to: '/student/courses' },
+  { label: course.value?.title || '课程学习', to: `/courses/${courseId}` },
+  { label: '学习' }
+])
 
 function chapterOrder(chapter) {
   return chapter.order ?? chapter.order_no ?? 0

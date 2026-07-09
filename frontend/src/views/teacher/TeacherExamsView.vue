@@ -1,16 +1,13 @@
 <template>
   <main class="page-shell">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/teacher/courses">Course manager</RouterLink>
-        <RouterLink :to="`/teacher/courses/${courseId}/chapters`">Chapters</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create exam</el-button>
-      </div>
-    </nav>
+    <AppNav>
+      <template #actions>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">章节管理</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建考试</el-button>
+      </template>
+    </AppNav>
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section class="teacher-exams-shell">
       <header class="manager-heading kinetic-panel">
@@ -122,9 +119,11 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Tickets } from '@element-plus/icons-vue'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import { fetchCourseDetail } from '../../api/course'
 import { createCourseExam, fetchCourseExams, updateCourseExam } from '../../api/exam'
 import { getCommonErrorMessage, getExamErrorMessage } from '../../utils/errorMessage'
@@ -154,6 +153,12 @@ const rules = {
   duration: [{ required: true, message: '请输入考试时长', trigger: 'blur' }],
   pass_score: [{ required: true, message: '请输入及格线', trigger: 'blur' }]
 }
+
+const breadcrumbItems = computed(() => [
+  { label: '课程管理', to: '/teacher/courses' },
+  { label: course.value?.title || '课程', to: `/teacher/courses/${courseId.value}/chapters` },
+  { label: '考试管理' }
+])
 
 function normalizeList(data) {
   if (Array.isArray(data)) return data

@@ -1,16 +1,8 @@
 <template>
   <main class="page-shell exam-page">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/student/courses">My courses</RouterLink>
-        <RouterLink to="/student/scores">Scores</RouterLink>
-        <RouterLink v-if="courseId" :to="`/student/learn/${courseId}`">Learning room</RouterLink>
-      </div>
-    </nav>
+    <AppNav />
+
+    <BreadcrumbNav :items="breadcrumbItems" />
 
     <section v-loading="loading" class="exam-workspace">
       <template v-if="exam">
@@ -97,8 +89,10 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
+import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import { fetchExamDetail, fetchExamQuestions, submitExam } from '../../api/exam'
 import { getCommonErrorMessage, getExamErrorCode, getExamErrorMessage } from '../../utils/errorMessage'
 
@@ -119,6 +113,15 @@ const answeredCount = computed(() => {
     const value = answerMap[question.id]
     return Array.isArray(value) ? value.length > 0 : value !== undefined && value !== ''
   }).length
+})
+
+const breadcrumbItems = computed(() => {
+  const items = [{ label: '我的课程', to: '/student/courses' }]
+  if (courseId.value) {
+    items.push({ label: exam.value?.course_title || exam.value?.course?.title || '课程学习', to: `/student/learn/${courseId.value}` })
+  }
+  items.push({ label: exam.value?.title || '在线考试' })
+  return items
 })
 
 function questionTypeText(type) {

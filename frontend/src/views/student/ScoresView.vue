@@ -1,15 +1,6 @@
 <template>
   <main class="page-shell scores-page">
-    <nav class="app-nav">
-      <RouterLink class="brand-link" to="/">
-        <span class="brand-mark">WHU</span>
-        <span>Online Education</span>
-      </RouterLink>
-      <div class="nav-actions">
-        <RouterLink to="/student/dashboard">Dashboard</RouterLink>
-        <RouterLink to="/student/courses">My courses</RouterLink>
-      </div>
-    </nav>
+    <AppNav />
 
     <section class="scores-workspace">
       <header class="manager-heading kinetic-panel">
@@ -61,8 +52,9 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import AppNav from '../../components/AppNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyScores } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'

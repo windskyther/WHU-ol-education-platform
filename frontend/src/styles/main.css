@@ -181,6 +181,46 @@ textarea {
   transform-origin: left;
 }
 
+.nav-actions a.is-nav-active::after,
+.dashboard-actions a.is-nav-active::after,
+.topbar-actions a.is-nav-active::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-user {
+  color: var(--ink-soft, #4a6356);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.breadcrumb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  color: var(--ink-soft, #4a6356);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.breadcrumb-nav a {
+  color: var(--ink);
+}
+
+.breadcrumb-nav a:hover {
+  color: var(--green-700, #2f6f4e);
+}
+
+.breadcrumb-separator {
+  color: var(--green-300, #a8d8bc);
+}
+
+.breadcrumb-current {
+  color: var(--ink-soft, #4a6356);
+}
+
 .eyebrow,
 .path-eyebrow {
   margin: 0 0 14px;
