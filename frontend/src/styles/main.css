@@ -284,6 +284,7 @@ textarea {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 900;
+  letter-spacing: 0;
 }
 
 .status-pill.is-done {
