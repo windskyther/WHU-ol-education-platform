@@ -1,11 +1,14 @@
-"""Seed the database with official demo content (courses, posts, resources).
+"""Seed the database with official demo content (courses, posts, resources)
+plus a handful of test student accounts that like/favorite/comment on that
+content, so the community pages show real interaction data instead of a
+static counter.
 
 Usage:
     python manage.py seed_demo_data
 
 Safe to re-run: it deletes and recreates only the content owned by the
-official demo account (username="official_teacher"), so it never touches
-real user data.
+official demo account (username="official_teacher") and the interactions
+made by the test_student* accounts, so it never touches real user data.
 """
 import random
 from django.contrib.auth import get_user_model
@@ -14,7 +17,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from apps.community.models import Post, Resource
+from apps.community.models import Comment, Favorite, Like, Post, Resource, TARGET_POST, TARGET_RESOURCE
 from apps.courses.models import Chapter, Course
 from apps.users.models import ensure_user_profile
 
@@ -24,6 +27,23 @@ OFFICIAL_USERNAME = "official_teacher"
 OFFICIAL_EMAIL = "official@whu-edu.demo"
 OFFICIAL_PASSWORD = "OfficialDemo@2024"
 OFFICIAL_DISPLAY_NAME = "WHU教研组"
+
+STUDENT_USERNAMES = ["test_student1", "test_student2", "test_student3", "test_student4", "test_student5"]
+STUDENT_PASSWORD = "TestStudent@2024"
+STUDENT_EMAIL_DOMAIN = "whu-edu.demo"
+
+COMMENT_TEMPLATES = [
+    "这篇内容写得很实用，收藏了！",
+    "正好在学这块，感谢分享。",
+    "请问有没有更详细的资料推荐？",
+    "讲得很清楚，一下就理解了。",
+    "同问，我也遇到过类似的问题。",
+    "已经按照这个方法试了一下，确实有效。",
+    "支持一下，期待更多类似的分享。",
+    "标记一下，晚点仔细看看。",
+    "学到了，谢谢老师整理。",
+    "这个思路很有启发，学习了。",
+]
 
 COURSES = [
     {
@@ -112,14 +132,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         with transaction.atomic():
             teacher = self._ensure_official_teacher()
-            self._reset_official_content(teacher)
+            students = self._ensure_students()
+            self._reset_official_content(teacher, students)
             courses = self._seed_courses(teacher)
             posts = self._seed_posts(teacher)
             resources = self._seed_resources(teacher)
+            self._seed_interactions(students, posts, resources)
 
+        student_lines = "\n".join(f"  {u.username} / {STUDENT_PASSWORD}" for u in students)
         self.stdout.write(self.style.SUCCESS(
             f"完成：官方账号 {OFFICIAL_USERNAME} / 密码 {OFFICIAL_PASSWORD}\n"
-            f"课程 {len(courses)} 门，帖子 {len(posts)} 篇，资源 {len(resources)} 条。"
+            f"课程 {len(courses)} 门，帖子 {len(posts)} 篇，资源 {len(resources)} 条。\n"
+            f"测试学生账号（用于模拟真实点赞/收藏/评论）：\n{student_lines}"
         ))
 
     def _ensure_official_teacher(self):
@@ -133,7 +157,24 @@ class Command(BaseCommand):
         ensure_user_profile(user, role="teacher")
         return user
 
-    def _reset_official_content(self, teacher):
+    def _ensure_students(self):
+        students = []
+        for username in STUDENT_USERNAMES:
+            user, created = User.objects.get_or_create(
+                username=username,
+                defaults={"email": f"{username}@{STUDENT_EMAIL_DOMAIN}"},
+            )
+            if created:
+                user.set_password(STUDENT_PASSWORD)
+                user.save()
+            ensure_user_profile(user, role="student")
+            students.append(user)
+        return students
+
+    def _reset_official_content(self, teacher, students):
+        Like.objects.filter(user__in=students).delete()
+        Favorite.objects.filter(user__in=students).delete()
+        Comment.objects.filter(author__in=students).delete()
         Course.objects.filter(teacher=teacher).delete()
         Post.objects.filter(author=teacher).delete()
         Resource.objects.filter(author=teacher).delete()
@@ -169,9 +210,6 @@ class Command(BaseCommand):
                 title=title,
                 content=content,
                 category=category,
-                likes_count=random.randint(3, 40),
-                favorites_count=random.randint(1, 15),
-                comments_count=random.randint(0, 10),
             )
             created.append(post)
         return created
@@ -185,9 +223,6 @@ class Command(BaseCommand):
                 description=description,
                 category=category,
                 url=url or "",
-                likes_count=random.randint(2, 30),
-                favorites_count=random.randint(1, 12),
-                comments_count=random.randint(0, 8),
             )
             if not url:
                 filename = f"{title}.txt"
@@ -199,3 +234,43 @@ class Command(BaseCommand):
             resource.save()
             created.append(resource)
         return created
+
+    def _seed_interactions(self, students, posts, resources):
+        """Create real Like/Favorite/Comment rows from the test student
+        accounts against posts and resources, then recompute the cached
+        count fields from the actual rows so numbers and detail pages stay
+        consistent."""
+        for post in posts:
+            self._interact(students, TARGET_POST, post.id)
+        for resource in resources:
+            self._interact(students, TARGET_RESOURCE, resource.id)
+
+        for post in posts:
+            post.likes_count = Like.objects.filter(target_type=TARGET_POST, target_id=post.id).count()
+            post.favorites_count = Favorite.objects.filter(target_type=TARGET_POST, target_id=post.id).count()
+            post.comments_count = Comment.objects.filter(target_type=TARGET_POST, target_id=post.id).count()
+            post.save(update_fields=["likes_count", "favorites_count", "comments_count"])
+
+        for resource in resources:
+            resource.likes_count = Like.objects.filter(target_type=TARGET_RESOURCE, target_id=resource.id).count()
+            resource.favorites_count = Favorite.objects.filter(target_type=TARGET_RESOURCE, target_id=resource.id).count()
+            resource.comments_count = Comment.objects.filter(target_type=TARGET_RESOURCE, target_id=resource.id).count()
+            resource.save(update_fields=["likes_count", "favorites_count", "comments_count"])
+
+    def _interact(self, students, target_type, target_id):
+        likers = random.sample(students, k=random.randint(1, len(students)))
+        for user in likers:
+            Like.objects.get_or_create(user=user, target_type=target_type, target_id=target_id)
+
+        favoriters = random.sample(students, k=random.randint(0, len(students) - 1))
+        for user in favoriters:
+            Favorite.objects.get_or_create(user=user, target_type=target_type, target_id=target_id)
+
+        commenters = random.sample(students, k=random.randint(0, len(students) - 1))
+        for user in commenters:
+            Comment.objects.create(
+                author=user,
+                target_type=target_type,
+                target_id=target_id,
+                content=random.choice(COMMENT_TEMPLATES),
+            )
