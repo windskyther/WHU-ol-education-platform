@@ -2,7 +2,7 @@ from urllib.parse import quote
 
 from django.db import IntegrityError
 from django.http import FileResponse
-from django.db.models import Count
+from django.db.models import BooleanField, Count, Exists, OuterRef, Value
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -21,6 +21,19 @@ from apps.courses.serializers import (
     MaterialSerializer,
     UploadMaterialSerializer,
 )
+
+
+def annotate_enrollment_state(queryset, user):
+    role = get_user_role(user) if user and user.is_authenticated else None
+    if role != "student":
+        return queryset.annotate(is_enrolled=Value(False, output_field=BooleanField()))
+    from apps.progress.models import Enrollment
+
+    return queryset.annotate(
+        is_enrolled=Exists(
+            Enrollment.objects.filter(student=user, course_id=OuterRef("pk")),
+        ),
+    )
 
 
 def is_teacher_or_admin(user):
@@ -42,6 +55,7 @@ def assert_course_owner(user, course):
 
 def get_course_for_read(course_id, user):
     queryset = Course.objects.filter(id=course_id, is_deleted=False).annotate(chapter_count=Count("chapters"))
+    queryset = annotate_enrollment_state(queryset, user)
     course = queryset.first()
     if not course:
         raise BusinessError(4040, "COURSE_NOT_FOUND", status.HTTP_404_NOT_FOUND)
@@ -89,6 +103,7 @@ class CourseListCreateView(APIView):
             .order_by("-created_at", "-id")
         )
         role = get_user_role(request.user) if request.user and request.user.is_authenticated else None
+        queryset = annotate_enrollment_state(queryset, request.user)
         if role == "teacher":
             queryset = queryset.filter(teacher=request.user)
         elif role != "admin":
