@@ -198,6 +198,9 @@ class CourseChapterListCreateView(APIView):
             chapter = serializer.save(course=course)
         except IntegrityError:
             raise BusinessError(4090, "CHAPTER_ORDER_EXISTS", status.HTTP_409_CONFLICT)
+        from apps.progress.views import sync_course_enrollments_progress
+
+        sync_course_enrollments_progress(course)
         return api_response(ChapterSerializer(chapter, context={"request": request}).data, "chapter created", status=status.HTTP_201_CREATED)
 
 
@@ -217,7 +220,11 @@ class ChapterDetailView(APIView):
 
     def delete(self, request, chapter_id):
         chapter = get_chapter_for_write(chapter_id, request.user)
+        course = chapter.course
         chapter.delete()
+        from apps.progress.views import sync_course_enrollments_progress
+
+        sync_course_enrollments_progress(course)
         return api_response(None, "chapter deleted")
 
 
