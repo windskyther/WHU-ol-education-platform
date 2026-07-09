@@ -3,6 +3,7 @@
     <LearningPathPanel :title="t('auth.identityFlowTitle')" />
 
     <section class="auth-card" aria-label="注册表单">
+      <div class="auth-card__accent"></div>
       <div class="auth-card__header">
         <RouterLink class="back-link" to="/">{{ t('auth.backHome') }}</RouterLink>
         <p class="eyebrow">{{ t('auth.registerEyebrow') }}</p>
@@ -12,10 +13,14 @@
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
         <el-form-item :label="t('auth.usernameLabel')" prop="username">
-          <el-input v-model.trim="form.username" size="large" :placeholder="t('auth.usernamePlaceholder')" autocomplete="username" />
+          <el-input v-model.trim="form.username" size="large" :placeholder="t('auth.usernamePlaceholder')" autocomplete="username">
+            <template #prefix><el-icon><User /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-form-item :label="t('auth.emailLabel')" prop="email">
-          <el-input v-model.trim="form.email" size="large" placeholder="name@example.com" autocomplete="email" />
+          <el-input v-model.trim="form.email" size="large" placeholder="name@example.com" autocomplete="email">
+            <template #prefix><el-icon><Message /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-form-item :label="t('auth.codeLabel')" prop="email_code">
           <div class="code-row">
@@ -29,7 +34,9 @@
           <el-segmented v-model="form.role" :options="roleOptions" block />
         </el-form-item>
         <el-form-item :label="t('auth.passwordLabel')" prop="password">
-          <el-input v-model="form.password" size="large" type="password" :placeholder="t('auth.passwordMinPlaceholder')" autocomplete="new-password" show-password />
+          <el-input v-model="form.password" size="large" type="password" :placeholder="t('auth.passwordMinPlaceholder')" autocomplete="new-password" show-password>
+            <template #prefix><el-icon><Lock /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-form-item :label="t('auth.confirmPasswordLabel')" prop="confirmPassword">
           <el-input
@@ -40,7 +47,9 @@
             autocomplete="new-password"
             show-password
             @keyup.enter="handleRegister"
-          />
+          >
+            <template #prefix><el-icon><Lock /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-button class="auth-submit" type="primary" size="large" :loading="submitting" @click="handleRegister">
           {{ t('auth.submitCreateAccount') }}
@@ -57,6 +66,7 @@ import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { User, Message, Lock } from '@element-plus/icons-vue'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { sendEmailCode } from '../../api/auth'
 import { useUserStore } from '../../stores/user'
@@ -170,10 +180,21 @@ onBeforeUnmount(() => {
 }
 
 .auth-card {
+  position: relative;
   align-self: center;
   width: min(600px, calc(100% - 48px));
   margin: 48px auto;
   padding: 42px;
+  overflow: hidden;
+}
+
+.auth-card__accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--hot), var(--pink) 55%, var(--violet));
 }
 
 .auth-card__header {

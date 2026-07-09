@@ -3,6 +3,7 @@
     <LearningPathPanel :title="t('auth.learningFlowTitle')" />
 
     <section class="auth-card" aria-label="登录表单">
+      <div class="auth-card__accent"></div>
       <div class="auth-card__header">
         <RouterLink class="back-link" to="/">{{ t('auth.backHome') }}</RouterLink>
         <p class="eyebrow">{{ t('auth.secureAccess') }}</p>
@@ -12,7 +13,9 @@
 
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent>
         <el-form-item :label="t('auth.accountLabel')" prop="account">
-          <el-input v-model.trim="form.account" size="large" :placeholder="t('auth.accountPlaceholder')" autocomplete="username" />
+          <el-input v-model.trim="form.account" size="large" :placeholder="t('auth.accountPlaceholder')" autocomplete="username">
+            <template #prefix><el-icon><User /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-form-item :label="t('auth.passwordLabel')" prop="password">
           <el-input
@@ -23,7 +26,9 @@
             autocomplete="current-password"
             show-password
             @keyup.enter="handleLogin"
-          />
+          >
+            <template #prefix><el-icon><Lock /></el-icon></template>
+          </el-input>
         </el-form-item>
         <el-button class="auth-submit" type="primary" size="large" :loading="submitting" @click="handleLogin">
           {{ t('auth.loginSubmit') }}
@@ -40,6 +45,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { User, Lock } from '@element-plus/icons-vue'
 import LearningPathPanel from '../../components/LearningPathPanel.vue'
 import { useUserStore } from '../../stores/user'
 import { getLoginErrorMessage } from '../../utils/errorMessage'
@@ -85,10 +91,21 @@ async function handleLogin() {
 }
 
 .auth-card {
+  position: relative;
   align-self: center;
   width: min(560px, calc(100% - 48px));
   margin: 48px auto;
   padding: 42px;
+  overflow: hidden;
+}
+
+.auth-card__accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--hot), var(--pink) 55%, var(--violet));
 }
 
 .auth-card__header {
