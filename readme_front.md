@@ -859,6 +859,7 @@ P3 scope:
 - Student can update learning progress only after enrollment.
 - `watched_seconds` and `percent` only increase; smaller submitted values will not roll progress back.
 - Course total progress is calculated by averaging chapter `percent`; completed chapters count as `100`.
+- Course total progress is recalculated against the current chapter count when chapters are created/deleted and when progress is read.
 - Teacher can view progress summary for own courses.
 
 ### P3 API Summary
@@ -1022,7 +1023,8 @@ Important behavior:
 - If frontend first submits `watched_seconds: 120`, then later submits `60`, backend keeps `120`.
 - If frontend first submits `percent: 35`, then later submits `20`, backend keeps `35`.
 - If frontend submits `is_completed: true`, the chapter stays completed and its `percent` becomes `100`.
-- Backend recalculates enrollment `progress` after every update by averaging all chapter percentages.
+- Backend recalculates enrollment `progress` after every update by averaging all current chapter percentages.
+- Backend also recalculates enrollment `progress` when `/api/my/courses/` or `/api/progress/course/{course_id}/` is read, so newly added chapters immediately lower the course total progress even before the student opens the new chapter.
 
 Common errors:
 
@@ -1076,6 +1078,7 @@ Student response:
 ```
 
 `chapter_progress` is an alias of `progress_items` for frontend compatibility.
+The `progress` field is synchronized before this response is returned.
 
 Teacher/Admin response:
 
