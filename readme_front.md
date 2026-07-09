@@ -1,6 +1,6 @@
-# Frontend Integration README - P1/P2/P3
+# Frontend Integration README - P1/P2/P3/P4
 
-This file is the frontend/backend contract for the P1 user-auth, P2 course/chapter, and P3 enrollment/progress stages.
+This file is the frontend/backend contract for the P1 user-auth, P2 course/chapter, P3 enrollment/progress, and P4 exam/score stages.
 
 Whenever the backend request fields, response fields, URL paths, auth rules, or error messages change, this file must be updated in the same commit.
 
@@ -1163,9 +1163,282 @@ Unauthenticated users or unenrolled students cannot obtain chapter video/materia
 6. Treat `ENROLLMENT_REQUIRED` as "please enroll first".
 7. Load video URLs through the Nginx gateway `/media/` address, not Django `8000`, so browser seeking receives `206 Partial Content`.
 
+## P4 Exam And Score APIs
+
+P4 scope:
+
+- Teacher/admin creates exams for own accessible courses.
+- Teacher/admin manages questions and can view submissions.
+- Student can list and take exams only after enrolling in the course.
+- Student exam detail never returns `answer`.
+- Student submits answers only; backend calculates score transactionally.
+- Each student can submit the same exam only once.
+
+### P4 API Summary
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `GET` | `/api/courses/{course_id}/exams/` | Student/Teacher/Admin | List course exams |
+| `POST` | `/api/courses/{course_id}/exams/` | Course teacher/Admin | Create exam |
+| `GET` | `/api/exams/{exam_id}/` | Student/Teacher/Admin | Exam detail and questions |
+| `PUT/PATCH` | `/api/exams/{exam_id}/` | Course teacher/Admin | Update exam |
+| `DELETE` | `/api/exams/{exam_id}/` | Course teacher/Admin | Delete exam |
+| `POST` | `/api/exams/{exam_id}/questions/` | Course teacher/Admin | Create question |
+| `PUT/PATCH` | `/api/questions/{question_id}/` | Course teacher/Admin | Update question |
+| `DELETE` | `/api/questions/{question_id}/` | Course teacher/Admin | Delete question |
+| `POST` | `/api/exams/{exam_id}/submit/` | Student | Submit exam answers |
+| `GET` | `/api/my/scores/` | Student | List my scores |
+| `GET` | `/api/exams/{exam_id}/submissions/` | Course teacher/Admin | List exam submissions |
+
+### Exam Object
+
+```json
+{
+  "id": 1,
+  "course": 1,
+  "title": "Chapter Quiz",
+  "description": "Basic quiz",
+  "total_score": 100,
+  "duration_minutes": 60,
+  "is_published": true,
+  "start_time": null,
+  "end_time": null,
+  "question_count": 2,
+  "submitted": false,
+  "score": null,
+  "created_at": "2026-07-08T10:00:00+08:00",
+  "updated_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+For teacher/admin, `submitted` is always `false` and `score` is `null`. For students, these fields show the current student's exam state.
+
+### Question Object
+
+Teacher/admin response includes `answer`:
+
+```json
+{
+  "id": 1,
+  "exam": 1,
+  "question_type": "single",
+  "content": "Which option is correct?",
+  "options": ["A", "B", "C", "D"],
+  "answer": ["A"],
+  "score": 10,
+  "order": 1,
+  "created_at": "2026-07-08T10:00:00+08:00",
+  "updated_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+Student response removes `answer`:
+
+```json
+{
+  "id": 1,
+  "exam": 1,
+  "question_type": "single",
+  "content": "Which option is correct?",
+  "options": ["A", "B", "C", "D"],
+  "score": 10,
+  "order": 1,
+  "created_at": "2026-07-08T10:00:00+08:00",
+  "updated_at": "2026-07-08T10:00:00+08:00"
+}
+```
+
+Supported `question_type` values:
+
+| Value | Meaning | Answer example |
+|---|---|---|
+| `single` | Single choice | `["A"]` |
+| `multiple` | Multiple choice | `["A", "C"]` |
+| `true_false` | True or false | `["true"]` |
+| `fill` | Fill in the blank | `["Django"]` |
+
+### 25. Course Exam List
+
+#### GET `/api/courses/{course_id}/exams/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Response is paginated. Exam items are in `data.results`.
+
+Permission rule:
+
+- Student must be enrolled and only sees published exams.
+- Course teacher/admin can see all exams in the course.
+
+### 26. Create Exam
+
+#### POST `/api/courses/{course_id}/exams/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request body:
+
+```json
+{
+  "title": "Chapter Quiz",
+  "description": "Basic quiz",
+  "total_score": 100,
+  "duration_minutes": 60,
+  "is_published": false,
+  "start_time": null,
+  "end_time": null
+}
+```
+
+### 27. Exam Detail
+
+#### GET `/api/exams/{exam_id}/`
+
+Student response includes `questions`, but every question hides `answer`.
+
+Teacher/admin response includes `questions` with `answer`.
+
+### 28. Create Question
+
+#### POST `/api/exams/{exam_id}/questions/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Request body:
+
+```json
+{
+  "question_type": "single",
+  "content": "Which option is correct?",
+  "options": ["A", "B", "C", "D"],
+  "answer": ["A"],
+  "score": 10,
+  "order": 1
+}
+```
+
+`order` must be unique inside one exam. Duplicate order returns `QUESTION_ORDER_EXISTS`.
+
+### 29. Submit Exam
+
+#### POST `/api/exams/{exam_id}/submit/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Request body:
+
+```json
+{
+  "answers": {
+    "1": ["A"],
+    "2": ["A", "C"],
+    "3": ["true"]
+  }
+}
+```
+
+The keys inside `answers` are `question_id` strings. A single answer may be sent as a scalar or list; backend normalizes it to a list.
+
+Success response:
+
+```json
+{
+  "code": 0,
+  "message": "exam submitted",
+  "data": {
+    "id": 1,
+    "exam": 1,
+    "exam_title": "Chapter Quiz",
+    "course_id": 1,
+    "course_title": "Python Basics",
+    "student": {
+      "id": 3,
+      "username": "student01",
+      "email": "student@example.com"
+    },
+    "answers": {
+      "1": {
+        "answer": ["A"],
+        "is_correct": true,
+        "score": 10.0
+      }
+    },
+    "score": 10.0,
+    "submitted_at": "2026-07-08T10:30:00+08:00"
+  }
+}
+```
+
+Important behavior:
+
+- Backend does not trust frontend score.
+- Backend compares normalized answer arrays.
+- Same student can submit the same exam only once.
+- If `start_time` is in the future, backend returns `EXAM_NOT_STARTED`.
+- If `end_time` has passed, backend returns `EXAM_ENDED`.
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `ENROLLMENT_REQUIRED` | Student has not enrolled in the course |
+| `EXAM_NOT_FOUND` | Exam does not exist or is not visible |
+| `EXAM_NOT_STARTED` | Exam has not started |
+| `EXAM_ENDED` | Exam has ended |
+| `EXAM_ALREADY_SUBMITTED` | Student already submitted this exam |
+| `QUESTION_ORDER_EXISTS` | Question order already exists in the exam |
+
+### 30. My Scores
+
+#### GET `/api/my/scores/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Response is paginated. Score items are in `data.results`.
+
+### 31. Exam Submissions
+
+#### GET `/api/exams/{exam_id}/submissions/`
+
+Headers:
+
+```http
+Authorization: Bearer <teacher_access_token>
+```
+
+Only the course teacher/admin can view submissions.
+
+### P4 Frontend Integration Checklist
+
+1. Use `GET /api/courses/{course_id}/exams/` after enrollment to show exams.
+2. Student exam page must render questions from `GET /api/exams/{exam_id}/`; do not expect `answer`.
+3. Submit only `answers`; never calculate or send final score as trusted data.
+4. Treat `EXAM_ALREADY_SUBMITTED` as "already submitted"; then load `/api/my/scores/`.
+5. Teacher/admin question management should keep `order` unique inside each exam.
+
 ## Maintenance Rule
 
-When backend auth/user/course/chapter/enrollment/progress APIs change, update this file in the same commit. This includes:
+When backend auth/user/course/chapter/enrollment/progress/exam APIs change, update this file in the same commit. This includes:
 
 - URL path changes
 - Request field changes
