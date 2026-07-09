@@ -100,7 +100,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { fetchExamDetail, fetchExamQuestions, submitExam } from '../../api/exam'
-import { getCommonErrorMessage } from '../../utils/errorMessage'
+import { getCommonErrorMessage, getExamErrorCode, getExamErrorMessage } from '../../utils/errorMessage'
 
 const route = useRoute()
 const router = useRouter()
@@ -173,6 +173,40 @@ function buildAnswers() {
   }))
 }
 
+function resetExamState() {
+  exam.value = null
+  questions.value = []
+  Object.keys(answerMap).forEach((key) => {
+    delete answerMap[key]
+  })
+}
+
+function courseIdFromError(error) {
+  const data = error?.rawData?.data || error?.response?.data?.data || {}
+  return data.course_id || data.course?.id || route.query.course_id || ''
+}
+
+function handleExamLoadError(error) {
+  const code = getExamErrorCode(error)
+  const message = getExamErrorMessage(error, '考试加载失败')
+  resetExamState()
+  ElMessage.error(message)
+
+  if (code === 'EXAM_ALREADY_SUBMITTED') {
+    router.push('/student/scores')
+    return
+  }
+
+  if (code === 'EXAM_ENDED') {
+    const targetCourseId = courseIdFromError(error)
+    if (targetCourseId) {
+      router.push(`/student/learn/${targetCourseId}`)
+    } else {
+      router.push('/student/courses')
+    }
+  }
+}
+
 async function loadExam() {
   loading.value = true
   try {
@@ -186,7 +220,7 @@ async function loadExam() {
     questions.value = questionItems
     seedAnswers(questionItems)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '考试加载失败'))
+    handleExamLoadError(error)
   } finally {
     loading.value = false
   }

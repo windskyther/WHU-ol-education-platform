@@ -90,10 +90,22 @@
         </div>
         <div class="dialog-grid">
           <el-form-item label="开始时间">
-            <el-date-picker v-model="form.start_time" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" placeholder="选择开始时间" />
+            <el-date-picker
+              v-model="form.start_time"
+              type="datetime"
+              value-format="YYYY-MM-DDTHH:mm:ss"
+              placeholder="选择开始时间"
+              :disabled-date="disablePastDate"
+            />
           </el-form-item>
           <el-form-item label="结束时间">
-            <el-date-picker v-model="form.end_time" type="datetime" value-format="YYYY-MM-DDTHH:mm:ss" placeholder="选择结束时间" />
+            <el-date-picker
+              v-model="form.end_time"
+              type="datetime"
+              value-format="YYYY-MM-DDTHH:mm:ss"
+              placeholder="选择结束时间"
+              :disabled-date="disablePastDate"
+            />
           </el-form-item>
         </div>
         <el-form-item label="发布状态">
@@ -115,7 +127,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Tickets } from '@element-plus/icons-vue'
 import { fetchCourseDetail } from '../../api/course'
 import { createCourseExam, fetchCourseExams, updateCourseExam } from '../../api/exam'
-import { getCommonErrorMessage } from '../../utils/errorMessage'
+import { getCommonErrorMessage, getExamErrorMessage } from '../../utils/errorMessage'
 
 const route = useRoute()
 const courseId = computed(() => route.params.id)
@@ -163,6 +175,35 @@ function formatTime(value) {
   return new Date(value).toLocaleString('zh-CN', { hour12: false })
 }
 
+function disablePastDate(date) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return date.getTime() < today.getTime()
+}
+
+function validateExamTime() {
+  const now = Date.now()
+  const startTime = form.start_time ? new Date(form.start_time).getTime() : null
+  const endTime = form.end_time ? new Date(form.end_time).getTime() : null
+
+  if (startTime && startTime <= now) {
+    ElMessage.error('开始时间必须晚于当前时间')
+    return false
+  }
+
+  if (endTime && endTime <= now) {
+    ElMessage.error('截止时间必须晚于当前时间')
+    return false
+  }
+
+  if (startTime && endTime && endTime <= startTime) {
+    ElMessage.error('截止时间必须晚于开始时间')
+    return false
+  }
+
+  return true
+}
+
 function openCreateDialog() {
   resetForm()
   dialogVisible.value = true
@@ -186,6 +227,8 @@ async function loadPage() {
 
 async function handleCreateExam() {
   await formRef.value?.validate()
+  if (!validateExamTime()) return
+
   submitting.value = true
   try {
     await createCourseExam(courseId.value, { ...form })
@@ -193,7 +236,7 @@ async function handleCreateExam() {
     dialogVisible.value = false
     loadPage()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '考试创建失败'))
+    ElMessage.error(getExamErrorMessage(error, '考试创建失败'))
   } finally {
     submitting.value = false
   }
