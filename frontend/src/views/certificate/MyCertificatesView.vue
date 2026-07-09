@@ -19,14 +19,19 @@
             :to="`/certificates/${cert.cert_no}`"
             class="certificate-card"
           >
-            <div class="certificate-card-badge">🏆</div>
-            <h3>{{ cert.course_title }}</h3>
-            <p class="certificate-card-exam">{{ cert.exam_title }}</p>
-            <div class="certificate-card-meta">
-              <span>分数 {{ cert.score }}</span>
-              <span>{{ formatTime(cert.issued_at) }}</span>
+            <div class="certificate-card-inner">
+              <span class="certificate-card-seal">🎖️</span>
+              <p class="certificate-card-eyebrow">CERTIFICATE OF EXCELLENCE</p>
+              <h3 class="certificate-card-course">{{ cert.course_title }}</h3>
+              <p class="certificate-card-exam">{{ cert.exam_title }}</p>
+              <p class="certificate-card-student">{{ cert.student_name }}</p>
+              <div class="certificate-card-meta">
+                <span>{{ cert.score }} 分</span>
+                <span>{{ formatTime(cert.issued_at) }}</span>
+              </div>
+              <div class="certificate-card-no">{{ cert.cert_no }}</div>
             </div>
-            <div class="certificate-card-no">{{ cert.cert_no }}</div>
+            <div class="certificate-card-hint">点击查看完整证书</div>
           </RouterLink>
         </div>
 
@@ -112,33 +117,56 @@ onMounted(() => {
 
 .certificate-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
   min-height: 120px;
 }
 
 .certificate-card {
   display: grid;
-  gap: 6px;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--green-300, #a8d8bc);
-  background: var(--mint-050, #f6fbf8);
+  gap: 0;
   text-decoration: none;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--mint-050, #f6fbf8);
+  border: 1px solid var(--green-300, #a8d8bc);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .certificate-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(47, 111, 78, 0.12);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(47, 111, 78, 0.16);
 }
 
-.certificate-card-badge {
-  font-size: 28px;
+.certificate-card-inner {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  text-align: center;
+  padding: 24px 18px 18px;
+  background:
+    repeating-linear-gradient(135deg, rgba(92, 169, 130, 0.05) 0 2px, transparent 2px 14px),
+    #ffffff;
+  border: 2px double var(--green-500, #5ca982);
+  margin: 10px;
+  border-radius: 4px;
 }
 
-.certificate-card h3 {
+.certificate-card-seal {
+  font-size: 26px;
+  margin-bottom: 2px;
+}
+
+.certificate-card-eyebrow {
   margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--green-500, #5ca982);
+}
+
+.certificate-card-course {
+  margin: 6px 0 0;
   font-size: 16px;
   font-weight: 900;
   color: var(--ink-900, #10251a);
@@ -147,21 +175,40 @@ onMounted(() => {
 .certificate-card-exam {
   margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+}
+
+.certificate-card-student {
+  margin: 6px 0 0;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--green-700, #2f6f4e);
 }
 
 .certificate-card-meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 8px;
   font-size: 12px;
   color: var(--green-700, #2f6f4e);
   font-weight: 800;
 }
 
 .certificate-card-no {
-  font-size: 11px;
+  margin-top: 6px;
+  font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.5px;
+}
+
+.certificate-card-hint {
+  text-align: center;
+  padding: 8px 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green-700, #2f6f4e);
+  background: var(--green-100, #e8f6ee);
 }
 </style>
