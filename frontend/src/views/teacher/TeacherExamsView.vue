@@ -52,6 +52,15 @@
           <el-table-column label="操作" min-width="240" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
+                <el-button
+                  size="small"
+                  text
+                  :type="row.is_published ? 'warning' : 'success'"
+                  :loading="publishingId === row.id"
+                  @click="togglePublish(row)"
+                >
+                  {{ row.is_published ? '下架' : '发布' }}
+                </el-button>
                 <el-button size="small" text :icon="Edit" @click="$router.push(`/teacher/exams/${row.id}/questions`)">题目</el-button>
                 <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/exams/${row.id}/submissions`)">答卷</el-button>
               </div>
@@ -102,10 +111,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Tickets } from '@element-plus/icons-vue'
 import { fetchCourseDetail } from '../../api/course'
-import { createCourseExam, fetchCourseExams } from '../../api/exam'
+import { createCourseExam, fetchCourseExams, updateCourseExam } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
 const route = useRoute()
@@ -114,6 +123,7 @@ const course = ref(null)
 const exams = ref([])
 const loading = ref(false)
 const submitting = ref(false)
+const publishingId = ref(null)
 const dialogVisible = ref(false)
 const formRef = ref()
 
@@ -186,6 +196,32 @@ async function handleCreateExam() {
     ElMessage.error(getCommonErrorMessage(error, '考试创建失败'))
   } finally {
     submitting.value = false
+  }
+}
+
+async function togglePublish(row) {
+  const nextPublished = !row.is_published
+  await ElMessageBox.confirm(
+    nextPublished ? '确认发布这场考试吗？发布后学生可见。' : '确认下架这场考试吗？下架后学生不可见。',
+    nextPublished ? '发布考试' : '下架考试',
+    {
+      type: 'warning',
+      confirmButtonText: nextPublished ? '发布' : '下架',
+      cancelButtonText: '取消'
+    }
+  )
+
+  publishingId.value = row.id
+  try {
+    await updateCourseExam(row.id, {
+      is_published: nextPublished
+    })
+    ElMessage.success(nextPublished ? '考试已发布' : '考试已下架')
+    await loadPage()
+  } catch (error) {
+    ElMessage.error(getCommonErrorMessage(error, nextPublished ? '考试发布失败' : '考试下架失败'))
+  } finally {
+    publishingId.value = null
   }
 }
 

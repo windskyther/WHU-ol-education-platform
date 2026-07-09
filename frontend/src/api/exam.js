@@ -8,6 +8,10 @@ export function createCourseExam(courseId, payload) {
   return request.post(`/courses/${courseId}/exams/`, payload)
 }
 
+export function updateCourseExam(examId, payload) {
+  return request.patch(`/exams/${examId}/`, payload)
+}
+
 export function fetchExamDetail(examId) {
   return request.get(`/exams/${examId}/`)
 }
