@@ -18,20 +18,20 @@
         <p class="eyebrow">{{ t('home.learningSystem') }}</p>
         <ul class="rally-index">
           <li class="index-row is-active">
-            <span class="index-letter">{{ t('home.course').slice(0, 1) }}</span>
-            <span class="index-name">{{ t('home.course') }}</span>
+            <span class="index-letter">C</span>
+            <span class="index-name">Courses</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">{{ t('home.video').slice(0, 1) }}</span>
-            <span class="index-name">{{ t('home.video') }}</span>
+            <span class="index-letter">V</span>
+            <span class="index-name">Video</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">{{ t('home.exam').slice(0, 1) }}</span>
-            <span class="index-name">{{ t('home.exam') }}</span>
+            <span class="index-letter">E</span>
+            <span class="index-name">Exams</span>
           </li>
           <li class="index-row">
-            <span class="index-letter">{{ t('home.progress').slice(0, 1) }}</span>
-            <span class="index-name">{{ t('home.progress') }}</span>
+            <span class="index-letter">P</span>
+            <span class="index-name">Progress</span>
           </li>
         </ul>
       </aside>
