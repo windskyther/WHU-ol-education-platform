@@ -13,16 +13,19 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const route = useRoute()
 
-const links = [
-  { label: '论坛', to: '/community/forum' },
-  { label: '资料推送', to: '/community/resources' },
-  { label: '我的发布', to: '/community/mine' },
-  { label: '我的收藏', to: '/community/favorites' }
-]
+const links = computed(() => [
+  { label: t('community.nav.forum'), to: '/community/forum' },
+  { label: t('community.nav.resources'), to: '/community/resources' },
+  { label: t('community.nav.myPosts'), to: '/community/mine' },
+  { label: t('community.nav.myFavorites'), to: '/community/favorites' }
+])
 </script>
 
 <style scoped>

@@ -2,8 +2,8 @@
   <main class="page-shell">
     <AppNav>
       <template #actions>
-        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">考试管理</el-button>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建章节</el-button>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">{{ t('teacher.chapters.examsManageBtn') }}</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">{{ t('teacher.chapters.createBtn') }}</el-button>
       </template>
     </AppNav>
 
@@ -12,40 +12,40 @@
     <section class="chapters-shell">
       <div class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">章节管理</p>
+          <p class="eyebrow">{{ t('teacher.chapters.eyebrow') }}</p>
           <h1>{{ course?.title || 'Chapter index' }}</h1>
-          <p>维护章节排序、简介、视频和资料。学生学习页会直接使用这些内容和资源。</p>
+          <p>{{ t('teacher.chapters.description') }}</p>
         </div>
       </div>
 
       <section v-loading="loading" class="surface chapter-panel">
         <div class="panel-title">
           <div>
-            <p class="eyebrow">学习内容</p>
-            <h2>内容列表</h2>
+            <p class="eyebrow">{{ t('teacher.chapters.contentEyebrow') }}</p>
+            <h2>{{ t('teacher.chapters.contentListTitle') }}</h2>
           </div>
-          <el-tag effect="light">{{ orderedChapters.length }} 章</el-tag>
+          <el-tag effect="light">{{ t('teacher.chapters.chapterCountTag', { n: orderedChapters.length }) }}</el-tag>
         </div>
 
         <el-table :data="orderedChapters" row-key="id">
-          <el-table-column label="排序" prop="order" width="90">
+          <el-table-column :label="t('teacher.chapters.colOrder')" prop="order" width="90">
             <template #default="{ row }">{{ row.order ?? row.order_no }}</template>
           </el-table-column>
-          <el-table-column label="章节" min-width="240">
+          <el-table-column :label="t('teacher.chapters.colChapter')" min-width="240">
             <template #default="{ row }">
               <div class="chapter-cell">
                 <strong>{{ row.title }}</strong>
-                <span>{{ row.description || '暂无章节简介' }}</span>
+                <span>{{ row.description || t('teacher.chapters.noDescription') }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="视频" min-width="220">
+          <el-table-column :label="t('teacher.chapters.colVideo')" min-width="220">
             <template #default="{ row }">
               <div class="asset-cell">
-                <span>{{ row.video?.original_name || row.video?.file_name || (row.video || row.video_url ? '已上传视频' : '未上传') }}</span>
+                <span>{{ row.video?.original_name || row.video?.file_name || (row.video || row.video_url ? t('teacher.chapters.videoUploaded') : t('teacher.chapters.notUploaded')) }}</span>
                 <FileUpload
-                  label="上传视频"
-                  hint="mp4/webm/mov，200 MB"
+                  :label="t('teacher.chapters.uploadVideoLabel')"
+                  :hint="t('teacher.chapters.uploadVideoHint')"
                   accept=".mp4,.webm,.mov"
                   :allowed-extensions="['.mp4', '.webm', '.mov']"
                   :max-size-mb="200"
@@ -55,13 +55,13 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="资料" min-width="240">
+          <el-table-column :label="t('teacher.chapters.colMaterial')" min-width="240">
             <template #default="{ row }">
               <div class="asset-cell">
-                <span>{{ row.material?.original_name || row.material?.file_name || (row.material || row.material_url ? '已上传资料' : '未上传') }}</span>
+                <span>{{ row.material?.original_name || row.material?.file_name || (row.material || row.material_url ? t('teacher.chapters.materialUploaded') : t('teacher.chapters.notUploaded')) }}</span>
                 <FileUpload
-                  label="上传资料"
-                  hint="pdf/doc/ppt/zip，20 MB"
+                  :label="t('teacher.chapters.uploadMaterialLabel')"
+                  :hint="t('teacher.chapters.uploadMaterialHint')"
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip"
                   :allowed-extensions="materialExtensions"
                   :max-size-mb="20"
@@ -71,17 +71,17 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="180" fixed="right">
+          <el-table-column :label="t('teacher.chapters.colActions')" width="180" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
-                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">删除</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">{{ t('teacher.chapters.editBtn') }}</el-button>
+                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">{{ t('teacher.chapters.deleteBtn') }}</el-button>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <div v-if="!loading && orderedChapters.length === 0" class="empty-state">暂无章节，先创建第一章。</div>
+        <div v-if="!loading && orderedChapters.length === 0" class="empty-state">{{ t('teacher.chapters.emptyState') }}</div>
       </section>
     </section>
 
@@ -100,6 +100,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import ChapterFormDialog from '../../components/ChapterFormDialog.vue'
@@ -115,6 +116,7 @@ import {
 } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const courseId = computed(() => route.params.id)
 const course = ref(null)
@@ -133,9 +135,9 @@ const nextOrder = computed(() => {
 })
 
 const breadcrumbItems = computed(() => [
-  { label: '课程管理', to: '/teacher/courses' },
-  { label: course.value?.title || '课程', to: `/courses/${courseId.value}` },
-  { label: '章节管理' }
+  { label: t('teacher.chapters.breadcrumbCourseManage'), to: '/teacher/courses' },
+  { label: course.value?.title || t('teacher.chapters.breadcrumbCourse'), to: `/courses/${courseId.value}` },
+  { label: t('teacher.chapters.breadcrumbChapters') }
 ])
 
 function chapterOrder(chapter) {
@@ -156,7 +158,7 @@ async function loadPage() {
   try {
     await Promise.all([loadCourse(), loadChapters()])
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '章节信息加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.chapters.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -177,34 +179,38 @@ async function handleSaveChapter(payload) {
   try {
     if (editingChapter.value?.id) {
       await updateChapter(editingChapter.value.id, payload)
-      ElMessage.success('章节已更新')
+      ElMessage.success(t('teacher.chapters.updated'))
     } else {
       await createChapter(courseId.value, payload)
-      ElMessage.success('章节已创建')
+      ElMessage.success(t('teacher.chapters.created'))
     }
     dialogVisible.value = false
     loadChapters()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '章节保存失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.chapters.saveFailed')))
   } finally {
     submitting.value = false
   }
 }
 
 async function confirmDelete(chapter) {
-  await ElMessageBox.confirm(`确认删除章节“${chapter.title}”吗？`, '删除章节', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消'
-  })
+  await ElMessageBox.confirm(
+    t('teacher.chapters.confirmDeleteMsg', { name: chapter.title }),
+    t('teacher.chapters.confirmDeleteTitle'),
+    {
+      type: 'warning',
+      confirmButtonText: t('teacher.chapters.confirmDeleteBtn'),
+      cancelButtonText: t('teacher.chapters.confirmCancelBtn')
+    }
+  )
 
   deletingId.value = chapter.id
   try {
     await deleteChapter(chapter.id)
-    ElMessage.success('章节已删除')
+    ElMessage.success(t('teacher.chapters.deleted'))
     loadChapters()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '章节删除失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.chapters.deleteFailed')))
   } finally {
     deletingId.value = null
   }

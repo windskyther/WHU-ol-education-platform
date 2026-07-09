@@ -2,8 +2,8 @@
   <main class="page-shell">
     <AppNav>
       <template #actions>
-        <el-button plain @click="$router.push(`/teacher/exams/${examId}/submissions`)">答卷管理</el-button>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建题目</el-button>
+        <el-button plain @click="$router.push(`/teacher/exams/${examId}/submissions`)">{{ t('teacher.questions.submissionsBtn') }}</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">{{ t('teacher.questions.createBtn') }}</el-button>
       </template>
     </AppNav>
 
@@ -12,78 +12,78 @@
     <section class="question-manager-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">题目编辑</p>
+          <p class="eyebrow">{{ t('teacher.questions.eyebrow') }}</p>
           <h1>{{ exam?.title || 'Exam questions' }}</h1>
-          <p>维护题干、选项、标准答案和分值。学生作答页不会展示答案字段。</p>
+          <p>{{ t('teacher.questions.description') }}</p>
         </div>
       </header>
 
       <section class="surface table-panel">
         <el-table v-loading="loading" :data="orderedQuestions" row-key="id">
-          <el-table-column label="排序" width="90">
+          <el-table-column :label="t('teacher.questions.colOrder')" width="90">
             <template #default="{ row }">{{ row.order_no ?? row.order ?? 0 }}</template>
           </el-table-column>
-          <el-table-column label="题目" min-width="260">
+          <el-table-column :label="t('teacher.questions.colQuestion')" min-width="260">
             <template #default="{ row }">
               <div class="question-cell">
                 <strong>{{ row.content }}</strong>
-                <span>{{ questionTypeText(row.type) }} · {{ row.score }} 分</span>
+                <span>{{ questionTypeText(row.type) }} · {{ row.score }} {{ t('teacher.questions.scoreSuffix') }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="选项" min-width="220">
+          <el-table-column :label="t('teacher.questions.colOptions')" min-width="220">
             <template #default="{ row }">{{ optionSummary(row) }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="180" fixed="right">
+          <el-table-column :label="t('teacher.questions.colActions')" width="180" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
-                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">删除</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">{{ t('teacher.questions.editBtn') }}</el-button>
+                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">{{ t('teacher.questions.deleteBtn') }}</el-button>
               </div>
             </template>
           </el-table-column>
         </el-table>
-        <div v-if="!loading && orderedQuestions.length === 0" class="empty-state">暂无题目，先创建第一道题。</div>
+        <div v-if="!loading && orderedQuestions.length === 0" class="empty-state">{{ t('teacher.questions.emptyState') }}</div>
       </section>
     </section>
 
-    <el-dialog v-model="dialogVisible" :title="editingQuestion?.id ? '编辑题目' : '创建题目'" width="720px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" :title="editingQuestion?.id ? t('teacher.questions.dialogEditTitle') : t('teacher.questions.dialogCreateTitle')" width="720px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <div class="dialog-grid">
-          <el-form-item label="题型" prop="type">
-            <el-select v-model="form.type" placeholder="选择题型">
-              <el-option label="单选题" value="single" />
-              <el-option label="多选题" value="multiple" />
-              <el-option label="判断题" value="judge" />
-              <el-option label="填空题" value="blank" />
-              <el-option label="简答题" value="short" />
+          <el-form-item :label="t('teacher.questions.typeLabel')" prop="type">
+            <el-select v-model="form.type" :placeholder="t('teacher.questions.typePlaceholder')">
+              <el-option :label="t('teacher.questions.typeSingle')" value="single" />
+              <el-option :label="t('teacher.questions.typeMultiple')" value="multiple" />
+              <el-option :label="t('teacher.questions.typeJudge')" value="judge" />
+              <el-option :label="t('teacher.questions.typeBlank')" value="blank" />
+              <el-option :label="t('teacher.questions.typeShort')" value="short" />
             </el-select>
           </el-form-item>
-          <el-form-item label="分值" prop="score">
+          <el-form-item :label="t('teacher.questions.scoreLabel')" prop="score">
             <el-input-number v-model="form.score" :min="0" :max="1000" />
           </el-form-item>
         </div>
-        <el-form-item label="题干" prop="content">
-          <el-input v-model.trim="form.content" type="textarea" :rows="4" placeholder="输入题干" />
+        <el-form-item :label="t('teacher.questions.contentLabel')" prop="content">
+          <el-input v-model.trim="form.content" type="textarea" :rows="4" :placeholder="t('teacher.questions.contentPlaceholder')" />
         </el-form-item>
-        <el-form-item v-if="needsOptions" label="选项">
-          <el-input v-model="form.optionsText" type="textarea" :rows="5" placeholder="每行一个选项，例如 A. python" />
+        <el-form-item v-if="needsOptions" :label="t('teacher.questions.optionsLabel')">
+          <el-input v-model="form.optionsText" type="textarea" :rows="5" :placeholder="t('teacher.questions.optionsPlaceholder')" />
         </el-form-item>
-        <el-form-item label="标准答案" prop="answerText">
-          <el-input v-model.trim="form.answerText" type="textarea" :rows="3" placeholder="多选题可用逗号分隔多个答案" />
+        <el-form-item :label="t('teacher.questions.answerLabel')" prop="answerText">
+          <el-input v-model.trim="form.answerText" type="textarea" :rows="3" :placeholder="t('teacher.questions.answerPlaceholder')" />
         </el-form-item>
         <div class="dialog-grid">
-          <el-form-item label="排序">
+          <el-form-item :label="t('teacher.questions.orderLabel')">
             <el-input-number v-model="form.order_no" :min="0" :max="999" />
           </el-form-item>
-          <el-form-item label="解析">
-            <el-input v-model.trim="form.analysis" placeholder="可选" />
+          <el-form-item :label="t('teacher.questions.analysisLabel')">
+            <el-input v-model.trim="form.analysis" :placeholder="t('teacher.questions.analysisPlaceholder')" />
           </el-form-item>
         </div>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSaveQuestion">保存</el-button>
+        <el-button @click="dialogVisible = false">{{ t('teacher.questions.cancelBtn') }}</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSaveQuestion">{{ t('teacher.questions.saveBtn') }}</el-button>
       </template>
     </el-dialog>
   </main>
@@ -94,6 +94,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import {
@@ -105,6 +106,7 @@ import {
 } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const examId = computed(() => route.params.examId)
 const exam = ref(null)
@@ -126,27 +128,27 @@ const form = reactive({
   order_no: 0
 })
 
-const rules = {
-  type: [{ required: true, message: '请选择题型', trigger: 'change' }],
-  content: [{ required: true, message: '请输入题干', trigger: 'blur' }],
-  answerText: [{ required: true, message: '请输入标准答案', trigger: 'blur' }],
-  score: [{ required: true, message: '请输入分值', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  type: [{ required: true, message: t('teacher.questions.typeRequired'), trigger: 'change' }],
+  content: [{ required: true, message: t('teacher.questions.contentRequired'), trigger: 'blur' }],
+  answerText: [{ required: true, message: t('teacher.questions.answerRequired'), trigger: 'blur' }],
+  score: [{ required: true, message: t('teacher.questions.scoreRequired'), trigger: 'blur' }]
+}))
 
 const courseId = computed(() => exam.value?.course_id || exam.value?.course?.id || exam.value?.course)
 const orderedQuestions = computed(() => [...questions.value].sort((a, b) => questionOrder(a) - questionOrder(b)))
 const needsOptions = computed(() => ['single', 'multiple'].includes(form.type))
 
 const breadcrumbItems = computed(() => {
-  const items = [{ label: '课程管理', to: '/teacher/courses' }]
+  const items = [{ label: t('teacher.questions.breadcrumbCourseManage'), to: '/teacher/courses' }]
   if (courseId.value) {
     items.push({
-      label: exam.value?.course_title || exam.value?.course?.title || '课程',
+      label: exam.value?.course_title || exam.value?.course?.title || t('teacher.questions.breadcrumbCourse'),
       to: `/teacher/courses/${courseId.value}/exams`
     })
   }
-  items.push({ label: exam.value?.title || '考试', to: courseId.value ? `/teacher/courses/${courseId.value}/exams` : undefined })
-  items.push({ label: '题目管理' })
+  items.push({ label: exam.value?.title || t('teacher.questions.breadcrumbExam'), to: courseId.value ? `/teacher/courses/${courseId.value}/exams` : undefined })
+  items.push({ label: t('teacher.questions.breadcrumbQuestions') })
   return items
 })
 
@@ -156,13 +158,13 @@ function questionOrder(question) {
 
 function questionTypeText(type) {
   const map = {
-    single: '单选题',
-    multiple: '多选题',
-    judge: '判断题',
-    blank: '填空题',
-    short: '简答题'
+    single: t('teacher.questions.typeSingle'),
+    multiple: t('teacher.questions.typeMultiple'),
+    judge: t('teacher.questions.typeJudge'),
+    blank: t('teacher.questions.typeBlank'),
+    short: t('teacher.questions.typeShort')
   }
-  return map[type] || '题目'
+  return map[type] || t('teacher.questions.typeDefault')
 }
 
 function normalizeQuestions(data) {
@@ -237,7 +239,7 @@ async function loadPage() {
     }
     questions.value = questionItems
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '题目信息加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.questions.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -249,34 +251,38 @@ async function handleSaveQuestion() {
   try {
     if (editingQuestion.value?.id) {
       await updateExamQuestion(editingQuestion.value.id, buildPayload())
-      ElMessage.success('题目已更新')
+      ElMessage.success(t('teacher.questions.updated'))
     } else {
       await createExamQuestion(examId.value, buildPayload())
-      ElMessage.success('题目已创建')
+      ElMessage.success(t('teacher.questions.created'))
     }
     dialogVisible.value = false
     loadPage()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '题目保存失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.questions.saveFailed')))
   } finally {
     submitting.value = false
   }
 }
 
 async function confirmDelete(question) {
-  await ElMessageBox.confirm('确认删除这道题吗？', '删除题目', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消'
-  })
+  await ElMessageBox.confirm(
+    t('teacher.questions.confirmDeleteMsg'),
+    t('teacher.questions.confirmDeleteTitle'),
+    {
+      type: 'warning',
+      confirmButtonText: t('teacher.questions.confirmDeleteBtn'),
+      cancelButtonText: t('teacher.questions.confirmCancelBtn')
+    }
+  )
 
   deletingId.value = question.id
   try {
     await deleteExamQuestion(question.id)
-    ElMessage.success('题目已删除')
+    ElMessage.success(t('teacher.questions.deleted'))
     loadPage()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '题目删除失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.questions.deleteFailed')))
   } finally {
     deletingId.value = null
   }

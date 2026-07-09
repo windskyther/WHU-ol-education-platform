@@ -2,34 +2,32 @@
   <section class="surface question-panel">
     <div class="section-heading">
       <div>
-        <p class="eyebrow">课程问答</p>
+        <p class="eyebrow">{{ t('student.qa.eyebrow') }}</p>
         <h2>{{ heading }}</h2>
       </div>
       <div class="question-toolbar">
-        <el-select v-if="canManage" v-model="filters.status" clearable placeholder="状态" @change="loadQuestions(1)">
-          <el-option label="待回答" value="open" />
-          <el-option label="已回答" value="answered" />
-          <el-option label="已解决" value="resolved" />
+        <el-select v-if="canManage" v-model="filters.status" clearable :placeholder="t('student.qa.statusPlaceholder')" @change="loadQuestions(1)">
+          <el-option v-for="opt in statusOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
         </el-select>
-        <el-button :icon="Refresh" :loading="loading" @click="loadQuestions(page)">刷新</el-button>
+        <el-button :icon="Refresh" :loading="loading" @click="loadQuestions(page)">{{ t('student.qa.refresh') }}</el-button>
       </div>
     </div>
 
     <div v-if="!canUseQuestions" class="locked-panel">
-      <strong>加入课程后参与问答</strong>
-      <p>课程问答只对已选课学生、课程教师和管理员开放。</p>
+      <strong>{{ t('student.qa.lockedTitle') }}</strong>
+      <p>{{ t('student.qa.lockedDesc') }}</p>
     </div>
 
     <template v-else>
       <el-form v-if="canAsk" class="question-form" label-position="top" @submit.prevent>
-        <el-form-item label="问题标题">
-          <el-input v-model.trim="questionForm.title" maxlength="128" show-word-limit placeholder="例如：第二章矩阵秩怎么理解？" />
+        <el-form-item :label="t('student.qa.questionTitleLabel')">
+          <el-input v-model.trim="questionForm.title" maxlength="128" show-word-limit :placeholder="t('student.qa.questionTitlePlaceholder')" />
         </el-form-item>
-        <el-form-item label="问题描述">
-          <el-input v-model.trim="questionForm.content" type="textarea" :rows="4" maxlength="2000" show-word-limit placeholder="描述你卡住的步骤、章节或报错信息。" />
+        <el-form-item :label="t('student.qa.questionContentLabel')">
+          <el-input v-model.trim="questionForm.content" type="textarea" :rows="4" maxlength="2000" show-word-limit :placeholder="t('student.qa.questionContentPlaceholder')" />
         </el-form-item>
         <div class="table-actions">
-          <el-button type="primary" :icon="ChatDotSquare" :loading="submittingQuestion" @click="submitQuestion">提交问题</el-button>
+          <el-button type="primary" :icon="ChatDotSquare" :loading="submittingQuestion" @click="submitQuestion">{{ t('student.qa.submitQuestionButton') }}</el-button>
         </div>
       </el-form>
 
@@ -42,36 +40,36 @@
             </div>
             <p class="question-content">{{ question.content }}</p>
             <div class="question-meta">
-              <span>{{ question.student?.username || '学生' }}</span>
+              <span>{{ question.student?.username || t('student.qa.unknownStudent') }}</span>
               <span>{{ formatTime(question.created_at) }}</span>
             </div>
           </div>
 
           <div v-if="question.answer" class="answer-block">
             <div>
-              <span>教师回复</span>
-              <strong>{{ question.answer.teacher?.username || '教师' }}</strong>
+              <span>{{ t('student.qa.teacherReply') }}</span>
+              <strong>{{ question.answer.teacher?.username || t('student.qa.unknownTeacher') }}</strong>
             </div>
             <p>{{ question.answer.content }}</p>
             <small>{{ formatTime(question.answer.updated_at || question.answer.created_at) }}</small>
           </div>
 
           <el-form v-if="canManage" class="answer-form" @submit.prevent>
-            <el-input v-model.trim="answerDrafts[question.id]" type="textarea" :rows="3" maxlength="2000" show-word-limit :placeholder="question.answer ? '更新回答内容' : '输入回答内容'" />
+            <el-input v-model.trim="answerDrafts[question.id]" type="textarea" :rows="3" maxlength="2000" show-word-limit :placeholder="question.answer ? t('student.qa.updateAnswerPlaceholder') : t('student.qa.addAnswerPlaceholder')" />
             <div class="table-actions">
-              <el-button type="primary" :loading="answeringId === question.id" @click="submitAnswer(question)">回答</el-button>
-              <el-button v-if="question.status !== 'resolved'" plain :icon="Check" :loading="resolvingId === question.id" @click="markResolved(question)">标记解决</el-button>
+              <el-button type="primary" :loading="answeringId === question.id" @click="submitAnswer(question)">{{ t('student.qa.answerButton') }}</el-button>
+              <el-button v-if="question.status !== 'resolved'" plain :icon="Check" :loading="resolvingId === question.id" @click="markResolved(question)">{{ t('student.qa.markResolvedButton') }}</el-button>
             </div>
           </el-form>
 
           <div v-else-if="canAsk && question.status !== 'resolved'" class="table-actions">
-            <el-button plain :icon="Check" :loading="resolvingId === question.id" @click="markResolved(question)">我的问题已解决</el-button>
+            <el-button plain :icon="Check" :loading="resolvingId === question.id" @click="markResolved(question)">{{ t('student.qa.myQuestionResolved') }}</el-button>
           </div>
         </article>
       </div>
 
       <div v-if="!loading && questions.length === 0" class="empty-state">
-        {{ canAsk ? '还没有提问，遇到卡点时可以在这里记录。' : '暂无课程问题。' }}
+        {{ canAsk ? t('student.qa.emptyCanAsk') : t('student.qa.emptyManage') }}
       </div>
 
       <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadQuestions" />
@@ -82,10 +80,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { ChatDotSquare, Check, Refresh } from '@element-plus/icons-vue'
 import PaginationBar from './PaginationBar.vue'
 import { answerCourseQuestion, createCourseQuestion, fetchCourseQuestions, resolveCourseQuestion } from '../api/qa'
 import { getCommonErrorMessage } from '../utils/errorMessage'
+
+const { t } = useI18n()
 
 const props = defineProps({
   courseId: {
@@ -125,6 +126,12 @@ const questionForm = reactive({
 
 const canUseQuestions = computed(() => props.canAsk || props.canManage)
 
+const statusOptions = computed(() => [
+  { label: t('student.qa.statusOpen'), value: 'open' },
+  { label: t('student.qa.statusAnswered'), value: 'answered' },
+  { label: t('student.qa.statusResolved'), value: 'resolved' }
+])
+
 function buildParams(nextPage) {
   return {
     page: nextPage,
@@ -135,11 +142,11 @@ function buildParams(nextPage) {
 
 function statusText(status) {
   const map = {
-    open: '待回答',
-    answered: '已回答',
-    resolved: '已解决'
+    open: t('student.qa.statusOpen'),
+    answered: t('student.qa.statusAnswered'),
+    resolved: t('student.qa.statusResolved')
   }
-  return map[status] || '待回答'
+  return map[status] || t('student.qa.statusOpen')
 }
 
 function statusTagType(status) {
@@ -180,7 +187,7 @@ async function loadQuestions(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '问答加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.qa.loadError')))
   } finally {
     loading.value = false
   }
@@ -188,7 +195,7 @@ async function loadQuestions(nextPage = page.value) {
 
 async function submitQuestion() {
   if (!questionForm.title || !questionForm.content) {
-    ElMessage.warning('请填写问题标题和描述')
+    ElMessage.warning(t('student.qa.questionRequired'))
     return
   }
   submittingQuestion.value = true
@@ -197,11 +204,11 @@ async function submitQuestion() {
       title: questionForm.title,
       content: questionForm.content
     })
-    ElMessage.success('问题已提交')
+    ElMessage.success(t('student.qa.questionSubmitted'))
     resetQuestionForm()
     await loadQuestions(1)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '问题提交失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.qa.questionSubmitError')))
   } finally {
     submittingQuestion.value = false
   }
@@ -210,16 +217,16 @@ async function submitQuestion() {
 async function submitAnswer(question) {
   const content = answerDrafts[question.id]?.trim()
   if (!content) {
-    ElMessage.warning('请填写回答内容')
+    ElMessage.warning(t('student.qa.answerRequired'))
     return
   }
   answeringId.value = question.id
   try {
     await answerCourseQuestion(question.id, { content })
-    ElMessage.success('回答已保存')
+    ElMessage.success(t('student.qa.answerSaved'))
     await loadQuestions(page.value)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '回答保存失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.qa.answerSaveError')))
   } finally {
     answeringId.value = null
   }
@@ -229,10 +236,10 @@ async function markResolved(question) {
   resolvingId.value = question.id
   try {
     await resolveCourseQuestion(question.id)
-    ElMessage.success('问题已标记解决')
+    ElMessage.success(t('student.qa.markedResolved'))
     await loadQuestions(page.value)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '状态更新失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.qa.statusUpdateError')))
   } finally {
     resolvingId.value = null
   }

@@ -1,22 +1,22 @@
 <template>
   <div class="comment-section">
     <button type="button" class="comment-toggle" @click="toggleOpen">
-      {{ open ? '收起评论' : `查看评论 (${commentsCount})` }}
+      {{ open ? t('community.comment.collapse') : t('community.comment.viewCount', { n: commentsCount }) }}
     </button>
 
     <div v-if="open" class="comment-body">
       <div v-loading="loading" class="comment-list">
         <div v-for="comment in comments" :key="comment.id" class="comment-item">
-          <strong>{{ comment.author?.username || '用户' }}</strong>
+          <strong>{{ comment.author?.username || t('community.comment.unknownUser') }}</strong>
           <span>{{ comment.content }}</span>
           <small>{{ formatTime(comment.created_at) }}</small>
         </div>
-        <p v-if="!loading && comments.length === 0" class="comment-empty">还没有评论，来说两句吧。</p>
+        <p v-if="!loading && comments.length === 0" class="comment-empty">{{ t('community.comment.empty') }}</p>
       </div>
 
       <form class="comment-form" @submit.prevent="submitComment">
-        <el-input v-model.trim="draft" maxlength="1000" show-word-limit placeholder="写下你的评论…" />
-        <el-button type="primary" :loading="submitting" @click="submitComment">评论</el-button>
+        <el-input v-model.trim="draft" maxlength="1000" show-word-limit :placeholder="t('community.comment.placeholder')" />
+        <el-button type="primary" :loading="submitting" @click="submitComment">{{ t('community.comment.submit') }}</el-button>
       </form>
     </div>
   </div>
@@ -25,8 +25,11 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { createComment, fetchComments } from '../../api/community'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
+
+const { t } = useI18n()
 
 const props = defineProps({
   targetType: {
@@ -63,7 +66,7 @@ async function loadComments() {
     const data = await fetchComments(props.targetType, props.targetId, { page_size: 50 })
     comments.value = data?.results || []
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '评论加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('community.comment.loadFailed')))
   } finally {
     loading.value = false
     loaded.value = true
@@ -79,7 +82,7 @@ function toggleOpen() {
 
 async function submitComment() {
   if (!draft.value) {
-    ElMessage.warning('请输入评论内容')
+    ElMessage.warning(t('community.comment.required'))
     return
   }
   submitting.value = true
@@ -89,7 +92,7 @@ async function submitComment() {
     await loadComments()
     emit('comment-added')
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '评论失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('community.comment.submitFailed')))
   } finally {
     submitting.value = false
   }

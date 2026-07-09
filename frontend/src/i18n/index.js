@@ -1,6 +1,16 @@
 import { createI18n } from 'vue-i18n'
 import zhCN from './locales/zh-CN'
 import enUS from './locales/en-US'
+import courseZh from './locales/course.zh'
+import courseEn from './locales/course.en'
+import teacherZh from './locales/teacher.zh'
+import teacherEn from './locales/teacher.en'
+import studentZh from './locales/student.zh'
+import studentEn from './locales/student.en'
+import communityZh from './locales/community.zh'
+import communityEn from './locales/community.en'
+import miscZh from './locales/misc.zh'
+import miscEn from './locales/misc.en'
 
 export const LOCALE_STORAGE_KEY = 'app_locale'
 export const SUPPORTED_LOCALES = ['zh-CN', 'en-US']
@@ -16,8 +26,8 @@ const i18n = createI18n({
   locale: readStoredLocale(),
   fallbackLocale: 'zh-CN',
   messages: {
-    'zh-CN': zhCN,
-    'en-US': enUS
+    'zh-CN': { ...zhCN, ...courseZh, ...teacherZh, ...studentZh, ...communityZh, ...miscZh },
+    'en-US': { ...enUS, ...courseEn, ...teacherEn, ...studentEn, ...communityEn, ...miscEn }
   }
 })
 

@@ -2,32 +2,32 @@
   <main class="page-shell settings-page">
     <AppNav />
 
-    <BreadcrumbNav :items="[{ label: '个人设置' }]" />
+    <BreadcrumbNav :items="[{ label: t('settings.breadcrumb') }]" />
 
     <section class="settings-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">账号设置</p>
-          <h1>个人设置</h1>
-          <p>管理头像、资料、情绪状态和登录密码。Nav 右上角胶囊会实时反映你的展示状态。</p>
+          <p class="eyebrow">{{ t('settings.pageEyebrow') }}</p>
+          <h1>{{ t('settings.pageTitle') }}</h1>
+          <p>{{ t('settings.pageDesc') }}</p>
         </div>
       </header>
 
       <section class="surface settings-capsule-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">个人胶囊</p>
-            <h2>展示预览</h2>
+            <p class="eyebrow">{{ t('settings.capsuleEyebrow') }}</p>
+            <h2>{{ t('settings.capsuleHeading') }}</h2>
           </div>
         </div>
         <div class="settings-capsule-row">
           <UserCapsule :user-info="previewUser" preview :interactive="false" />
           <div class="settings-capsule-copy">
-            <strong>当前状态：{{ currentMood.label }} {{ currentMood.emoji }}</strong>
-            <p>这是你在导航栏里看到的胶囊样式。</p>
+            <strong>{{ t('settings.currentStatus', { label: currentMood.label, emoji: currentMood.emoji }) }}</strong>
+            <p>{{ t('settings.capsuleHint') }}</p>
             <input ref="avatarInputRef" class="hidden-file-input" type="file" accept=".jpg,.jpeg,.png,.webp" @change="handleAvatarChange" />
-            <el-button plain :loading="avatarUploading" @click="avatarInputRef?.click()">更换头像</el-button>
-            <span class="settings-hint">支持 jpg / png / webp，最大 5 MB</span>
+            <el-button plain :loading="avatarUploading" @click="avatarInputRef?.click()">{{ t('settings.changeAvatar') }}</el-button>
+            <span class="settings-hint">{{ t('settings.avatarHint') }}</span>
           </div>
         </div>
       </section>
@@ -35,32 +35,32 @@
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">基础资料</p>
-            <h2>基本资料</h2>
+            <p class="eyebrow">{{ t('settings.profileEyebrow') }}</p>
+            <h2>{{ t('settings.profileHeading') }}</h2>
           </div>
         </div>
         <el-form label-position="top" class="settings-form">
-          <el-form-item label="用户名">
+          <el-form-item :label="t('settings.usernameLabel')">
             <el-input v-model.trim="profileForm.username" maxlength="64" />
           </el-form-item>
-          <el-form-item label="邮箱">
+          <el-form-item :label="t('settings.emailLabel')">
             <div class="readonly-field">{{ userStore.userInfo?.email || '-' }}</div>
           </el-form-item>
-          <el-form-item label="角色">
+          <el-form-item :label="t('settings.roleLabel')">
             <span class="status-pill">{{ roleLabel }}</span>
           </el-form-item>
-          <el-form-item label="个人简介">
+          <el-form-item :label="t('settings.bioLabel')">
             <el-input v-model="profileForm.bio" type="textarea" :rows="4" maxlength="500" show-word-limit />
           </el-form-item>
-          <el-button type="primary" :loading="profileSaving" @click="saveProfile">保存资料</el-button>
+          <el-button type="primary" :loading="profileSaving" @click="saveProfile">{{ t('settings.saveProfile') }}</el-button>
         </el-form>
       </section>
 
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">心情状态</p>
-            <h2>情绪状态</h2>
+            <p class="eyebrow">{{ t('settings.moodEyebrow') }}</p>
+            <h2>{{ t('settings.moodHeading') }}</h2>
           </div>
         </div>
         <div class="mood-capsule-grid">
@@ -77,28 +77,28 @@
           </button>
         </div>
         <div class="settings-form-actions">
-          <el-button type="primary" :loading="moodSaving" @click="saveMood">保存状态</el-button>
+          <el-button type="primary" :loading="moodSaving" @click="saveMood">{{ t('settings.saveMood') }}</el-button>
         </div>
       </section>
 
       <section class="surface settings-form-panel">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">安全设置</p>
-            <h2>修改密码</h2>
+            <p class="eyebrow">{{ t('settings.securityEyebrow') }}</p>
+            <h2>{{ t('settings.securityHeading') }}</h2>
           </div>
         </div>
         <el-form label-position="top" class="settings-form">
-          <el-form-item label="当前密码">
+          <el-form-item :label="t('settings.oldPasswordLabel')">
             <el-input v-model="passwordForm.old_password" type="password" show-password />
           </el-form-item>
-          <el-form-item label="新密码">
+          <el-form-item :label="t('settings.newPasswordLabel')">
             <el-input v-model="passwordForm.new_password" type="password" show-password />
           </el-form-item>
-          <el-form-item label="确认新密码">
+          <el-form-item :label="t('settings.confirmNewPasswordLabel')">
             <el-input v-model="passwordForm.confirmPassword" type="password" show-password />
           </el-form-item>
-          <el-button type="primary" :loading="passwordSaving" @click="savePassword">更新密码</el-button>
+          <el-button type="primary" :loading="passwordSaving" @click="savePassword">{{ t('settings.updatePassword') }}</el-button>
         </el-form>
       </section>
     </section>
@@ -108,6 +108,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import UserCapsule from '../../components/UserCapsule.vue'
@@ -115,6 +116,7 @@ import { MOOD_OPTIONS, getMoodDisplay } from '../../constants/userMood'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage, getPasswordErrorMessage, getProfileErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const avatarInputRef = ref(null)
 const avatarUploading = ref(false)
@@ -134,13 +136,14 @@ const passwordForm = reactive({
   confirmPassword: ''
 })
 
-const roleLabelMap = {
-  student: '学生',
-  teacher: '教师',
-  admin: '管理员'
-}
-
-const roleLabel = computed(() => roleLabelMap[userStore.role] || '用户')
+const roleLabel = computed(() => {
+  const map = {
+    student: t('settings.roleStudent'),
+    teacher: t('settings.roleTeacher'),
+    admin: t('settings.roleAdmin')
+  }
+  return map[userStore.role] || t('settings.roleUser')
+})
 const currentMood = computed(() => getMoodDisplay(selectedMood.value))
 const previewUser = computed(() => ({
   ...userStore.userInfo,
@@ -166,11 +169,11 @@ watch(
 function validateAvatarFile(file) {
   const extension = `.${file.name.split('.').pop()?.toLowerCase() || ''}`
   if (!avatarAllowedExtensions.includes(extension)) {
-    ElMessage.warning('头像仅支持 jpg、jpeg、png、webp')
+    ElMessage.warning(t('settings.avatarTypeError'))
     return false
   }
   if (file.size > avatarMaxSizeMb * 1024 * 1024) {
-    ElMessage.warning('头像大小不能超过 5 MB')
+    ElMessage.warning(t('settings.avatarSizeError'))
     return false
   }
   return true
@@ -186,9 +189,9 @@ async function handleAvatarChange(event) {
     const formData = new FormData()
     formData.append('avatar', file)
     await userStore.updateProfile(formData)
-    ElMessage.success('头像已更新')
+    ElMessage.success(t('settings.avatarUpdated'))
   } catch (error) {
-    ElMessage.error(getProfileErrorMessage(error, '头像上传失败，请稍后重试'))
+    ElMessage.error(getProfileErrorMessage(error, t('settings.avatarUploadError')))
   } finally {
     avatarUploading.value = false
   }
@@ -196,7 +199,7 @@ async function handleAvatarChange(event) {
 
 async function saveProfile() {
   if (!profileForm.username.trim()) {
-    ElMessage.warning('用户名不能为空')
+    ElMessage.warning(t('settings.usernameRequired'))
     return
   }
 
@@ -206,9 +209,9 @@ async function saveProfile() {
       username: profileForm.username.trim(),
       bio: profileForm.bio
     })
-    ElMessage.success('资料已保存')
+    ElMessage.success(t('settings.profileSaved'))
   } catch (error) {
-    ElMessage.error(getProfileErrorMessage(error, '资料保存失败，请稍后重试'))
+    ElMessage.error(getProfileErrorMessage(error, t('settings.profileSaveError')))
   } finally {
     profileSaving.value = false
   }
@@ -218,9 +221,9 @@ async function saveMood() {
   moodSaving.value = true
   try {
     await userStore.updateProfile({ mood: selectedMood.value })
-    ElMessage.success('状态已保存')
+    ElMessage.success(t('settings.moodSaved'))
   } catch (error) {
-    ElMessage.error(getProfileErrorMessage(error, '状态保存失败，请稍后重试'))
+    ElMessage.error(getProfileErrorMessage(error, t('settings.moodSaveError')))
   } finally {
     moodSaving.value = false
   }
@@ -228,11 +231,11 @@ async function saveMood() {
 
 async function savePassword() {
   if (!passwordForm.old_password || !passwordForm.new_password || !passwordForm.confirmPassword) {
-    ElMessage.warning('请完整填写密码信息')
+    ElMessage.warning(t('settings.passwordIncomplete'))
     return
   }
   if (passwordForm.new_password !== passwordForm.confirmPassword) {
-    ElMessage.warning('两次输入的新密码不一致')
+    ElMessage.warning(t('settings.passwordMismatch'))
     return
   }
 
@@ -246,9 +249,9 @@ async function savePassword() {
     passwordForm.old_password = ''
     passwordForm.new_password = ''
     passwordForm.confirmPassword = ''
-    ElMessage.success('密码已更新')
+    ElMessage.success(t('settings.passwordUpdated'))
   } catch (error) {
-    ElMessage.error(getPasswordErrorMessage(error, '密码更新失败，请稍后重试'))
+    ElMessage.error(getPasswordErrorMessage(error, t('settings.passwordUpdateError')))
   } finally {
     passwordSaving.value = false
   }
@@ -259,7 +262,7 @@ onMounted(async () => {
     try {
       await userStore.fetchCurrentUser()
     } catch (error) {
-      ElMessage.error(getCommonErrorMessage(error, '加载用户信息失败'))
+      ElMessage.error(getCommonErrorMessage(error, t('settings.loadUserError')))
     }
   }
   syncProfileForm()

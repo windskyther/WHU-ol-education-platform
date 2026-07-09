@@ -8,35 +8,35 @@
       <template v-if="exam">
         <header class="exam-hero">
           <div>
-            <p class="eyebrow">考试空间</p>
-            <h1>{{ exam.title || '在线考试' }}</h1>
-            <p>{{ exam.description || '按题目要求完成作答，提交后由后端统一判分。' }}</p>
+            <p class="eyebrow">{{ t('student.exam.eyebrow') }}</p>
+            <h1>{{ exam.title || t('student.exam.defaultTitle') }}</h1>
+            <p>{{ exam.description || t('student.exam.defaultDesc') }}</p>
           </div>
           <aside class="exam-ticket">
-            <span>题目</span>
+            <span>{{ t('student.exam.questionsLabel') }}</span>
             <strong>{{ safeQuestions.length }}</strong>
-            <span>总分</span>
+            <span>{{ t('student.exam.totalScoreLabel') }}</span>
             <strong>{{ totalScore }}</strong>
-            <span>时长</span>
-            <strong>{{ exam.duration || exam.duration_minutes || '-' }} 分钟</strong>
+            <span>{{ t('student.exam.durationLabel') }}</span>
+            <strong>{{ exam.duration || exam.duration_minutes || '-' }} {{ t('student.exam.minutes') }}</strong>
           </aside>
         </header>
 
         <section class="surface exam-paper">
           <div class="paper-heading">
             <div>
-              <p class="eyebrow">答题卡</p>
-              <h2>作答区</h2>
+              <p class="eyebrow">{{ t('student.exam.answerSheetEyebrow') }}</p>
+              <h2>{{ t('student.exam.answerSheetHeading') }}</h2>
             </div>
-            <el-tag effect="light">{{ answeredCount }} / {{ safeQuestions.length }} 已答</el-tag>
+            <el-tag effect="light">{{ t('student.exam.answeredProgress', { answered: answeredCount, total: safeQuestions.length }) }}</el-tag>
           </div>
 
           <article v-for="(question, index) in safeQuestions" :key="question.id" class="question-card">
             <div class="question-stem">
               <span>{{ index + 1 }}</span>
               <div>
-                <h3>{{ question.content || question.title || '未命名题目' }}</h3>
-                <small>{{ questionTypeText(question.type) }} · {{ question.score || 0 }} 分</small>
+                <h3>{{ question.content || question.title || t('student.exam.unnamedQuestion') }}</h3>
+                <small>{{ questionTypeText(question.type) }} · {{ t('student.exam.scorePoints', { score: question.score || 0 }) }}</small>
               </div>
             </div>
 
@@ -53,14 +53,14 @@
             </el-checkbox-group>
 
             <el-radio-group v-else-if="question.type === 'judge'" v-model="answerMap[question.id]" class="option-stack">
-              <el-radio label="true">正确</el-radio>
-              <el-radio label="false">错误</el-radio>
+              <el-radio label="true">{{ t('student.exam.judgeTrue') }}</el-radio>
+              <el-radio label="false">{{ t('student.exam.judgeFalse') }}</el-radio>
             </el-radio-group>
 
             <el-input
               v-else-if="question.type === 'blank'"
               v-model.trim="answerMap[question.id]"
-              placeholder="填写答案"
+              :placeholder="t('student.exam.blankPlaceholder')"
               clearable
             />
 
@@ -69,16 +69,16 @@
               v-model.trim="answerMap[question.id]"
               type="textarea"
               :rows="4"
-              placeholder="写下你的回答"
+              :placeholder="t('student.exam.textareaPlaceholder')"
             />
           </article>
 
-          <div v-if="safeQuestions.length === 0" class="empty-state">这场考试暂未发布题目。</div>
+          <div v-if="safeQuestions.length === 0" class="empty-state">{{ t('student.exam.noQuestions') }}</div>
 
           <div class="submit-bar">
-            <span>提交后不能在前端修改答卷。</span>
+            <span>{{ t('student.exam.submitWarning') }}</span>
             <el-button type="primary" :loading="submitting" :disabled="!safeQuestions.length || submitting" @click="confirmSubmit">
-              提交考试
+              {{ t('student.exam.submitButton') }}
             </el-button>
           </div>
         </section>
@@ -91,11 +91,13 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import { fetchExamDetail, fetchExamQuestions, submitExam } from '../../api/exam'
 import { getCommonErrorMessage, getExamErrorCode, getExamErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const examId = computed(() => route.params.examId)
@@ -116,23 +118,23 @@ const answeredCount = computed(() => {
 })
 
 const breadcrumbItems = computed(() => {
-  const items = [{ label: '我的课程', to: '/student/courses' }]
+  const items = [{ label: t('student.exam.breadcrumbMyCourses'), to: '/student/courses' }]
   if (courseId.value) {
-    items.push({ label: exam.value?.course_title || exam.value?.course?.title || '课程学习', to: `/student/learn/${courseId.value}` })
+    items.push({ label: exam.value?.course_title || exam.value?.course?.title || t('student.exam.breadcrumbLearnFallback'), to: `/student/learn/${courseId.value}` })
   }
-  items.push({ label: exam.value?.title || '在线考试' })
+  items.push({ label: exam.value?.title || t('student.exam.breadcrumbExamFallback') })
   return items
 })
 
 function questionTypeText(type) {
   const map = {
-    single: '单选题',
-    multiple: '多选题',
-    judge: '判断题',
-    blank: '填空题',
-    short: '简答题'
+    single: t('student.exam.typeSingle'),
+    multiple: t('student.exam.typeMultiple'),
+    judge: t('student.exam.typeJudge'),
+    blank: t('student.exam.typeBlank'),
+    short: t('student.exam.typeShort')
   }
-  return map[type] || '题目'
+  return map[type] || t('student.exam.typeDefault')
 }
 
 function optionList(question) {
@@ -191,7 +193,7 @@ function courseIdFromError(error) {
 
 function handleExamLoadError(error) {
   const code = getExamErrorCode(error)
-  const message = getExamErrorMessage(error, '考试加载失败')
+  const message = getExamErrorMessage(error, t('student.exam.loadError'))
   resetExamState()
   ElMessage.error(message)
 
@@ -230,17 +232,19 @@ async function loadExam() {
 }
 
 async function confirmSubmit() {
-  await ElMessageBox.confirm('确认提交本次考试吗？提交后将由后端判分并保存成绩。', '提交考试', {
+  await ElMessageBox.confirm(t('student.exam.confirmMessage'), t('student.exam.confirmTitle'), {
     type: 'warning',
-    confirmButtonText: '提交',
-    cancelButtonText: '继续作答'
+    confirmButtonText: t('student.exam.confirmOk'),
+    cancelButtonText: t('student.exam.confirmCancel')
   })
 
   submitting.value = true
   try {
     const result = await submitExam(examId.value, buildAnswers())
-    const scoreText = result?.total_score !== undefined ? `，得分 ${result.total_score}` : ''
-    ElMessage.success(`考试已提交${scoreText}`)
+    const msg = result?.total_score !== undefined
+      ? t('student.exam.submitSuccessWithScore', { score: result.total_score })
+      : t('student.exam.submitSuccess')
+    ElMessage.success(msg)
     router.push({
       path: '/student/scores',
       query: {
@@ -248,7 +252,7 @@ async function confirmSubmit() {
       }
     })
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '考试提交失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.exam.submitError')))
   } finally {
     submitting.value = false
   }

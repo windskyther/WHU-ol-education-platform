@@ -1,8 +1,8 @@
 <template>
   <section class="community-page">
     <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="收藏的帖子" name="post" />
-      <el-tab-pane label="收藏的资料" name="resource" />
+      <el-tab-pane :label="t('community.myFavorites.tabPosts')" name="post" />
+      <el-tab-pane :label="t('community.myFavorites.tabResources')" name="resource" />
     </el-tabs>
 
     <div v-loading="loading" class="post-list">
@@ -27,10 +27,10 @@
     </div>
 
     <div v-if="!loading && activeTab === 'post' && posts.length === 0" class="empty-state">
-      还没有收藏的帖子，去论坛看看感兴趣的内容吧。
+      {{ t('community.myFavorites.emptyPosts') }}
     </div>
     <div v-if="!loading && activeTab === 'resource' && resources.length === 0" class="empty-state">
-      还没有收藏的资料，去资料推送看看吧。
+      {{ t('community.myFavorites.emptyResources') }}
     </div>
 
     <PaginationBar
@@ -53,11 +53,14 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import PostCard from '../../components/community/PostCard.vue'
 import ResourceCard from '../../components/community/ResourceCard.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyFavorites } from '../../api/community'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
+
+const { t } = useI18n()
 
 const activeTab = ref('post')
 const loading = ref(false)
@@ -82,7 +85,7 @@ async function loadPosts(nextPage = postPage.value) {
     postPage.value = data?.page || nextPage
     postsLoaded.value = true
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '收藏加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('community.myFavorites.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -97,7 +100,7 @@ async function loadResources(nextPage = resourcePage.value) {
     resourcePage.value = data?.page || nextPage
     resourcesLoaded.value = true
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '收藏加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('community.myFavorites.loadFailed')))
   } finally {
     loading.value = false
   }

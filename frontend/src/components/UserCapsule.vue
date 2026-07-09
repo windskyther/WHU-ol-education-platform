@@ -17,8 +17,11 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getMoodDisplay } from '../constants/userMood'
 import { normalizeMediaUrl } from '../utils/mediaUrl'
+
+const { t } = useI18n()
 
 const props = defineProps({
   userInfo: {
@@ -39,7 +42,7 @@ const props = defineProps({
   }
 })
 
-const displayName = computed(() => props.userInfo?.username || props.userInfo?.email || '已登录用户')
+const displayName = computed(() => props.userInfo?.username || props.userInfo?.email || t('shared.loggedInUser'))
 const avatarUrl = computed(() => normalizeMediaUrl(props.userInfo?.avatar_url || ''))
 const avatarFallback = computed(() => (displayName.value || '用').slice(0, 1).toUpperCase())
 const moodDisplay = computed(() => getMoodDisplay(props.userInfo?.mood || 'happy'))

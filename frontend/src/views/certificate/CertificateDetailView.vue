@@ -4,8 +4,8 @@
 
     <section class="certificate-detail-workspace">
       <div v-loading="loading" class="detail-actions no-print">
-        <el-button text @click="$router.push('/certificates')">返回我的证书</el-button>
-        <el-button type="primary" :disabled="!certificate" @click="handlePrint">打印 / 保存为 PDF</el-button>
+        <el-button text @click="$router.push('/certificates')">{{ t('certificate.backToList') }}</el-button>
+        <el-button type="primary" :disabled="!certificate" @click="handlePrint">{{ t('certificate.printSave') }}</el-button>
       </div>
 
       <section v-if="certificate" class="certificate-sheet">
@@ -16,39 +16,47 @@
           <span class="corner corner-br"></span>
 
           <div class="certificate-seal">🎖️</div>
-          <p class="certificate-eyebrow">优秀证书</p>
-          <h1 class="certificate-title">优秀学员证书</h1>
+          <p class="certificate-eyebrow">{{ t('certificate.eyebrow') }}</p>
+          <h1 class="certificate-title">{{ t('certificate.titleHeading') }}</h1>
           <div class="certificate-divider"><span></span></div>
 
-          <p class="certificate-body">
-            兹证明 <strong class="highlight">{{ certificate.student_name }}</strong> 同学
-            在课程《<strong>{{ certificate.course_title }}</strong>》的
-            <strong>{{ certificate.exam_title }}</strong> 中
-            取得 <strong class="highlight">{{ certificate.score }}</strong> 分的优异成绩
-            （优秀线 {{ certificate.excellent_score }} 分），特发此证，以资鼓励。
-          </p>
+          <i18n-t keypath="certificate.body" tag="p" class="certificate-body">
+            <template #studentName>
+              <strong class="highlight">{{ certificate.student_name }}</strong>
+            </template>
+            <template #courseTitle>
+              <strong>{{ certificate.course_title }}</strong>
+            </template>
+            <template #examTitle>
+              <strong>{{ certificate.exam_title }}</strong>
+            </template>
+            <template #score>
+              <strong class="highlight">{{ certificate.score }}</strong>
+            </template>
+            <template #excellentScore>{{ certificate.excellent_score }}</template>
+          </i18n-t>
 
           <div class="certificate-meta-row">
             <div class="certificate-meta-item">
               <span class="value">{{ certificate.teacher_name }}</span>
               <span class="signature-line"></span>
-              <span class="label">授课教师</span>
+              <span class="label">{{ t('certificate.teacherLabel') }}</span>
             </div>
             <div class="certificate-meta-item">
               <span class="value">{{ formatDate(certificate.issued_at) }}</span>
               <span class="signature-line"></span>
-              <span class="label">颁发日期</span>
+              <span class="label">{{ t('certificate.issuedDateLabel') }}</span>
             </div>
           </div>
 
           <div class="certificate-footer">
-            <span>证书编号：{{ certificate.cert_no }}</span>
-            <span class="brand">WHU 在线教育平台</span>
+            <span>{{ t('certificate.certNoDisplay', { certNo: certificate.cert_no }) }}</span>
+            <span class="brand">{{ t('certificate.brand') }}</span>
           </div>
         </div>
       </section>
 
-      <div v-else-if="!loading" class="empty-state no-print">未找到该证书，或你没有权限查看。</div>
+      <div v-else-if="!loading" class="empty-state no-print">{{ t('certificate.notFound') }}</div>
     </section>
   </main>
 </template>
@@ -57,10 +65,12 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import { fetchCertificateDetail } from '../../api/certificate'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const loading = ref(false)
 const certificate = ref(null)
@@ -80,7 +90,7 @@ async function loadCertificate() {
     certificate.value = await fetchCertificateDetail(route.params.certNo)
   } catch (error) {
     certificate.value = null
-    ElMessage.error(getCommonErrorMessage(error, '证书加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('certificate.loadError')))
   } finally {
     loading.value = false
   }

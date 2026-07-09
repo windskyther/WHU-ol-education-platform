@@ -5,10 +5,10 @@
     <section class="community-shell">
       <header class="list-heading">
         <div>
-          <p class="eyebrow">社区中心</p>
-          <h1>社区中心</h1>
+          <p class="eyebrow">{{ t('community.hub.eyebrow') }}</p>
+          <h1>{{ t('community.hub.title') }}</h1>
         </div>
-        <p>在这里发帖交流、分享学习资料，管理自己的发布和收藏。</p>
+        <p>{{ t('community.hub.subtitle') }}</p>
       </header>
 
       <CommunityNav />
@@ -20,8 +20,11 @@
 
 <script setup>
 import { RouterView } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import CommunityNav from '../../components/community/CommunityNav.vue'
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

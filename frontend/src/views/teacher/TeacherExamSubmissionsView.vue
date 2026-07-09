@@ -2,7 +2,7 @@
   <main class="page-shell">
     <AppNav>
       <template #actions>
-        <el-button plain @click="$router.push(`/teacher/exams/${examId}/questions`)">题目管理</el-button>
+        <el-button plain @click="$router.push(`/teacher/exams/${examId}/questions`)">{{ t('teacher.submissions.questionsBtn') }}</el-button>
       </template>
     </AppNav>
 
@@ -11,37 +11,37 @@
     <section class="submissions-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">提交记录</p>
+          <p class="eyebrow">{{ t('teacher.submissions.eyebrow') }}</p>
           <h1>{{ exam?.title || 'Exam submissions' }}</h1>
-          <p>查看学生提交和后端判分结果。此页只读，不修改成绩。</p>
+          <p>{{ t('teacher.submissions.description') }}</p>
         </div>
       </header>
 
       <section class="surface table-panel">
         <el-table v-loading="loading" :data="submissions" row-key="id">
-          <el-table-column label="学生" min-width="180">
+          <el-table-column :label="t('teacher.submissions.colStudent')" min-width="180">
             <template #default="{ row }">{{ studentName(row) }}</template>
           </el-table-column>
-          <el-table-column label="总分" width="110">
+          <el-table-column :label="t('teacher.submissions.colTotalScore')" width="110">
             <template #default="{ row }">{{ row.total_score ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="客观分" width="110">
+          <el-table-column :label="t('teacher.submissions.colObjectiveScore')" width="110">
             <template #default="{ row }">{{ row.objective_score ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="主观分" width="110">
+          <el-table-column :label="t('teacher.submissions.colSubjectiveScore')" width="110">
             <template #default="{ row }">{{ row.subjective_score ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="状态" width="120">
+          <el-table-column :label="t('teacher.submissions.colStatus')" width="120">
             <template #default="{ row }">
               <el-tag effect="light">{{ row.status || 'submitted' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="提交时间" min-width="180">
+          <el-table-column :label="t('teacher.submissions.colSubmittedAt')" min-width="180">
             <template #default="{ row }">{{ formatTime(row.submitted_at || row.created_at) }}</template>
           </el-table-column>
         </el-table>
 
-        <div v-if="!loading && submissions.length === 0" class="empty-state">暂无学生提交。</div>
+        <div v-if="!loading && submissions.length === 0" class="empty-state">{{ t('teacher.submissions.emptyState') }}</div>
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadSubmissions" />
       </section>
     </section>
@@ -52,12 +52,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchExamDetail, fetchExamSubmissions } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const examId = computed(() => route.params.examId)
 const exam = ref(null)
@@ -70,15 +72,15 @@ const pageSize = ref(10)
 const courseId = computed(() => exam.value?.course_id || exam.value?.course?.id || exam.value?.course)
 
 const breadcrumbItems = computed(() => {
-  const items = [{ label: '课程管理', to: '/teacher/courses' }]
+  const items = [{ label: t('teacher.submissions.breadcrumbCourseManage'), to: '/teacher/courses' }]
   if (courseId.value) {
     items.push({
-      label: exam.value?.course_title || exam.value?.course?.title || '课程',
+      label: exam.value?.course_title || exam.value?.course?.title || t('teacher.submissions.breadcrumbCourse'),
       to: `/teacher/courses/${courseId.value}/exams`
     })
   }
-  items.push({ label: exam.value?.title || '考试', to: `/teacher/exams/${examId.value}/questions` })
-  items.push({ label: '答卷管理' })
+  items.push({ label: exam.value?.title || t('teacher.submissions.breadcrumbExam'), to: `/teacher/exams/${examId.value}/questions` })
+  items.push({ label: t('teacher.submissions.breadcrumbSubmissions') })
   return items
 })
 
@@ -88,7 +90,7 @@ function normalizeList(data) {
 }
 
 function studentName(row) {
-  return row.student?.username || row.student_name || row.username || row.student?.email || `学生 ${row.student_id || '-'}`
+  return row.student?.username || row.student_name || row.username || row.student?.email || t('teacher.submissions.studentFallback', { id: row.student_id || '-' })
 }
 
 function formatTime(value) {
@@ -112,7 +114,7 @@ async function loadSubmissions(nextPage = page.value) {
     page.value = submissionData?.page || nextPage
     pageSize.value = submissionData?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '答卷加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.submissions.loadFailed')))
   } finally {
     loading.value = false
   }

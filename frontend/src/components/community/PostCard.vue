@@ -5,8 +5,8 @@
         <h3>{{ post.title }}</h3>
         <div class="card-head-right">
           <div v-if="post.is_mine" class="table-actions">
-            <el-button text :icon="Edit" @click="startEdit">编辑</el-button>
-            <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">删除</el-button>
+            <el-button text :icon="Edit" @click="startEdit">{{ t('community.postCard.edit') }}</el-button>
+            <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">{{ t('community.postCard.delete') }}</el-button>
           </div>
           <AuthorAvatar :author="post.author" />
         </div>
@@ -31,7 +31,7 @@
       </div>
 
       <div class="card-meta">
-        <span>{{ post.author?.username || '用户' }}</span>
+        <span>{{ post.author?.username || t('community.postCard.unknownUser') }}</span>
         <span>{{ formatTime(post.created_at) }}</span>
       </div>
 
@@ -40,7 +40,7 @@
           <span class="reaction-icon">👍</span> {{ post.likes_count }}
         </el-button>
         <el-button class="reaction-btn" :class="{ 'is-active': post.is_favorited }" plain :icon="post.is_favorited ? StarFilled : Star" :loading="favoriting" @click="handleFavorite">
-          收藏 {{ post.favorites_count }}
+          {{ t('community.postCard.favoriteCount', { n: post.favorites_count }) }}
         </el-button>
       </div>
 
@@ -53,11 +53,11 @@
     </template>
 
     <form v-else class="edit-form" @submit.prevent="submitEdit">
-      <el-input v-model.trim="editForm.title" maxlength="128" show-word-limit placeholder="帖子标题" />
-      <el-input v-model.trim="editForm.content" type="textarea" :rows="4" maxlength="4000" show-word-limit placeholder="帖子内容" />
+      <el-input v-model.trim="editForm.title" maxlength="128" show-word-limit :placeholder="t('community.postCard.titlePlaceholder')" />
+      <el-input v-model.trim="editForm.content" type="textarea" :rows="4" maxlength="4000" show-word-limit :placeholder="t('community.postCard.contentPlaceholder')" />
       <div class="table-actions">
-        <el-button type="primary" :loading="saving" @click="submitEdit">保存</el-button>
-        <el-button @click="cancelEdit">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="submitEdit">{{ t('community.postCard.save') }}</el-button>
+        <el-button @click="cancelEdit">{{ t('community.postCard.cancel') }}</el-button>
       </div>
     </form>
   </article>
@@ -66,11 +66,14 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Delete, Edit, Star, StarFilled } from '@element-plus/icons-vue'
 import CommentSection from './CommentSection.vue'
 import AuthorAvatar from './AuthorAvatar.vue'
 import { deletePost, toggleFavorite, toggleLike, updatePost } from '../../api/community'
 import { getCommunityErrorMessage } from '../../utils/errorMessage'
+
+const { t } = useI18n()
 
 const props = defineProps({
   post: {
@@ -105,7 +108,7 @@ async function handleLike() {
     props.post.is_liked = data.liked
     props.post.likes_count = data.likes_count
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '点赞失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.postCard.likeFailed')))
   } finally {
     liking.value = false
   }
@@ -118,7 +121,7 @@ async function handleFavorite() {
     props.post.is_favorited = data.favorited
     props.post.favorites_count = data.favorites_count
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '收藏失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.postCard.favoriteFailed')))
   } finally {
     favoriting.value = false
   }
@@ -136,17 +139,17 @@ function cancelEdit() {
 
 async function submitEdit() {
   if (!editForm.title || !editForm.content) {
-    ElMessage.warning('请填写标题和内容')
+    ElMessage.warning(t('community.postCard.requiredFields'))
     return
   }
   saving.value = true
   try {
     const updated = await updatePost(props.post.id, { title: editForm.title, content: editForm.content })
     emit('updated', updated)
-    ElMessage.success('帖子已更新')
+    ElMessage.success(t('community.postCard.updateSuccess'))
     editing.value = false
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '帖子更新失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.postCard.updateFailed')))
   } finally {
     saving.value = false
   }
@@ -154,17 +157,17 @@ async function submitEdit() {
 
 async function handleDelete() {
   try {
-    await ElMessageBox.confirm('确定要删除这条帖子吗？', '删除帖子', { type: 'warning' })
+    await ElMessageBox.confirm(t('community.postCard.deleteConfirm'), t('community.postCard.deleteTitle'), { type: 'warning' })
   } catch {
     return
   }
   deleting.value = true
   try {
     await deletePost(props.post.id)
-    ElMessage.success('帖子已删除')
+    ElMessage.success(t('community.postCard.deleteSuccess'))
     emit('deleted', props.post.id)
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '帖子删除失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.postCard.deleteFailed')))
   } finally {
     deleting.value = false
   }

@@ -5,8 +5,8 @@
         <h3>{{ resource.title }}</h3>
         <div class="card-head-right">
           <div v-if="resource.is_mine" class="table-actions">
-            <el-button text :icon="Edit" @click="startEdit">编辑</el-button>
-            <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">删除</el-button>
+            <el-button text :icon="Edit" @click="startEdit">{{ t('community.resourceCard.edit') }}</el-button>
+            <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">{{ t('community.resourceCard.delete') }}</el-button>
           </div>
           <AuthorAvatar :author="resource.author" />
         </div>
@@ -27,12 +27,12 @@
           GO
         </a>
         <a v-else-if="resource.file_url && !resource.is_image" class="attachment-chip" :href="resource.file_url" target="_blank" rel="noopener">
-          📎 {{ resource.original_name || '下载资料' }}
+          📎 {{ resource.original_name || t('community.resourceCard.downloadLabel') }}
         </a>
       </div>
 
       <div class="card-meta">
-        <span>{{ resource.author?.username || '用户' }}</span>
+        <span>{{ resource.author?.username || t('community.resourceCard.unknownUser') }}</span>
         <span>{{ formatTime(resource.created_at) }}</span>
       </div>
 
@@ -41,7 +41,7 @@
           <span class="reaction-icon">👍</span> {{ resource.likes_count }}
         </el-button>
         <el-button class="reaction-btn" :class="{ 'is-active': resource.is_favorited }" plain :icon="resource.is_favorited ? StarFilled : Star" :loading="favoriting" @click="handleFavorite">
-          收藏 {{ resource.favorites_count }}
+          {{ t('community.resourceCard.favoriteCount', { n: resource.favorites_count }) }}
         </el-button>
       </div>
 
@@ -54,12 +54,12 @@
     </template>
 
     <form v-else class="edit-form" @submit.prevent="submitEdit">
-      <el-input v-model.trim="editForm.title" maxlength="128" show-word-limit placeholder="资料标题" />
-      <el-input v-model.trim="editForm.description" type="textarea" :rows="3" maxlength="2000" show-word-limit placeholder="资料说明" />
-      <el-input v-if="resource.url" v-model.trim="editForm.url" placeholder="资料网址" />
+      <el-input v-model.trim="editForm.title" maxlength="128" show-word-limit :placeholder="t('community.resourceCard.titlePlaceholder')" />
+      <el-input v-model.trim="editForm.description" type="textarea" :rows="3" maxlength="2000" show-word-limit :placeholder="t('community.resourceCard.descPlaceholder')" />
+      <el-input v-if="resource.url" v-model.trim="editForm.url" :placeholder="t('community.resourceCard.urlPlaceholder')" />
       <div class="table-actions">
-        <el-button type="primary" :loading="saving" @click="submitEdit">保存</el-button>
-        <el-button @click="cancelEdit">取消</el-button>
+        <el-button type="primary" :loading="saving" @click="submitEdit">{{ t('community.resourceCard.save') }}</el-button>
+        <el-button @click="cancelEdit">{{ t('community.resourceCard.cancel') }}</el-button>
       </div>
     </form>
   </article>
@@ -68,12 +68,15 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Delete, Edit, Star, StarFilled } from '@element-plus/icons-vue'
 import CommentSection from './CommentSection.vue'
 import AuthorAvatar from './AuthorAvatar.vue'
 import { deleteResource, toggleFavorite, toggleLike, updateResource } from '../../api/community'
 import { getCommunityErrorMessage } from '../../utils/errorMessage'
 import { normalizeUrl } from '../../utils/url'
+
+const { t } = useI18n()
 
 const props = defineProps({
   resource: {
@@ -103,7 +106,7 @@ async function handleLike() {
     props.resource.is_liked = data.liked
     props.resource.likes_count = data.likes_count
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '点赞失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resourceCard.likeFailed')))
   } finally {
     liking.value = false
   }
@@ -116,7 +119,7 @@ async function handleFavorite() {
     props.resource.is_favorited = data.favorited
     props.resource.favorites_count = data.favorites_count
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '收藏失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resourceCard.favoriteFailed')))
   } finally {
     favoriting.value = false
   }
@@ -135,7 +138,7 @@ function cancelEdit() {
 
 async function submitEdit() {
   if (!editForm.title) {
-    ElMessage.warning('请填写资料标题')
+    ElMessage.warning(t('community.resourceCard.titleRequired'))
     return
   }
   saving.value = true
@@ -146,10 +149,10 @@ async function submitEdit() {
       url: editForm.url ? normalizeUrl(editForm.url) : ''
     })
     emit('updated', updated)
-    ElMessage.success('资料已更新')
+    ElMessage.success(t('community.resourceCard.updateSuccess'))
     editing.value = false
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '资料更新失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resourceCard.updateFailed')))
   } finally {
     saving.value = false
   }
@@ -157,17 +160,17 @@ async function submitEdit() {
 
 async function handleDelete() {
   try {
-    await ElMessageBox.confirm('确定要删除这条资料吗？', '删除资料', { type: 'warning' })
+    await ElMessageBox.confirm(t('community.resourceCard.deleteConfirm'), t('community.resourceCard.deleteTitle'), { type: 'warning' })
   } catch {
     return
   }
   deleting.value = true
   try {
     await deleteResource(props.resource.id)
-    ElMessage.success('资料已删除')
+    ElMessage.success(t('community.resourceCard.deleteSuccess'))
     emit('deleted', props.resource.id)
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '资料删除失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resourceCard.deleteFailed')))
   } finally {
     deleting.value = false
   }

@@ -5,45 +5,45 @@
     <section class="scores-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">成绩记录</p>
-          <h1>成绩记录</h1>
-          <p>查看已经提交的考试成绩，分数以后端判分结果为准。</p>
+          <p class="eyebrow">{{ t('student.scores.eyebrow') }}</p>
+          <h1>{{ t('student.scores.heading') }}</h1>
+          <p>{{ t('student.scores.description') }}</p>
         </div>
       </header>
 
       <section class="surface filter-panel">
         <div class="filter-row score-filter-row">
-          <el-input v-model.trim="courseId" clearable placeholder="课程 ID" @keyup.enter="loadScores(1)" />
-          <el-button type="primary" :loading="loading" @click="loadScores(1)">筛选</el-button>
+          <el-input v-model.trim="courseId" clearable :placeholder="t('student.scores.courseIdPlaceholder')" @keyup.enter="loadScores(1)" />
+          <el-button type="primary" :loading="loading" @click="loadScores(1)">{{ t('student.scores.filterButton') }}</el-button>
         </div>
       </section>
 
       <section class="surface table-panel">
         <el-table v-loading="loading" :data="scores" row-key="id">
-          <el-table-column label="考试" min-width="220">
+          <el-table-column :label="t('student.scores.colExam')" min-width="220">
             <template #default="{ row }">
               <div class="score-cell">
-                <strong>{{ row.exam_title || row.exam?.title || '未命名考试' }}</strong>
-                <span>{{ row.course_title || row.course?.title || '课程未命名' }}</span>
+                <strong>{{ row.exam_title || row.exam?.title || t('student.scores.unnamedExam') }}</strong>
+                <span>{{ row.course_title || row.course?.title || t('student.scores.unnamedCourse') }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="分数" width="120">
+          <el-table-column :label="t('student.scores.colScore')" width="120">
             <template #default="{ row }">{{ row.total_score ?? row.score ?? '-' }}</template>
           </el-table-column>
-          <el-table-column label="结果" width="120">
+          <el-table-column :label="t('student.scores.colResult')" width="120">
             <template #default="{ row }">
               <el-tag :type="isPassed(row) ? 'success' : 'warning'" effect="light">
-                {{ isPassed(row) ? '已通过' : '未通过' }}
+                {{ isPassed(row) ? t('student.scores.passed') : t('student.scores.notPassed') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="提交时间" min-width="180">
+          <el-table-column :label="t('student.scores.colSubmitTime')" min-width="180">
             <template #default="{ row }">{{ formatTime(row.submitted_at || row.created_at) }}</template>
           </el-table-column>
         </el-table>
 
-        <div v-if="!loading && scores.length === 0" class="empty-state">暂无成绩记录。</div>
+        <div v-if="!loading && scores.length === 0" class="empty-state">{{ t('student.scores.empty') }}</div>
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadScores" />
       </section>
     </section>
@@ -54,11 +54,13 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyScores } from '../../api/exam'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const loading = ref(false)
 const scores = ref([])
@@ -96,7 +98,7 @@ async function loadScores(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '成绩加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.scores.loadError')))
   } finally {
     loading.value = false
   }

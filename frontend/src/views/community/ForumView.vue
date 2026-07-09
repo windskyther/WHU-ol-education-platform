@@ -1,45 +1,45 @@
 <template>
   <section class="community-page">
     <section class="surface post-form-panel">
-      <h2>发布新帖子</h2>
+      <h2>{{ t('community.forum.newPostTitle') }}</h2>
       <el-form label-position="top" @submit.prevent>
-        <el-form-item label="标题">
-          <el-input v-model.trim="postForm.title" maxlength="128" show-word-limit placeholder="给帖子起个标题" />
+        <el-form-item :label="t('community.forum.fieldTitle')">
+          <el-input v-model.trim="postForm.title" maxlength="128" show-word-limit :placeholder="t('community.forum.titlePlaceholder')" />
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="postForm.category" placeholder="选择分类（可选）" clearable style="width: 240px">
+        <el-form-item :label="t('community.forum.fieldCategory')">
+          <el-select v-model="postForm.category" :placeholder="t('community.forum.categoryPlaceholder')" clearable style="width: 240px">
             <el-option v-for="item in categories" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="内容">
-          <el-input v-model.trim="postForm.content" type="textarea" :rows="4" maxlength="4000" show-word-limit placeholder="分享你的想法、问题或经验…" />
+        <el-form-item :label="t('community.forum.fieldContent')">
+          <el-input v-model.trim="postForm.content" type="textarea" :rows="4" maxlength="4000" show-word-limit :placeholder="t('community.forum.contentPlaceholder')" />
         </el-form-item>
-        <el-form-item label="附件（可选）">
+        <el-form-item :label="t('community.forum.fieldAttachment')">
           <el-upload
             v-model:file-list="fileList"
             multiple
             :auto-upload="false"
             :limit="5"
           >
-            <el-button :icon="Paperclip">选择附件</el-button>
+            <el-button :icon="Paperclip">{{ t('community.forum.selectAttachment') }}</el-button>
           </el-upload>
         </el-form-item>
         <div class="table-actions">
-          <el-button type="primary" :icon="EditPen" :loading="submitting" @click="submitPost">发布帖子</el-button>
+          <el-button type="primary" :icon="EditPen" :loading="submitting" @click="submitPost">{{ t('community.forum.submitPost') }}</el-button>
         </div>
       </el-form>
     </section>
 
     <section class="surface filter-panel">
       <div class="filter-row-simple">
-        <el-input v-model.trim="keyword" clearable placeholder="搜索帖子标题或内容" @keyup.enter="loadPosts(1)" />
-        <el-button type="primary" :icon="Search" :loading="loading" @click="loadPosts(1)">搜索</el-button>
+        <el-input v-model.trim="keyword" clearable :placeholder="t('community.forum.searchPlaceholder')" @keyup.enter="loadPosts(1)" />
+        <el-button type="primary" :icon="Search" :loading="loading" @click="loadPosts(1)">{{ t('community.forum.search') }}</el-button>
       </div>
     </section>
 
     <div class="community-layout">
       <aside class="community-sidebar surface">
-        <h4>分类</h4>
+        <h4>{{ t('community.category.label') }}</h4>
         <CategoryNav v-model="activeCategory" :categories="categories" @change="handleCategoryChange" />
       </aside>
 
@@ -54,7 +54,7 @@
           />
         </div>
 
-        <div v-if="!loading && posts.length === 0" class="empty-state">还没有帖子，来发布第一条吧。</div>
+        <div v-if="!loading && posts.length === 0" class="empty-state">{{ t('community.forum.emptyState') }}</div>
 
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadPosts" />
       </div>
@@ -65,12 +65,15 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { EditPen, Paperclip, Search } from '@element-plus/icons-vue'
 import PostCard from '../../components/community/PostCard.vue'
 import CategoryNav from '../../components/community/CategoryNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { createPost, fetchCategories, fetchPosts, uploadPostAttachments } from '../../api/community'
 import { getCommunityErrorMessage } from '../../utils/errorMessage'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -112,7 +115,7 @@ async function loadPosts(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '帖子加载失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.forum.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -143,7 +146,7 @@ function handleUpdated(updated) {
 
 async function submitPost() {
   if (!postForm.title || !postForm.content) {
-    ElMessage.warning('请填写帖子标题和内容')
+    ElMessage.warning(t('community.forum.requiredFields'))
     return
   }
   submitting.value = true
@@ -153,11 +156,11 @@ async function submitPost() {
     if (files.length) {
       await uploadPostAttachments(post.id, files)
     }
-    ElMessage.success('帖子发布成功')
+    ElMessage.success(t('community.forum.submitSuccess'))
     resetForm()
     await loadPosts(1)
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '帖子发布失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.forum.submitFailed')))
   } finally {
     submitting.value = false
   }

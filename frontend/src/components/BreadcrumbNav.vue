@@ -1,5 +1,5 @@
 <template>
-  <nav v-if="items.length" class="breadcrumb-nav" aria-label="面包屑导航">
+  <nav v-if="items.length" class="breadcrumb-nav" :aria-label="t('shared.breadcrumbAriaLabel')">
     <template v-for="(item, index) in items" :key="`${item.label}-${index}`">
       <span v-if="index > 0" class="breadcrumb-separator" aria-hidden="true">/</span>
       <RouterLink v-if="item.to && index < items.length - 1" :to="item.to">{{ item.label }}</RouterLink>
@@ -10,6 +10,9 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 defineProps({
   items: {

@@ -5,61 +5,61 @@
     <section class="my-workspace">
       <header class="learning-board kinetic-panel">
         <div>
-          <p class="eyebrow">学习看板</p>
-          <h1>Track the work in motion.</h1>
-          <p>继续推进已经加入的课程，优先回到最需要完成的学习内容。</p>
+          <p class="eyebrow">{{ t('student.myCourses.eyebrow') }}</p>
+          <h1>{{ t('student.myCourses.heading') }}</h1>
+          <p>{{ t('student.myCourses.description') }}</p>
         </div>
-        <el-button type="primary" size="large" @click="$router.push('/courses')">发现新课程</el-button>
+        <el-button type="primary" size="large" @click="$router.push('/courses')">{{ t('student.myCourses.discoverButton') }}</el-button>
       </header>
 
       <section class="summary-strip">
         <div>
-          <span>已加入课程</span>
+          <span>{{ t('student.myCourses.statEnrolled') }}</span>
           <strong>{{ total }}</strong>
         </div>
         <div>
-          <span>平均完成度</span>
+          <span>{{ t('student.myCourses.statAvgProgress') }}</span>
           <strong>{{ averageProgress }}%</strong>
         </div>
         <div>
-          <span>本页课程</span>
+          <span>{{ t('student.myCourses.statPageCount') }}</span>
           <strong>{{ courses.length }}</strong>
         </div>
       </section>
 
       <section class="surface course-toolbar">
-        <el-select v-model="state" clearable placeholder="学习状态" @change="loadCourses(1)">
-          <el-option label="学习中" value="learning" />
-          <el-option label="已完成" value="completed" />
+        <el-select v-model="state" clearable :placeholder="t('student.myCourses.stateFilterPlaceholder')" @change="loadCourses(1)">
+          <el-option :label="t('student.myCourses.stateLearning')" value="learning" />
+          <el-option :label="t('student.myCourses.stateCompleted')" value="completed" />
         </el-select>
-        <el-button type="primary" :loading="loading" @click="loadCourses(1)">刷新</el-button>
+        <el-button type="primary" :loading="loading" @click="loadCourses(1)">{{ t('student.myCourses.refreshButton') }}</el-button>
       </section>
 
       <section v-loading="loading" class="course-list">
         <article v-for="item in courses" :key="item.id" class="learning-row">
           <div class="row-cover">
             <img v-if="coverUrl(courseOf(item))" :src="coverUrl(courseOf(item))" :alt="courseOf(item).title" />
-            <span v-else>{{ (courseOf(item).title || '课').slice(0, 1) }}</span>
+            <span v-else>{{ (courseOf(item).title || t('student.myCourses.coverFallbackChar')).slice(0, 1) }}</span>
           </div>
           <div class="row-main">
             <div class="row-meta">
               <span>{{ levelText(courseOf(item).level) }}</span>
-              <span>{{ courseOf(item).category || '未分类' }}</span>
-              <span>{{ courseOf(item).teacher?.username || courseOf(item).teacher_name || '教师未命名' }}</span>
+              <span>{{ courseOf(item).category || t('student.myCourses.uncategorized') }}</span>
+              <span>{{ courseOf(item).teacher?.username || courseOf(item).teacher_name || t('student.myCourses.unknownTeacher') }}</span>
             </div>
             <h2>{{ courseOf(item).title }}</h2>
-            <p>{{ courseOf(item).description || '暂无课程简介' }}</p>
+            <p>{{ courseOf(item).description || t('student.myCourses.noDescription') }}</p>
             <el-progress :percentage="progressOf(item)" :stroke-width="10" />
           </div>
           <div class="row-action">
             <strong>{{ progressOf(item) }}%</strong>
-            <span>{{ progressOf(item) >= 100 ? '已完成' : '继续学习' }}</span>
-            <el-button type="primary" @click="$router.push(`/student/learn/${courseOf(item).id}`)">进入学习</el-button>
+            <span>{{ progressOf(item) >= 100 ? t('student.myCourses.statusCompleted') : t('student.myCourses.statusContinue') }}</span>
+            <el-button type="primary" @click="$router.push(`/student/learn/${courseOf(item).id}`)">{{ t('student.myCourses.enterCourse') }}</el-button>
           </div>
         </article>
       </section>
 
-      <div v-if="!loading && courses.length === 0" class="empty-state">还没有加入课程。去课程列表找到第一门想完成的课。</div>
+      <div v-if="!loading && courses.length === 0" class="empty-state">{{ t('student.myCourses.empty') }}</div>
 
       <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCourses" />
     </section>
@@ -69,12 +69,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyCourses } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
 
+const { t } = useI18n()
 const loading = ref(false)
 const courses = ref([])
 const total = ref(0)
@@ -82,10 +84,13 @@ const page = ref(1)
 const pageSize = ref(10)
 const state = ref('')
 
-const levelMap = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级'
+function levelText(level) {
+  const map = {
+    beginner: t('student.myCourses.levelBeginner'),
+    intermediate: t('student.myCourses.levelIntermediate'),
+    advanced: t('student.myCourses.levelAdvanced')
+  }
+  return map[level] || t('student.myCourses.levelBeginner')
 }
 
 const averageProgress = computed(() => {
@@ -93,10 +98,6 @@ const averageProgress = computed(() => {
   const totalProgress = courses.value.reduce((sum, item) => sum + progressOf(item), 0)
   return Math.round(totalProgress / courses.value.length)
 })
-
-function levelText(level) {
-  return levelMap[level] || '初级'
-}
 
 function courseOf(item) {
   return item.course || item.course_detail || item
@@ -124,7 +125,7 @@ async function loadCourses(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '我的课程加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.myCourses.loadError')))
   } finally {
     loading.value = false
   }

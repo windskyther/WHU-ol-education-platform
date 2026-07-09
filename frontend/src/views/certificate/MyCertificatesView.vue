@@ -5,9 +5,9 @@
     <section class="certificates-workspace">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">证书墙</p>
-          <h1>我的证书</h1>
-          <p>考试成绩达到课程设置的优秀线后，系统会自动为你颁发对应证书。</p>
+          <p class="eyebrow">{{ t('certificate.wallEyebrow') }}</p>
+          <h1>{{ t('certificate.pageTitle') }}</h1>
+          <p>{{ t('certificate.pageDesc') }}</p>
         </div>
       </header>
 
@@ -21,22 +21,22 @@
           >
             <div class="certificate-card-inner">
               <span class="certificate-card-seal">🎖️</span>
-              <p class="certificate-card-eyebrow">优秀证书</p>
+              <p class="certificate-card-eyebrow">{{ t('certificate.eyebrow') }}</p>
               <h3 class="certificate-card-course">{{ cert.course_title }}</h3>
               <p class="certificate-card-exam">{{ cert.exam_title }}</p>
               <p class="certificate-card-student">{{ cert.student_name }}</p>
               <div class="certificate-card-meta">
-                <span>{{ cert.score }} 分</span>
+                <span>{{ t('certificate.scoreDisplay', { score: cert.score }) }}</span>
                 <span>{{ formatTime(cert.issued_at) }}</span>
               </div>
               <div class="certificate-card-no">{{ cert.cert_no }}</div>
             </div>
-            <div class="certificate-card-hint">点击查看完整证书</div>
+            <div class="certificate-card-hint">{{ t('certificate.cardHint') }}</div>
           </RouterLink>
         </div>
 
         <div v-if="!loading && certificates.length === 0" class="empty-state">
-          暂无证书，参加课程考试并达到优秀线即可自动获得证书。
+          {{ t('certificate.empty') }}
         </div>
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCertificates" />
       </section>
@@ -47,11 +47,13 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { fetchMyCertificates } from '../../api/certificate'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const loading = ref(false)
 const certificates = ref([])
 const total = ref(0)
@@ -77,7 +79,7 @@ async function loadCertificates(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '证书加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('certificate.loadError')))
   } finally {
     loading.value = false
   }

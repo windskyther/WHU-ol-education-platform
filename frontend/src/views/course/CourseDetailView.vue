@@ -2,8 +2,8 @@
   <main class="page-shell detail-page">
     <AppNav>
       <template v-if="canManage" #actions>
-        <el-button type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">章节管理</el-button>
-        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">考试管理</el-button>
+        <el-button type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">{{ t('course.detail.chapterManagement') }}</el-button>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">{{ t('course.detail.examManagement') }}</el-button>
       </template>
     </AppNav>
 
@@ -13,24 +13,24 @@
       <template v-if="course">
         <header class="detail-intro">
           <div class="intro-copy">
-            <p class="eyebrow">课程概览</p>
+            <p class="eyebrow">{{ t('course.detail.overviewEyebrow') }}</p>
             <h1>{{ course.title }}</h1>
-            <p class="course-summary">{{ course.description || '暂无课程简介' }}</p>
+            <p class="course-summary">{{ course.description || t('course.detail.noDescription') }}</p>
           </div>
 
           <aside class="join-panel">
             <div class="cover-strip">
               <img v-if="coverUrl" :src="coverUrl" :alt="course.title" />
-              <span v-else>{{ (course.title || '课').slice(0, 1) }}</span>
+              <span v-else>{{ (course.title || t('course.card.coverInitial')).slice(0, 1) }}</span>
             </div>
             <div class="join-state">
               <span class="status-pill">{{ accessLabel }}</span>
               <strong>{{ isEnrolled || canManage ? 'Content unlocked' : 'Join to unlock' }}</strong>
-              <p>{{ isEnrolled || canManage ? '可以查看章节内容并进入学习空间。' : '课程介绍公开可见，章节资源会在加入学习后开放。' }}</p>
+              <p>{{ isEnrolled || canManage ? t('course.detail.contentUnlocked') : t('course.detail.contentLocked') }}</p>
             </div>
             <div class="join-actions">
-              <el-button v-if="!userStore.isLoggedIn" type="primary" size="large" @click="goLogin">登录后学习</el-button>
-              <el-button v-else-if="userStore.role === 'student' && isEnrolled" type="primary" size="large" @click="goLearn">继续学习</el-button>
+              <el-button v-if="!userStore.isLoggedIn" type="primary" size="large" @click="goLogin">{{ t('course.detail.loginToLearn') }}</el-button>
+              <el-button v-else-if="userStore.role === 'student' && isEnrolled" type="primary" size="large" @click="goLearn">{{ t('course.detail.continueLearn') }}</el-button>
               <el-button
                 v-else-if="userStore.role === 'student'"
                 type="primary"
@@ -38,32 +38,32 @@
                 :loading="enrolling"
                 @click="handleEnroll"
               >
-                加入学习
+                {{ t('course.detail.joinLearn') }}
               </el-button>
-              <el-button v-if="canManage" size="large" plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">维护内容</el-button>
+              <el-button v-if="canManage" size="large" plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">{{ t('course.detail.maintainContent') }}</el-button>
             </div>
           </aside>
         </header>
 
         <section class="course-facts">
           <div>
-            <span>难度</span>
+            <span>{{ t('course.detail.difficultyLabel') }}</span>
             <strong>{{ levelText }}</strong>
           </div>
           <div>
-            <span>分类</span>
-            <strong>{{ course.category || '未分类' }}</strong>
+            <span>{{ t('course.detail.categoryLabel') }}</span>
+            <strong>{{ course.category || t('course.detail.uncategorized') }}</strong>
           </div>
           <div>
-            <span>教师</span>
-            <strong>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</strong>
+            <span>{{ t('course.detail.teacherLabel') }}</span>
+            <strong>{{ course.teacher?.username || course.teacher_name || t('course.detail.unknownTeacher') }}</strong>
           </div>
           <div>
-            <span>章节数</span>
+            <span>{{ t('course.detail.chapterCountLabel') }}</span>
             <strong>{{ course.chapter_count || chapters.length }}</strong>
           </div>
           <div>
-            <span>考试数</span>
+            <span>{{ t('course.detail.examCountLabel') }}</span>
             <strong>{{ exams.length }}</strong>
           </div>
         </section>
@@ -71,17 +71,17 @@
         <section class="chapter-access">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">章节入口</p>
-              <h2>章节列表</h2>
+              <p class="eyebrow">{{ t('course.detail.chapterEntryEyebrow') }}</p>
+              <h2>{{ t('course.detail.chapterListTitle') }}</h2>
             </div>
             <el-tag :type="course.is_published ? 'success' : 'warning'" effect="light">
-              {{ course.is_published ? '已发布' : '草稿' }}
+              {{ course.is_published ? t('course.detail.published') : t('course.detail.draft') }}
             </el-tag>
           </div>
 
           <div v-if="!canViewChapters" class="locked-panel">
-            <strong>加入学习后查看章节内容</strong>
-            <p>视频与资料地址由后端权限控制，未加入课程时只展示课程介绍。</p>
+            <strong>{{ t('course.detail.lockedChapterTitle') }}</strong>
+            <p>{{ t('course.detail.lockedChapterDesc') }}</p>
           </div>
 
           <div v-else-if="chapters.length" class="chapter-grid">
@@ -89,55 +89,55 @@
               <span class="chapter-order">{{ chapterOrder(chapter) }}</span>
               <div>
                 <h3>{{ chapter.title }}</h3>
-                <p>{{ chapter.description || '暂无章节简介' }}</p>
+                <p>{{ chapter.description || t('course.detail.noChapterDesc') }}</p>
               </div>
               <div class="resource-tags">
-                <span :class="{ active: chapterVideo(chapter) }">视频</span>
-                <span :class="{ active: chapterMaterial(chapter) }">资料</span>
+                <span :class="{ active: chapterVideo(chapter) }">{{ t('course.detail.videoTag') }}</span>
+                <span :class="{ active: chapterMaterial(chapter) }">{{ t('course.detail.materialTag') }}</span>
               </div>
             </article>
           </div>
 
-          <div v-else class="empty-state">暂无章节</div>
+          <div v-else class="empty-state">{{ t('course.detail.noChapters') }}</div>
         </section>
 
         <section v-if="canViewChapters" class="exam-access">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">考试入口</p>
-              <h2>考试列表</h2>
+              <p class="eyebrow">{{ t('course.detail.examEntryEyebrow') }}</p>
+              <h2>{{ t('course.detail.examListTitle') }}</h2>
             </div>
-            <el-tag effect="light">{{ exams.length }} 场考试</el-tag>
+            <el-tag effect="light">{{ t('course.detail.examCount', { n: exams.length }) }}</el-tag>
           </div>
 
           <div v-if="exams.length" class="exam-grid">
             <article v-for="examItem in exams" :key="examItem.id" class="exam-tile">
               <div>
                 <span class="status-pill" :class="{ 'is-done': examItem.is_published }">
-                  {{ examItem.is_published ? '已发布' : '草稿' }}
+                  {{ examItem.is_published ? t('course.detail.published') : t('course.detail.draft') }}
                 </span>
                 <h3>{{ examItem.title }}</h3>
-                <p>{{ examItem.description || '暂无考试说明' }}</p>
+                <p>{{ examItem.description || t('course.detail.noExamDesc') }}</p>
               </div>
               <div class="exam-meta">
-                <span>{{ examItem.duration || examItem.duration_minutes || '-' }} 分钟</span>
-                <span>及格线 {{ examItem.pass_score ?? '-' }}</span>
+                <span>{{ t('course.detail.minutes', { n: examItem.duration || examItem.duration_minutes || '-' }) }}</span>
+                <span>{{ t('course.detail.passScore', { score: examItem.pass_score ?? '-' }) }}</span>
               </div>
               <div class="table-actions">
-                <el-button v-if="userStore.role === 'student'" type="primary" @click="$router.push(`/student/exams/${examItem.id}`)">进入考试</el-button>
-                <el-button v-if="canManage" plain @click="$router.push(`/teacher/exams/${examItem.id}/questions`)">维护题目</el-button>
+                <el-button v-if="userStore.role === 'student'" type="primary" @click="$router.push(`/student/exams/${examItem.id}`)">{{ t('course.detail.enterExam') }}</el-button>
+                <el-button v-if="canManage" plain @click="$router.push(`/teacher/exams/${examItem.id}/questions`)">{{ t('course.detail.maintainQuestions') }}</el-button>
               </div>
             </article>
           </div>
 
-          <div v-else class="empty-state">暂无考试</div>
+          <div v-else class="empty-state">{{ t('course.detail.noExams') }}</div>
         </section>
 
         <CourseQuestionPanel
           :course-id="courseId"
           :can-ask="canAskQuestions"
           :can-manage="canManage"
-          heading="Course questions"
+          :heading="t('course.question.heading')"
         />
       </template>
     </section>
@@ -148,6 +148,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
 import { fetchCourseExams } from '../../api/exam'
 import AppNav from '../../components/AppNav.vue'
@@ -157,6 +158,7 @@ import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
@@ -167,13 +169,15 @@ const course = ref(null)
 const chapters = ref([])
 const exams = ref([])
 
-const levelMap = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级'
-}
+const levelText = computed(() => {
+  const map = {
+    beginner: t('course.level.beginner'),
+    intermediate: t('course.level.intermediate'),
+    advanced: t('course.level.advanced')
+  }
+  return map[course.value?.level] || t('course.level.beginner')
+})
 
-const levelText = computed(() => levelMap[course.value?.level] || '初级')
 const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapterOrder(a) - chapterOrder(b)))
 const canManage = computed(() => ['teacher', 'admin'].includes(userStore.role))
 const isEnrolled = computed(() => Boolean(course.value?.is_enrolled || course.value?.enrolled || course.value?.enrollment))
@@ -181,14 +185,14 @@ const canViewChapters = computed(() => canManage.value || isEnrolled.value)
 const canAskQuestions = computed(() => userStore.role === 'student' && isEnrolled.value)
 const coverUrl = computed(() => normalizeMediaUrl(course.value?.cover_url || ''))
 const accessLabel = computed(() => {
-  if (canManage.value) return '教师/管理员'
-  if (isEnrolled.value) return '已加入'
-  return '未加入'
+  if (canManage.value) return t('course.detail.accessTeacher')
+  if (isEnrolled.value) return t('course.detail.accessEnrolled')
+  return t('course.detail.accessGuest')
 })
 
 const breadcrumbItems = computed(() => [
-  { label: '课程广场', to: '/courses' },
-  { label: course.value?.title || '课程详情' }
+  { label: t('course.detail.breadcrumbCourses'), to: '/courses' },
+  { label: course.value?.title || t('course.detail.breadcrumbDetail') }
 ])
 
 function chapterOrder(chapter) {
@@ -215,14 +219,14 @@ async function handleEnroll() {
   enrolling.value = true
   try {
     await enrollCourse(courseId.value)
-    ElMessage.success('已加入课程')
+    ElMessage.success(t('course.detail.enrollSuccess'))
     course.value = {
       ...course.value,
       is_enrolled: true
     }
     goLearn()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '加入课程失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('course.detail.enrollError')))
     await loadDetail()
   } finally {
     enrolling.value = false
@@ -246,7 +250,7 @@ async function loadDetail() {
       exams.value = Array.isArray(examData) ? examData : examData?.results || []
     }
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '课程详情加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('course.detail.loadError')))
   } finally {
     loading.value = false
   }

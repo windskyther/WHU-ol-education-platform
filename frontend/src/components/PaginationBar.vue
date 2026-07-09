@@ -1,6 +1,6 @@
 <template>
   <div v-if="total > 0" class="pagination-bar">
-    <span>共 {{ total }} 条</span>
+    <span>{{ t('shared.totalCount', { total: total }) }}</span>
     <el-pagination
       background
       layout="prev, pager, next"
@@ -13,6 +13,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
   total: {
     type: Number,

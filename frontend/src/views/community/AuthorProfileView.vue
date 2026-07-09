@@ -9,15 +9,15 @@
           <h2>{{ user.username }}</h2>
           <span class="role-pill">{{ roleLabel }}</span>
           <p v-if="user.bio" class="bio">{{ user.bio }}</p>
-          <p v-else class="bio muted">这位用户还没有填写个人简介。</p>
-          <p class="joined">加入时间：{{ formatTime(user.date_joined) }}</p>
+          <p v-else class="bio muted">{{ t('community.author.noBio') }}</p>
+          <p class="joined">{{ t('community.author.joined', { date: formatTime(user.date_joined) }) }}</p>
         </div>
       </template>
-      <div v-else-if="!loading" class="empty-state">未找到该用户信息。</div>
+      <div v-else-if="!loading" class="empty-state">{{ t('community.author.notFound') }}</div>
     </div>
 
     <div class="table-actions back-row">
-      <el-button :icon="ArrowLeft" @click="goBack">返回</el-button>
+      <el-button :icon="ArrowLeft" @click="goBack">{{ t('community.author.back') }}</el-button>
     </div>
   </section>
 </template>
@@ -26,23 +26,25 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { fetchPublicUser } from '../../api/auth'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 
 const loading = ref(false)
 const user = ref(null)
 
-const roleLabelMap = {
-  student: '学生',
-  teacher: '教师',
-  admin: '管理员'
-}
-
-const roleLabel = computed(() => roleLabelMap[user.value?.role] || '用户')
+const roleLabel = computed(() => {
+  const role = user.value?.role
+  if (role === 'student') return t('community.author.roleStudent')
+  if (role === 'teacher') return t('community.author.roleTeacher')
+  if (role === 'admin') return t('community.author.roleAdmin')
+  return t('community.author.roleDefault')
+})
 
 const initials = computed(() => {
   const name = user.value?.username || ''
@@ -67,7 +69,7 @@ async function loadUser() {
   try {
     user.value = await fetchPublicUser(route.params.id)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '加载用户信息失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('community.author.loadFailed')))
     user.value = null
   } finally {
     loading.value = false

@@ -8,12 +8,12 @@
       <template v-if="course">
         <header class="learn-titlebar">
           <div>
-            <p class="eyebrow">学习空间</p>
+            <p class="eyebrow">{{ t('student.learn.eyebrow') }}</p>
             <h1>{{ course.title }}</h1>
-            <p>{{ course.description || '选择章节开始学习，系统会自动保存观看进度。' }}</p>
+            <p>{{ course.description || t('student.learn.defaultDesc') }}</p>
           </div>
           <div class="course-progress">
-            <span>课程进度</span>
+            <span>{{ t('student.learn.progressLabel') }}</span>
             <strong>{{ overallProgress }}%</strong>
             <el-progress :percentage="overallProgress" :stroke-width="10" />
           </div>
@@ -24,12 +24,12 @@
             <template v-if="selectedChapter">
               <div class="now-row">
                 <div>
-                  <p class="eyebrow">正在播放</p>
+                  <p class="eyebrow">{{ t('student.learn.nowPlayingEyebrow') }}</p>
                   <h2>{{ selectedChapter.title }}</h2>
-                  <p>{{ selectedChapter.description || '暂无章节简介' }}</p>
+                  <p>{{ selectedChapter.description || t('student.learn.noChapterDesc') }}</p>
                 </div>
                 <span class="status-pill" :class="{ 'is-done': currentProgress.is_completed }">
-                  {{ currentProgress.is_completed ? '已完成' : `${currentProgress.percent}%` }}
+                  {{ currentProgress.is_completed ? t('student.learn.completed') : `${currentProgress.percent}%` }}
                 </span>
               </div>
 
@@ -47,31 +47,31 @@
                   @pause="handleVideoPause"
                   @ended="handleEnded"
                 ></video>
-                <div v-else class="empty-video">本章暂未上传视频</div>
+                <div v-else class="empty-video">{{ t('student.learn.noVideo') }}</div>
               </div>
 
               <div class="progress-console">
                 <div>
-                  <span>本章进度</span>
+                  <span>{{ t('student.learn.chapterProgressLabel') }}</span>
                   <el-progress :percentage="currentProgress.percent" :stroke-width="10" />
                 </div>
                 <div class="tool-actions">
-                  <el-button :disabled="submitting" @click="submitCurrentProgress()">保存进度</el-button>
-                  <el-button type="primary" :disabled="submitting" @click="markCompleted">标记完成</el-button>
-                  <el-button v-if="selectedMaterialId" plain :loading="downloading" @click="handleDownloadMaterial">下载资料</el-button>
+                  <el-button :disabled="submitting" @click="submitCurrentProgress()">{{ t('student.learn.saveProgress') }}</el-button>
+                  <el-button type="primary" :disabled="submitting" @click="markCompleted">{{ t('student.learn.markCompleted') }}</el-button>
+                  <el-button v-if="selectedMaterialId" plain :loading="downloading" @click="handleDownloadMaterial">{{ t('student.learn.downloadMaterial') }}</el-button>
                 </div>
               </div>
             </template>
-            <div v-else class="empty-state">暂无可学习章节</div>
+            <div v-else class="empty-state">{{ t('student.learn.noChapters') }}</div>
           </section>
 
           <aside class="chapter-rail">
             <div class="rail-heading">
               <div>
-                <p class="eyebrow">章节列表</p>
-                <h2>目录</h2>
+                <p class="eyebrow">{{ t('student.learn.chaptersEyebrow') }}</p>
+                <h2>{{ t('student.learn.chaptersHeading') }}</h2>
               </div>
-              <span>{{ orderedChapters.length }} 章</span>
+              <span>{{ t('student.learn.chapterCount', { n: orderedChapters.length }) }}</span>
             </div>
 
             <button
@@ -85,7 +85,7 @@
               <span class="chapter-no">{{ chapterOrder(chapter) }}</span>
               <span class="chapter-copy">
                 <strong>{{ chapter.title }}</strong>
-                <small>{{ chapterProgress(chapter).percent }}% · {{ chapterProgress(chapter).is_completed ? '已完成' : '学习中' }}</small>
+                <small>{{ chapterProgress(chapter).percent }}% · {{ chapterProgress(chapter).is_completed ? t('student.learn.completed') : t('student.learn.studying') }}</small>
               </span>
             </button>
           </aside>
@@ -94,7 +94,7 @@
         <CourseQuestionPanel
           :course-id="courseId"
           can-ask
-          heading="Learning questions"
+          :heading="t('student.learn.questionPanelHeading')"
         />
       </template>
     </section>
@@ -105,6 +105,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import CourseQuestionPanel from '../../components/CourseQuestionPanel.vue'
@@ -112,6 +113,7 @@ import { downloadMaterial, fetchChapters, fetchCourseDetail, fetchCourseProgress
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
 
+const { t } = useI18n()
 const route = useRoute()
 const courseId = String(route.params.courseId || '')
 const loading = ref(false)
@@ -136,9 +138,9 @@ const selectedVideoUrl = computed(() => (selectedChapter.value ? chapterVideoUrl
 const selectedMaterialId = computed(() => (selectedChapter.value ? materialId(selectedChapter.value) : ''))
 
 const breadcrumbItems = computed(() => [
-  { label: '我的课程', to: '/student/courses' },
-  { label: course.value?.title || '课程学习', to: `/courses/${courseId}` },
-  { label: '学习' }
+  { label: t('student.learn.breadcrumbMyCourses'), to: '/student/courses' },
+  { label: course.value?.title || t('student.learn.breadcrumbLearnFallback'), to: `/courses/${courseId}` },
+  { label: t('student.learn.breadcrumbLearn') }
 ])
 
 function chapterOrder(chapter) {
@@ -158,7 +160,7 @@ function materialId(chapter) {
 
 function materialName(chapter) {
   const material = chapter.material || chapter.materials?.[0]
-  return material?.original_name || material?.file_name || material?.name || material?.filename || `${chapter.title || '学习资料'}`
+  return material?.original_name || material?.file_name || material?.name || material?.filename || `${chapter.title || t('student.learn.materialFallbackName')}`
 }
 
 function chapterProgress(chapter) {
@@ -227,7 +229,7 @@ async function loadPage() {
     await nextTick()
     restoreVideoPosition()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '学习页加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.learn.loadError')))
   } finally {
     loading.value = false
   }
@@ -310,7 +312,7 @@ async function submitCurrentProgress(isCompleted = false, options = {}) {
     applyProgressUpdateResult(result, chapterId)
   } catch (error) {
     if (!options.silent && !isLeaving.value) {
-      ElMessage.error(getCommonErrorMessage(error, '进度保存失败'))
+      ElMessage.error(getCommonErrorMessage(error, t('student.learn.saveError')))
     }
   } finally {
     submitting.value = false
@@ -325,12 +327,12 @@ function handleVideoPause() {
 async function handleEnded() {
   stopProgressTimer()
   await submitCurrentProgress(true)
-  ElMessage.success('本章已完成')
+  ElMessage.success(t('student.learn.chapterCompletedMsg'))
 }
 
 async function markCompleted() {
   await submitCurrentProgress(true)
-  ElMessage.success('已标记完成')
+  ElMessage.success(t('student.learn.markedCompletedMsg'))
 }
 
 async function handleDownloadMaterial() {
@@ -347,7 +349,7 @@ async function handleDownloadMaterial() {
     link.remove()
     window.URL.revokeObjectURL(url)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '资料下载失败，请确认已加入课程'))
+    ElMessage.error(getCommonErrorMessage(error, t('student.learn.downloadError')))
   } finally {
     downloading.value = false
   }

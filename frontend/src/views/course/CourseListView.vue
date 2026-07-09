@@ -2,29 +2,27 @@
   <main class="page-shell">
     <AppNav>
       <template v-if="userStore.role === 'teacher' || userStore.role === 'admin'" #actions>
-        <el-button type="primary" @click="$router.push('/teacher/courses')">课程管理</el-button>
+        <el-button type="primary" @click="$router.push('/teacher/courses')">{{ t('course.list.courseManagement') }}</el-button>
       </template>
     </AppNav>
 
     <section class="course-list-shell">
       <header class="list-heading">
         <div>
-          <p class="eyebrow">课程目录</p>
-          <h1>Pick your next project.</h1>
+          <p class="eyebrow">{{ t('course.list.catalogEyebrow') }}</p>
+          <h1>{{ t('course.list.heroTitle') }}</h1>
         </div>
-        <p>已发布课程以项目卡片的方式排列。筛选分类、难度和关键词，然后进入详情页开始学习。</p>
+        <p>{{ t('course.list.heroDesc') }}</p>
       </header>
 
       <section class="surface filter-panel">
         <div class="filter-row">
-          <el-input v-model.trim="filters.keyword" clearable placeholder="搜索课程标题" @keyup.enter="loadCourses(1)" />
-          <el-input v-model.trim="filters.category" clearable placeholder="分类，例如 programming" @keyup.enter="loadCourses(1)" />
-          <el-select v-model="filters.level" clearable placeholder="难度">
-            <el-option label="初级" value="beginner" />
-            <el-option label="中级" value="intermediate" />
-            <el-option label="高级" value="advanced" />
+          <el-input v-model.trim="filters.keyword" clearable :placeholder="t('course.list.searchPlaceholder')" @keyup.enter="loadCourses(1)" />
+          <el-input v-model.trim="filters.category" clearable :placeholder="t('course.list.categoryPlaceholder')" @keyup.enter="loadCourses(1)" />
+          <el-select v-model="filters.level" clearable :placeholder="t('course.list.levelPlaceholder')">
+            <el-option v-for="opt in levelOptions" :key="opt.value" :label="opt.label" :value="opt.value" />
           </el-select>
-          <el-button type="primary" :icon="Search" :loading="loading" @click="loadCourses(1)">筛选</el-button>
+          <el-button type="primary" :icon="Search" :loading="loading" @click="loadCourses(1)">{{ t('course.list.filter') }}</el-button>
         </div>
       </section>
 
@@ -32,7 +30,7 @@
         <CourseCard v-for="course in courses" :key="course.id" :course="course" />
       </div>
 
-      <div v-if="!loading && courses.length === 0" class="empty-state">暂无匹配课程，换个关键词试试。</div>
+      <div v-if="!loading && courses.length === 0" class="empty-state">{{ t('course.list.empty') }}</div>
 
       <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCourses" />
     </section>
@@ -40,9 +38,10 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import CourseCard from '../../components/CourseCard.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
@@ -50,6 +49,7 @@ import { fetchCourses } from '../../api/course'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const loading = ref(false)
 const courses = ref([])
@@ -62,6 +62,12 @@ const filters = reactive({
   category: '',
   level: ''
 })
+
+const levelOptions = computed(() => [
+  { label: t('course.level.beginner'), value: 'beginner' },
+  { label: t('course.level.intermediate'), value: 'intermediate' },
+  { label: t('course.level.advanced'), value: 'advanced' }
+])
 
 function buildParams(nextPage) {
   return {
@@ -82,7 +88,7 @@ async function loadCourses(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '课程列表加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('course.list.loadError')))
   } finally {
     loading.value = false
   }

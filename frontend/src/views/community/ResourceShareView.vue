@@ -1,48 +1,48 @@
 <template>
   <section class="community-page">
     <section class="surface post-form-panel">
-      <h2>分享学习资料</h2>
+      <h2>{{ t('community.resource.title') }}</h2>
       <el-form label-position="top" @submit.prevent>
-        <el-form-item label="标题">
-          <el-input v-model.trim="resourceForm.title" maxlength="128" show-word-limit placeholder="资料标题" />
+        <el-form-item :label="t('community.resource.fieldTitle')">
+          <el-input v-model.trim="resourceForm.title" maxlength="128" show-word-limit :placeholder="t('community.resource.titlePlaceholder')" />
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="resourceForm.category" placeholder="选择分类（可选）" clearable style="width: 240px">
+        <el-form-item :label="t('community.resource.fieldCategory')">
+          <el-select v-model="resourceForm.category" :placeholder="t('community.resource.categoryPlaceholder')" clearable style="width: 240px">
             <el-option v-for="item in categories" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
-        <el-form-item label="说明（可选）">
-          <el-input v-model.trim="resourceForm.description" type="textarea" :rows="3" maxlength="2000" show-word-limit placeholder="简单说明这份资料的内容" />
+        <el-form-item :label="t('community.resource.fieldDesc')">
+          <el-input v-model.trim="resourceForm.description" type="textarea" :rows="3" maxlength="2000" show-word-limit :placeholder="t('community.resource.descPlaceholder')" />
         </el-form-item>
-        <el-form-item label="资料网址（可选，填写后卡片会显示 GO 按钮）">
-          <el-input v-model.trim="resourceForm.url" placeholder="https://…（未填写协议时会自动补全为 https://）" />
+        <el-form-item :label="t('community.resource.fieldUrl')">
+          <el-input v-model.trim="resourceForm.url" :placeholder="t('community.resource.urlPlaceholder')" />
         </el-form-item>
-        <el-form-item label="或上传文件（可选，与网址二选一）">
+        <el-form-item :label="t('community.resource.fieldFile')">
           <el-upload
             v-model:file-list="fileList"
             :limit="1"
             :auto-upload="false"
             :on-change="handleFileChange"
           >
-            <el-button :icon="Paperclip">选择文件</el-button>
+            <el-button :icon="Paperclip">{{ t('community.resource.selectFile') }}</el-button>
           </el-upload>
         </el-form-item>
         <div class="table-actions">
-          <el-button type="primary" :icon="Upload" :loading="submitting" @click="submitResource">分享资料</el-button>
+          <el-button type="primary" :icon="Upload" :loading="submitting" @click="submitResource">{{ t('community.resource.submit') }}</el-button>
         </div>
       </el-form>
     </section>
 
     <section class="surface filter-panel">
       <div class="filter-row-simple">
-        <el-input v-model.trim="keyword" clearable placeholder="搜索资料标题或说明" @keyup.enter="loadResources(1)" />
-        <el-button type="primary" :icon="Search" :loading="loading" @click="loadResources(1)">搜索</el-button>
+        <el-input v-model.trim="keyword" clearable :placeholder="t('community.resource.searchPlaceholder')" @keyup.enter="loadResources(1)" />
+        <el-button type="primary" :icon="Search" :loading="loading" @click="loadResources(1)">{{ t('community.resource.search') }}</el-button>
       </div>
     </section>
 
     <div class="community-layout">
       <aside class="community-sidebar surface">
-        <h4>分类</h4>
+        <h4>{{ t('community.category.label') }}</h4>
         <CategoryNav v-model="activeCategory" :categories="categories" @change="handleCategoryChange" />
       </aside>
 
@@ -57,7 +57,7 @@
           />
         </div>
 
-        <div v-if="!loading && resources.length === 0" class="empty-state">还没有分享的资料，快来上传第一份吧。</div>
+        <div v-if="!loading && resources.length === 0" class="empty-state">{{ t('community.resource.emptyState') }}</div>
 
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadResources" />
       </div>
@@ -68,6 +68,7 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { Paperclip, Search, Upload } from '@element-plus/icons-vue'
 import ResourceCard from '../../components/community/ResourceCard.vue'
 import CategoryNav from '../../components/community/CategoryNav.vue'
@@ -75,6 +76,8 @@ import PaginationBar from '../../components/PaginationBar.vue'
 import { createResource, fetchCategories, fetchResources } from '../../api/community'
 import { getCommunityErrorMessage } from '../../utils/errorMessage'
 import { normalizeUrl } from '../../utils/url'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -122,7 +125,7 @@ async function loadResources(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '资料加载失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resource.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -155,11 +158,11 @@ function handleUpdated(updated) {
 
 async function submitResource() {
   if (!resourceForm.title) {
-    ElMessage.warning('请填写资料标题')
+    ElMessage.warning(t('community.resource.titleRequired'))
     return
   }
   if (!resourceForm.url && !selectedFile.value) {
-    ElMessage.warning('请填写资料网址，或上传一个文件')
+    ElMessage.warning(t('community.resource.urlOrFileRequired'))
     return
   }
   submitting.value = true
@@ -171,11 +174,11 @@ async function submitResource() {
       category: resourceForm.category,
       file: selectedFile.value || undefined
     })
-    ElMessage.success('资料分享成功')
+    ElMessage.success(t('community.resource.submitSuccess'))
     resetForm()
     await loadResources(1)
   } catch (error) {
-    ElMessage.error(getCommunityErrorMessage(error, '资料分享失败'))
+    ElMessage.error(getCommunityErrorMessage(error, t('community.resource.submitFailed')))
   } finally {
     submitting.value = false
   }

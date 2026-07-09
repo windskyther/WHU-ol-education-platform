@@ -2,68 +2,68 @@
   <main class="page-shell">
     <AppNav>
       <template #actions>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建课程</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">{{ t('teacher.courses.createBtn') }}</el-button>
       </template>
     </AppNav>
 
     <section class="manager-shell">
       <div class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">教师课程管理</p>
+          <p class="eyebrow">{{ t('teacher.courses.eyebrow') }}</p>
           <h1>Build the catalog.</h1>
-          <p>维护课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
+          <p>{{ t('teacher.courses.description') }}</p>
         </div>
       </div>
 
       <section class="surface filter-panel">
         <div class="filter-row">
-          <el-input v-model.trim="filters.keyword" clearable placeholder="搜索课程标题" @keyup.enter="loadCourses(1)" />
-          <el-input v-model.trim="filters.category" clearable placeholder="分类" @keyup.enter="loadCourses(1)" />
-          <el-select v-model="filters.is_published" clearable placeholder="发布状态">
-            <el-option label="已发布" value="true" />
-            <el-option label="草稿" value="false" />
+          <el-input v-model.trim="filters.keyword" clearable :placeholder="t('teacher.courses.searchPlaceholder')" @keyup.enter="loadCourses(1)" />
+          <el-input v-model.trim="filters.category" clearable :placeholder="t('teacher.courses.categoryPlaceholder')" @keyup.enter="loadCourses(1)" />
+          <el-select v-model="filters.is_published" clearable :placeholder="t('teacher.courses.publishStatusPlaceholder')">
+            <el-option :label="t('teacher.courses.published')" value="true" />
+            <el-option :label="t('teacher.courses.draft')" value="false" />
           </el-select>
-          <el-button type="primary" :icon="Search" :loading="loading" @click="loadCourses(1)">筛选</el-button>
+          <el-button type="primary" :icon="Search" :loading="loading" @click="loadCourses(1)">{{ t('teacher.courses.filterBtn') }}</el-button>
         </div>
       </section>
 
       <section class="surface table-panel">
         <el-table v-loading="loading" :data="courses" row-key="id">
-          <el-table-column label="课程" min-width="260">
+          <el-table-column :label="t('teacher.courses.colCourse')" min-width="260">
             <template #default="{ row }">
               <div class="course-cell">
                 <strong>{{ row.title }}</strong>
-                <span>{{ row.category || '未分类' }} · {{ levelText(row.level) }} · {{ row.chapter_count || 0 }} 章</span>
+                <span>{{ row.category || t('teacher.courses.uncategorized') }} · {{ levelText(row.level) }} · {{ t('teacher.courses.chapterCount', { n: row.chapter_count || 0 }) }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="120">
+          <el-table-column :label="t('teacher.courses.colStatus')" width="120">
             <template #default="{ row }">
               <el-tag :type="row.is_published ? 'success' : 'warning'" effect="light">
-                {{ row.is_published ? '已发布' : '草稿' }}
+                {{ row.is_published ? t('teacher.courses.published') : t('teacher.courses.draft') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="更新时间" width="190">
+          <el-table-column :label="t('teacher.courses.colUpdatedAt')" width="190">
             <template #default="{ row }">{{ formatTime(row.updated_at) }}</template>
           </el-table-column>
-          <el-table-column label="操作" min-width="360" fixed="right">
+          <el-table-column :label="t('teacher.courses.colActions')" min-width="360" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
-                <el-button size="small" text :icon="View" @click="$router.push(`/courses/${row.id}`)">查看</el-button>
-                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
-                <el-button size="small" text :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">章节</el-button>
-                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/courses/${row.id}/exams`)">考试</el-button>
+                <el-button size="small" text :icon="View" @click="$router.push(`/courses/${row.id}`)">{{ t('teacher.courses.viewBtn') }}</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">{{ t('teacher.courses.editBtn') }}</el-button>
+                <el-button size="small" text :icon="Collection" @click="$router.push(`/teacher/courses/${row.id}/chapters`)">{{ t('teacher.courses.chaptersBtn') }}</el-button>
+                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/courses/${row.id}/exams`)">{{ t('teacher.courses.examsBtn') }}</el-button>
                 <el-button size="small" plain :loading="publishingId === row.id" @click="togglePublish(row)">
-                  {{ row.is_published ? '下架' : '发布' }}
+                  {{ row.is_published ? t('teacher.courses.unpublishBtn') : t('teacher.courses.publishBtn') }}
                 </el-button>
-                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">删除</el-button>
+                <el-button size="small" type="danger" plain :icon="Delete" :loading="deletingId === row.id" @click="confirmDelete(row)">{{ t('teacher.courses.deleteBtn') }}</el-button>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <div v-if="!loading && courses.length === 0" class="empty-state">暂无课程，先创建一门课程。</div>
+        <div v-if="!loading && courses.length === 0" class="empty-state">{{ t('teacher.courses.emptyState') }}</div>
         <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCourses" />
       </section>
     </section>
@@ -76,11 +76,14 @@
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Collection, Delete, Edit, Plus, Search, Tickets, View } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import CourseFormDialog from '../../components/CourseFormDialog.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
 import { createCourse, deleteCourse, fetchCourses, publishCourse, updateCourse } from '../../api/course'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -99,14 +102,13 @@ const filters = reactive({
   is_published: ''
 })
 
-const levelMap = {
-  beginner: '初级',
-  intermediate: '中级',
-  advanced: '高级'
-}
-
 function levelText(level) {
-  return levelMap[level] || '初级'
+  const map = {
+    beginner: t('teacher.courses.levelBeginner'),
+    intermediate: t('teacher.courses.levelIntermediate'),
+    advanced: t('teacher.courses.levelAdvanced')
+  }
+  return map[level] || t('teacher.courses.levelBeginner')
 }
 
 function formatTime(value) {
@@ -133,7 +135,7 @@ async function loadCourses(nextPage = page.value) {
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '课程加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.courses.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -154,15 +156,15 @@ async function handleSaveCourse(payload) {
   try {
     if (editingCourse.value?.id) {
       await updateCourse(editingCourse.value.id, payload)
-      ElMessage.success('课程已更新')
+      ElMessage.success(t('teacher.courses.updated'))
     } else {
       await createCourse(payload)
-      ElMessage.success('课程已创建')
+      ElMessage.success(t('teacher.courses.created'))
     }
     dialogVisible.value = false
     loadCourses(editingCourse.value?.id ? page.value : 1)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '课程保存失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.courses.saveFailed')))
   } finally {
     submitting.value = false
   }
@@ -172,29 +174,33 @@ async function togglePublish(course) {
   publishingId.value = course.id
   try {
     await publishCourse(course.id, !course.is_published)
-    ElMessage.success(course.is_published ? '课程已下架' : '课程已发布')
+    ElMessage.success(course.is_published ? t('teacher.courses.unpublishedMsg') : t('teacher.courses.publishedMsg'))
     loadCourses(page.value)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '发布状态更新失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.courses.publishFailed')))
   } finally {
     publishingId.value = null
   }
 }
 
 async function confirmDelete(course) {
-  await ElMessageBox.confirm(`确认删除课程“${course.title}”吗？该操作会让课程不再出现在列表中。`, '删除课程', {
-    type: 'warning',
-    confirmButtonText: '删除',
-    cancelButtonText: '取消'
-  })
+  await ElMessageBox.confirm(
+    t('teacher.courses.confirmDeleteMsg', { name: course.title }),
+    t('teacher.courses.confirmDeleteTitle'),
+    {
+      type: 'warning',
+      confirmButtonText: t('teacher.courses.confirmDeleteBtn'),
+      cancelButtonText: t('teacher.courses.confirmCancelBtn')
+    }
+  )
 
   deletingId.value = course.id
   try {
     await deleteCourse(course.id)
-    ElMessage.success('课程已删除')
+    ElMessage.success(t('teacher.courses.deleted'))
     loadCourses(page.value)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '课程删除失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.courses.deleteFailed')))
   } finally {
     deletingId.value = null
   }

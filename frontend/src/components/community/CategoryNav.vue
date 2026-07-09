@@ -5,7 +5,7 @@
       :class="{ active: modelValue === '' }"
       @click="select('')"
     >
-      全部
+      {{ t('community.category.all') }}
     </button>
     <button
       v-for="item in categories"
@@ -20,6 +20,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
+
 defineProps({
   categories: {
     type: Array,

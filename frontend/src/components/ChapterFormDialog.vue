@@ -1,26 +1,29 @@
 <template>
-  <el-dialog v-model="visible" :title="chapter?.id ? '编辑章节' : '创建章节'" width="560px" destroy-on-close>
+  <el-dialog v-model="visible" :title="chapter?.id ? t('teacher.chapters.dialogEditTitle') : t('teacher.chapters.dialogCreateTitle')" width="560px" destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-      <el-form-item label="章节标题" prop="title">
-        <el-input v-model.trim="form.title" placeholder="例如：第 1 章 认识课程" />
+      <el-form-item :label="t('teacher.chapters.titleLabel')" prop="title">
+        <el-input v-model.trim="form.title" :placeholder="t('teacher.chapters.titlePlaceholder')" />
       </el-form-item>
-      <el-form-item label="章节简介" prop="description">
-        <el-input v-model.trim="form.description" type="textarea" :rows="3" placeholder="说明本章内容" />
+      <el-form-item :label="t('teacher.chapters.descriptionLabel')" prop="description">
+        <el-input v-model.trim="form.description" type="textarea" :rows="3" :placeholder="t('teacher.chapters.descriptionPlaceholder')" />
       </el-form-item>
-      <el-form-item label="排序" prop="order">
+      <el-form-item :label="t('teacher.chapters.orderLabel')" prop="order">
         <el-input-number v-model="form.order" :min="1" :step="1" />
       </el-form-item>
     </el-form>
 
     <template #footer>
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
+      <el-button @click="visible = false">{{ t('teacher.chapters.cancelBtn') }}</el-button>
+      <el-button type="primary" :loading="submitting" @click="handleSubmit">{{ t('teacher.chapters.saveBtn') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: {
@@ -55,10 +58,10 @@ const form = reactive({
   order: 1
 })
 
-const rules = {
-  title: [{ required: true, message: '请输入章节标题', trigger: 'blur' }],
-  order: [{ required: true, message: '请输入章节排序', trigger: 'change' }]
-}
+const rules = computed(() => ({
+  title: [{ required: true, message: t('teacher.chapters.titleRequired'), trigger: 'blur' }],
+  order: [{ required: true, message: t('teacher.chapters.orderRequired'), trigger: 'change' }]
+}))
 
 watch(
   () => [props.modelValue, props.chapter, props.nextOrder],

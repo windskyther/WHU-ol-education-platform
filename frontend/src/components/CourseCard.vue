@@ -7,13 +7,13 @@
     <div class="course-copy">
       <div class="meta-row">
         <strong>{{ levelText }}</strong>
-        <span>{{ course.category || '未分类' }}</span>
+        <span>{{ course.category || t('course.card.uncategorized') }}</span>
       </div>
       <h3>{{ course.title }}</h3>
-      <p>{{ course.description || '暂无课程简介' }}</p>
+      <p>{{ course.description || t('course.card.noDescription') }}</p>
       <div class="footer">
-        <span>{{ course.teacher?.username || course.teacher_name || '教师未命名' }}</span>
-        <span>{{ course.chapter_count || course.chapters_count || 0 }} 章</span>
+        <span>{{ course.teacher?.username || course.teacher_name || t('course.card.unknownTeacher') }}</span>
+        <span>{{ t('course.card.chapterCount', { n: course.chapter_count || course.chapters_count || 0 }) }}</span>
       </div>
     </div>
     <div class="course-arrow" aria-hidden="true">
@@ -24,6 +24,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   course: {
@@ -32,14 +35,16 @@ const props = defineProps({
   }
 })
 
-const levelMap = {
-  beginner: 'Beginner',
-  intermediate: 'Intermediate',
-  advanced: 'Advanced'
-}
+const levelText = computed(() => {
+  const map = {
+    beginner: t('course.level.beginner'),
+    intermediate: t('course.level.intermediate'),
+    advanced: t('course.level.advanced')
+  }
+  return map[props.course.level] || t('course.level.beginner')
+})
 
-const levelText = computed(() => levelMap[props.course.level] || 'Beginner')
-const coverInitial = computed(() => (props.course.title || '课').slice(0, 1).toUpperCase())
+const coverInitial = computed(() => (props.course.title || t('course.card.coverInitial')).slice(0, 1).toUpperCase())
 </script>
 
 <style scoped>

@@ -2,8 +2,8 @@
   <main class="page-shell">
     <AppNav>
       <template #actions>
-        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">章节管理</el-button>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建考试</el-button>
+        <el-button plain @click="$router.push(`/teacher/courses/${courseId}/chapters`)">{{ t('teacher.exams.chaptersManageBtn') }}</el-button>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">{{ t('teacher.exams.createBtn') }}</el-button>
       </template>
     </AppNav>
 
@@ -12,33 +12,33 @@
     <section class="teacher-exams-shell">
       <header class="manager-heading kinetic-panel">
         <div>
-          <p class="eyebrow">考试管理</p>
+          <p class="eyebrow">{{ t('teacher.exams.eyebrow') }}</p>
           <h1>{{ course?.title || 'Course exams' }}</h1>
-          <p>创建课程考试并进入题目维护。学生端只会展示已发布考试和不含答案的题目。</p>
+          <p>{{ t('teacher.exams.description') }}</p>
         </div>
       </header>
 
       <section class="surface table-panel">
         <el-table v-loading="loading" :data="exams" row-key="id">
-          <el-table-column label="考试" min-width="240">
+          <el-table-column :label="t('teacher.exams.colExam')" min-width="240">
             <template #default="{ row }">
               <div class="exam-cell">
                 <strong>{{ row.title }}</strong>
-                <span>{{ row.description || '暂无考试说明' }}</span>
+                <span>{{ row.description || t('teacher.exams.noDescription') }}</span>
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="状态" width="120">
+          <el-table-column :label="t('teacher.exams.colStatus')" width="120">
             <template #default="{ row }">
               <el-tag :type="row.is_published ? 'success' : 'warning'" effect="light">
-                {{ row.is_published ? '已发布' : '草稿' }}
+                {{ row.is_published ? t('teacher.exams.published') : t('teacher.exams.draft') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="时长/及格/优秀线" width="170">
-            <template #default="{ row }">{{ row.duration || row.duration_minutes || '-' }} 分 / {{ row.pass_score ?? '-' }} / {{ row.excellent_score ?? '未设置' }}</template>
+          <el-table-column :label="t('teacher.exams.colDurationScore')" width="170">
+            <template #default="{ row }">{{ row.duration || row.duration_minutes || '-' }} {{ t('teacher.exams.minuteSuffix') }} / {{ row.pass_score ?? '-' }} / {{ row.excellent_score ?? t('teacher.exams.excellentNotSet') }}</template>
           </el-table-column>
-          <el-table-column label="时间" min-width="230">
+          <el-table-column :label="t('teacher.exams.colTime')" min-width="230">
             <template #default="{ row }">
               <div class="time-cell">
                 <span>{{ formatTime(row.start_time) }}</span>
@@ -46,7 +46,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="240" fixed="right">
+          <el-table-column :label="t('teacher.exams.colActions')" min-width="240" fixed="right">
             <template #default="{ row }">
               <div class="table-actions">
                 <el-button
@@ -56,72 +56,72 @@
                   :loading="publishingId === row.id"
                   @click="togglePublish(row)"
                 >
-                  {{ row.is_published ? '下架' : '发布' }}
+                  {{ row.is_published ? t('teacher.exams.unpublishBtn') : t('teacher.exams.publishBtn') }}
                 </el-button>
-                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
-                <el-button size="small" text :icon="Edit" @click="$router.push(`/teacher/exams/${row.id}/questions`)">题目</el-button>
-                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/exams/${row.id}/submissions`)">答卷</el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">{{ t('teacher.exams.editBtn') }}</el-button>
+                <el-button size="small" text :icon="Edit" @click="$router.push(`/teacher/exams/${row.id}/questions`)">{{ t('teacher.exams.questionsBtn') }}</el-button>
+                <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/exams/${row.id}/submissions`)">{{ t('teacher.exams.submissionsBtn') }}</el-button>
               </div>
             </template>
           </el-table-column>
         </el-table>
 
-        <div v-if="!loading && exams.length === 0" class="empty-state">暂无考试，先创建一场课程考试。</div>
+        <div v-if="!loading && exams.length === 0" class="empty-state">{{ t('teacher.exams.emptyState') }}</div>
       </section>
     </section>
 
-    <el-dialog v-model="dialogVisible" :title="editingExamId ? '编辑考试' : '创建考试'" width="640px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" :title="editingExamId ? t('teacher.exams.dialogEditTitle') : t('teacher.exams.dialogCreateTitle')" width="640px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-        <el-form-item label="考试标题" prop="title">
-          <el-input v-model.trim="form.title" placeholder="例如：Python 阶段测验" />
+        <el-form-item :label="t('teacher.exams.titleLabel')" prop="title">
+          <el-input v-model.trim="form.title" :placeholder="t('teacher.exams.titlePlaceholder')" />
         </el-form-item>
-        <el-form-item label="考试说明">
-          <el-input v-model.trim="form.description" type="textarea" :rows="3" placeholder="说明考试范围和提交要求" />
+        <el-form-item :label="t('teacher.exams.descriptionLabel')">
+          <el-input v-model.trim="form.description" type="textarea" :rows="3" :placeholder="t('teacher.exams.descriptionPlaceholder')" />
         </el-form-item>
         <div class="dialog-grid">
-          <el-form-item label="时长（分钟）" prop="duration">
+          <el-form-item :label="t('teacher.exams.durationLabel')" prop="duration">
             <el-input-number v-model="form.duration" :min="1" :max="600" />
           </el-form-item>
-          <el-form-item label="及格线" prop="pass_score">
+          <el-form-item :label="t('teacher.exams.passScoreLabel')" prop="pass_score">
             <el-input-number v-model="form.pass_score" :min="0" :max="1000" />
           </el-form-item>
         </div>
-        <el-form-item label="优秀线分数（可选，达到该分数自动颁发证书）" prop="excellent_score">
+        <el-form-item :label="t('teacher.exams.excellentScoreLabel')" prop="excellent_score">
           <el-input-number
             v-model="form.excellent_score"
             :min="0"
             :max="form.pass_score || 1000"
-            placeholder="不填则不发放证书"
+            :placeholder="t('teacher.exams.excellentScorePlaceholder')"
             clearable
           />
         </el-form-item>
         <div class="dialog-grid">
-          <el-form-item label="开始时间">
+          <el-form-item :label="t('teacher.exams.startTimeLabel')">
             <el-date-picker
               v-model="form.start_time"
               type="datetime"
               value-format="YYYY-MM-DDTHH:mm:ss"
-              placeholder="选择开始时间"
+              :placeholder="t('teacher.exams.startTimePlaceholder')"
               :disabled-date="disablePastDate"
             />
           </el-form-item>
-          <el-form-item label="结束时间">
+          <el-form-item :label="t('teacher.exams.endTimeLabel')">
             <el-date-picker
               v-model="form.end_time"
               type="datetime"
               value-format="YYYY-MM-DDTHH:mm:ss"
-              placeholder="选择结束时间"
+              :placeholder="t('teacher.exams.endTimePlaceholder')"
               :disabled-date="disablePastDate"
             />
           </el-form-item>
         </div>
-        <el-form-item label="发布状态">
-          <el-switch v-model="form.is_published" active-text="已发布" inactive-text="草稿" />
+        <el-form-item :label="t('teacher.exams.publishStatusLabel')">
+          <el-switch v-model="form.is_published" :active-text="t('teacher.exams.publishedActiveText')" :inactive-text="t('teacher.exams.draftInactiveText')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmitExam">保存</el-button>
+        <el-button @click="dialogVisible = false">{{ t('teacher.exams.cancelBtn') }}</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmitExam">{{ t('teacher.exams.saveBtn') }}</el-button>
       </template>
     </el-dialog>
   </main>
@@ -132,12 +132,14 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Edit, Plus, Tickets } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import AppNav from '../../components/AppNav.vue'
 import BreadcrumbNav from '../../components/BreadcrumbNav.vue'
 import { fetchCourseDetail } from '../../api/course'
 import { createCourseExam, fetchCourseExams, updateCourseExam } from '../../api/exam'
 import { getCommonErrorMessage, getExamErrorMessage } from '../../utils/errorMessage'
 
+const { t } = useI18n()
 const route = useRoute()
 const courseId = computed(() => route.params.id)
 const course = ref(null)
@@ -160,16 +162,16 @@ const form = reactive({
   is_published: false
 })
 
-const rules = {
-  title: [{ required: true, message: '请输入考试标题', trigger: 'blur' }],
-  duration: [{ required: true, message: '请输入考试时长', trigger: 'blur' }],
-  pass_score: [{ required: true, message: '请输入及格线', trigger: 'blur' }]
-}
+const rules = computed(() => ({
+  title: [{ required: true, message: t('teacher.exams.titleRequired'), trigger: 'blur' }],
+  duration: [{ required: true, message: t('teacher.exams.durationRequired'), trigger: 'blur' }],
+  pass_score: [{ required: true, message: t('teacher.exams.passScoreRequired'), trigger: 'blur' }]
+}))
 
 const breadcrumbItems = computed(() => [
-  { label: '课程管理', to: '/teacher/courses' },
-  { label: course.value?.title || '课程', to: `/teacher/courses/${courseId.value}/chapters` },
-  { label: '考试管理' }
+  { label: t('teacher.exams.breadcrumbCourseManage'), to: '/teacher/courses' },
+  { label: course.value?.title || t('teacher.exams.breadcrumbCourse'), to: `/teacher/courses/${courseId.value}/chapters` },
+  { label: t('teacher.exams.breadcrumbExams') }
 ])
 
 function normalizeList(data) {
@@ -206,17 +208,17 @@ function validateExamTime() {
   const endTime = form.end_time ? new Date(form.end_time).getTime() : null
 
   if (startTime && startTime <= now) {
-    ElMessage.error('开始时间必须晚于当前时间')
+    ElMessage.error(t('teacher.exams.startTimeAfterNow'))
     return false
   }
 
   if (endTime && endTime <= now) {
-    ElMessage.error('截止时间必须晚于当前时间')
+    ElMessage.error(t('teacher.exams.endTimeAfterNow'))
     return false
   }
 
   if (startTime && endTime && endTime <= startTime) {
-    ElMessage.error('截止时间必须晚于开始时间')
+    ElMessage.error(t('teacher.exams.endTimeAfterStart'))
     return false
   }
 
@@ -252,7 +254,7 @@ async function loadPage() {
     course.value = courseData
     exams.value = normalizeList(examData)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '考试信息加载失败'))
+    ElMessage.error(getCommonErrorMessage(error, t('teacher.exams.loadFailed')))
   } finally {
     loading.value = false
   }
@@ -266,15 +268,15 @@ async function handleSubmitExam() {
   try {
     if (editingExamId.value) {
       await updateCourseExam(editingExamId.value, { ...form })
-      ElMessage.success('考试已更新')
+      ElMessage.success(t('teacher.exams.updated'))
     } else {
       await createCourseExam(courseId.value, { ...form })
-      ElMessage.success('考试已创建')
+      ElMessage.success(t('teacher.exams.created'))
     }
     dialogVisible.value = false
     loadPage()
   } catch (error) {
-    ElMessage.error(getExamErrorMessage(error, editingExamId.value ? '考试更新失败' : '考试创建失败'))
+    ElMessage.error(getExamErrorMessage(error, editingExamId.value ? t('teacher.exams.updateFailed') : t('teacher.exams.createFailed')))
   } finally {
     submitting.value = false
   }
@@ -283,12 +285,12 @@ async function handleSubmitExam() {
 async function togglePublish(row) {
   const nextPublished = !row.is_published
   await ElMessageBox.confirm(
-    nextPublished ? '确认发布这场考试吗？发布后学生可见。' : '确认下架这场考试吗？下架后学生不可见。',
-    nextPublished ? '发布考试' : '下架考试',
+    nextPublished ? t('teacher.exams.confirmPublishMsg') : t('teacher.exams.confirmUnpublishMsg'),
+    nextPublished ? t('teacher.exams.confirmPublishTitle') : t('teacher.exams.confirmUnpublishTitle'),
     {
       type: 'warning',
-      confirmButtonText: nextPublished ? '发布' : '下架',
-      cancelButtonText: '取消'
+      confirmButtonText: nextPublished ? t('teacher.exams.publishBtn') : t('teacher.exams.unpublishBtn'),
+      cancelButtonText: t('teacher.exams.cancelBtn')
     }
   )
 
@@ -297,10 +299,10 @@ async function togglePublish(row) {
     await updateCourseExam(row.id, {
       is_published: nextPublished
     })
-    ElMessage.success(nextPublished ? '考试已发布' : '考试已下架')
+    ElMessage.success(nextPublished ? t('teacher.exams.publishedMsg') : t('teacher.exams.unpublishedMsg'))
     await loadPage()
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, nextPublished ? '考试发布失败' : '考试下架失败'))
+    ElMessage.error(getCommonErrorMessage(error, nextPublished ? t('teacher.exams.publishFailed') : t('teacher.exams.unpublishFailed')))
   } finally {
     publishingId.value = null
   }
