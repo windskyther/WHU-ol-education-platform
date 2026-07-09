@@ -51,7 +51,7 @@
                   @loadedmetadata="handleLoadedMetadata"
                   @timeupdate="handleTimeUpdate"
                   @play="startProgressTimer"
-                  @pause="submitCurrentProgress()"
+                  @pause="handleVideoPause"
                   @ended="handleEnded"
                 ></video>
                 <div v-else class="empty-video">本章暂未上传视频</div>
@@ -111,10 +111,11 @@ import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
 
 const route = useRoute()
-const courseId = computed(() => route.params.courseId)
+const courseId = String(route.params.courseId || '')
 const loading = ref(false)
 const submitting = ref(false)
 const downloading = ref(false)
+const isLeaving = ref(false)
 const course = ref(null)
 const chapters = ref([])
 const selectedChapter = ref(null)
@@ -207,9 +208,9 @@ async function loadPage() {
   loading.value = true
   try {
     const [courseData, chapterData, progressData] = await Promise.all([
-      fetchCourseDetail(courseId.value),
-      fetchChapters(courseId.value),
-      fetchCourseProgress(courseId.value)
+      fetchCourseDetail(courseId),
+      fetchChapters(courseId),
+      fetchCourseProgress(courseId)
     ])
     course.value = courseData
     chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
@@ -271,10 +272,12 @@ function stopProgressTimer() {
   }
 }
 
-async function submitCurrentProgress(isCompleted = false) {
+async function submitCurrentProgress(isCompleted = false, options = {}) {
   if (submitting.value) return
   if (!selectedChapter.value) return
   const completed = isCompleted === true
+  const numericCourseId = Number(courseId)
+  if (!Number.isFinite(numericCourseId) || numericCourseId <= 0) return
   const chapterId = selectedChapter.value.id
   const localProgress = chapterProgress(selectedChapter.value)
   const watchedSeconds = Math.max(localProgress.watched_seconds, maxWatchedMap[chapterId] || 0)
@@ -285,7 +288,7 @@ async function submitCurrentProgress(isCompleted = false) {
   try {
     const isProgressCompleted = completed || percent >= 95 || localProgress.is_completed
     const result = await updateLearningProgress({
-      course_id: Number(courseId.value),
+      course_id: numericCourseId,
       chapter_id: chapterId,
       watched_seconds: watchedSeconds,
       percent,
@@ -298,10 +301,17 @@ async function submitCurrentProgress(isCompleted = false) {
     }
     applyProgressUpdateResult(result, chapterId)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '进度保存失败'))
+    if (!options.silent && !isLeaving.value) {
+      ElMessage.error(getCommonErrorMessage(error, '进度保存失败'))
+    }
   } finally {
     submitting.value = false
   }
+}
+
+function handleVideoPause() {
+  if (isLeaving.value) return
+  submitCurrentProgress()
 }
 
 async function handleEnded() {
@@ -337,7 +347,7 @@ async function handleDownloadMaterial() {
 
 function handleBeforeUnload() {
   if (!selectedChapter.value) return
-  submitCurrentProgress()
+  submitCurrentProgress(false, { silent: true })
 }
 
 onMounted(() => {
@@ -346,14 +356,14 @@ onMounted(() => {
 })
 
 onBeforeRouteLeave(async () => {
+  isLeaving.value = true
   stopProgressTimer()
-  await submitCurrentProgress()
+  await submitCurrentProgress(false, { silent: true })
 })
 
 onBeforeUnmount(() => {
   stopProgressTimer()
   window.removeEventListener('beforeunload', handleBeforeUnload)
-  submitCurrentProgress()
 })
 </script>
 
