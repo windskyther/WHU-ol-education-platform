@@ -20,6 +20,7 @@ class ExamSerializer(serializers.ModelSerializer):
             "description",
             "total_score",
             "pass_score",
+            "excellent_score",
             "duration_minutes",
             "duration",
             "is_published",
@@ -47,7 +48,7 @@ class ExamSerializer(serializers.ModelSerializer):
                 data["is_published"] = data.get("isPublished")
             elif "published" in data:
                 data["is_published"] = data.get("published")
-        for field in ("start_time", "end_time"):
+        for field in ("start_time", "end_time", "excellent_score"):
             if data.get(field) == "":
                 data[field] = None
         return super().to_internal_value(data)
@@ -87,6 +88,14 @@ class ExamSerializer(serializers.ModelSerializer):
         end_time = attrs.get("end_time", getattr(self.instance, "end_time", None))
         if start_time and end_time and end_time <= start_time:
             raise serializers.ValidationError({"end_time": "END_TIME_MUST_BE_AFTER_START_TIME"})
+
+        if "excellent_score" in attrs and attrs["excellent_score"] is not None:
+            total_score = attrs.get("total_score", getattr(self.instance, "total_score", None))
+            excellent_score = attrs["excellent_score"]
+            if excellent_score <= 0:
+                raise serializers.ValidationError({"excellent_score": "EXCELLENT_SCORE_MUST_BE_POSITIVE"})
+            if total_score is not None and excellent_score > total_score:
+                raise serializers.ValidationError({"excellent_score": "EXCELLENT_SCORE_MUST_NOT_EXCEED_TOTAL_SCORE"})
         return attrs
 
 

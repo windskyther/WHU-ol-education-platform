@@ -16,6 +16,7 @@ urlpatterns = [
     path("api/", include("apps.exams.urls")),
     path("api/", include("apps.qa.urls")),
     path("api/", include("apps.community.urls")),
+    path("api/", include("apps.certificates.urls")),
 ]
 
 if settings.DEBUG:

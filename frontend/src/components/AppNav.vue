@@ -97,6 +97,7 @@ const mainLinks = computed(() => {
 
   if (userStore.role === 'student' || userStore.role === 'teacher') {
     links.push({ label: '社区中心', to: '/community/forum' })
+    links.push({ label: '我的证书', to: '/certificates' })
   }
 
   return links
@@ -113,6 +114,10 @@ function isActiveLink(path) {
 
   if (path === '/community/forum') {
     return route.path.startsWith('/community')
+  }
+
+  if (path === '/certificates') {
+    return route.path.startsWith('/certificates')
   }
 
   return route.path === path || route.path.startsWith(`${path}/`)

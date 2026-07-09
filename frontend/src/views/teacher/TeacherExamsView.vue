@@ -35,8 +35,8 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="时长/及格" width="140">
-            <template #default="{ row }">{{ row.duration || row.duration_minutes || '-' }} 分 / {{ row.pass_score ?? '-' }}</template>
+          <el-table-column label="时长/及格/优秀线" width="170">
+            <template #default="{ row }">{{ row.duration || row.duration_minutes || '-' }} 分 / {{ row.pass_score ?? '-' }} / {{ row.excellent_score ?? '未设置' }}</template>
           </el-table-column>
           <el-table-column label="时间" min-width="230">
             <template #default="{ row }">
@@ -58,6 +58,7 @@
                 >
                   {{ row.is_published ? '下架' : '发布' }}
                 </el-button>
+                <el-button size="small" text :icon="Edit" @click="openEditDialog(row)">编辑</el-button>
                 <el-button size="small" text :icon="Edit" @click="$router.push(`/teacher/exams/${row.id}/questions`)">题目</el-button>
                 <el-button size="small" text :icon="Tickets" @click="$router.push(`/teacher/exams/${row.id}/submissions`)">答卷</el-button>
               </div>
@@ -69,7 +70,7 @@
       </section>
     </section>
 
-    <el-dialog v-model="dialogVisible" title="创建考试" width="640px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" :title="editingExamId ? '编辑考试' : '创建考试'" width="640px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
         <el-form-item label="考试标题" prop="title">
           <el-input v-model.trim="form.title" placeholder="例如：Python 阶段测验" />
@@ -85,6 +86,15 @@
             <el-input-number v-model="form.pass_score" :min="0" :max="1000" />
           </el-form-item>
         </div>
+        <el-form-item label="优秀线分数（可选，达到该分数自动颁发证书）" prop="excellent_score">
+          <el-input-number
+            v-model="form.excellent_score"
+            :min="0"
+            :max="form.pass_score || 1000"
+            placeholder="不填则不发放证书"
+            clearable
+          />
+        </el-form-item>
         <div class="dialog-grid">
           <el-form-item label="开始时间">
             <el-date-picker
@@ -111,7 +121,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleCreateExam">保存</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmitExam">保存</el-button>
       </template>
     </el-dialog>
   </main>
@@ -137,12 +147,14 @@ const submitting = ref(false)
 const publishingId = ref(null)
 const dialogVisible = ref(false)
 const formRef = ref()
+const editingExamId = ref(null)
 
 const form = reactive({
   title: '',
   description: '',
   duration: 60,
   pass_score: 60,
+  excellent_score: null,
   start_time: '',
   end_time: '',
   is_published: false
@@ -170,6 +182,7 @@ function resetForm() {
   form.description = ''
   form.duration = 60
   form.pass_score = 60
+  form.excellent_score = null
   form.start_time = ''
   form.end_time = ''
   form.is_published = false
@@ -187,6 +200,7 @@ function disablePastDate(date) {
 }
 
 function validateExamTime() {
+  if (editingExamId.value) return true
   const now = Date.now()
   const startTime = form.start_time ? new Date(form.start_time).getTime() : null
   const endTime = form.end_time ? new Date(form.end_time).getTime() : null
@@ -210,7 +224,21 @@ function validateExamTime() {
 }
 
 function openCreateDialog() {
+  editingExamId.value = null
   resetForm()
+  dialogVisible.value = true
+}
+
+function openEditDialog(row) {
+  editingExamId.value = row.id
+  form.title = row.title
+  form.description = row.description || ''
+  form.duration = row.duration || row.duration_minutes || 60
+  form.pass_score = row.pass_score ?? 60
+  form.excellent_score = row.excellent_score ?? null
+  form.start_time = row.start_time || ''
+  form.end_time = row.end_time || ''
+  form.is_published = !!row.is_published
   dialogVisible.value = true
 }
 
@@ -230,18 +258,23 @@ async function loadPage() {
   }
 }
 
-async function handleCreateExam() {
+async function handleSubmitExam() {
   await formRef.value?.validate()
   if (!validateExamTime()) return
 
   submitting.value = true
   try {
-    await createCourseExam(courseId.value, { ...form })
-    ElMessage.success('考试已创建')
+    if (editingExamId.value) {
+      await updateCourseExam(editingExamId.value, { ...form })
+      ElMessage.success('考试已更新')
+    } else {
+      await createCourseExam(courseId.value, { ...form })
+      ElMessage.success('考试已创建')
+    }
     dialogVisible.value = false
     loadPage()
   } catch (error) {
-    ElMessage.error(getExamErrorMessage(error, '考试创建失败'))
+    ElMessage.error(getExamErrorMessage(error, editingExamId.value ? '考试更新失败' : '考试创建失败'))
   } finally {
     submitting.value = false
   }

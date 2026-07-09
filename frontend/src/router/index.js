@@ -165,6 +165,26 @@ const routes = [
     }
   },
   {
+    path: '/certificates',
+    name: 'my-certificates',
+    component: () => import('../views/certificate/MyCertificatesView.vue'),
+    meta: {
+      title: '我的证书',
+      requiresAuth: true,
+      roles: ['student', 'teacher']
+    }
+  },
+  {
+    path: '/certificates/:certNo',
+    name: 'certificate-detail',
+    component: () => import('../views/certificate/CertificateDetailView.vue'),
+    meta: {
+      title: '证书详情',
+      requiresAuth: true,
+      roles: ['student', 'teacher']
+    }
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('../views/account/SettingsView.vue'),

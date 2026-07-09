@@ -9,6 +9,7 @@ class Exam(models.Model):
     title = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     total_score = models.PositiveIntegerField(default=100)
+    excellent_score = models.FloatField(blank=True, null=True)
     duration_minutes = models.PositiveIntegerField(default=60)
     is_published = models.BooleanField(default=False)
     start_time = models.DateTimeField(blank=True, null=True)

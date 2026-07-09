@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from apps.certificates.models import Certificate
 from apps.common.exceptions import BusinessError
 from apps.common.pagination import StandardPagination
 from apps.common.permissions import get_user_role
@@ -249,6 +250,23 @@ class QuestionDetailView(APIView):
         return api_response(None, "question deleted")
 
 
+def issue_certificate_if_qualified(submission):
+    exam = submission.exam
+    if exam.excellent_score is None:
+        return
+    if submission.score < exam.excellent_score:
+        return
+    Certificate.objects.get_or_create(
+        student=submission.student,
+        exam=exam,
+        defaults={
+            "course": exam.course,
+            "score": submission.score,
+            "excellent_score": exam.excellent_score,
+        },
+    )
+
+
 class ExamSubmitView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -273,6 +291,7 @@ class ExamSubmitView(APIView):
             answers=answer_details,
             score=score,
         )
+        issue_certificate_if_qualified(submission)
         return api_response(ExamSubmissionSerializer(submission, context={"request": request}).data, "exam submitted", status=status.HTTP_201_CREATED)
 
 

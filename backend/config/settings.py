@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "apps.exams",
     "apps.qa",
     "apps.community",
+    "apps.certificates",
 ]
 
 MIDDLEWARE = [
