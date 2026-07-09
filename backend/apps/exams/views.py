@@ -70,6 +70,15 @@ def get_exam_for_read(exam_id, user):
     return exam
 
 
+def assert_student_can_enter_exam(user, exam):
+    if get_user_role(user) != "student":
+        return
+    if ExamSubmission.objects.filter(exam=exam, student=user).exists():
+        raise BusinessError(4090, "EXAM_ALREADY_SUBMITTED", status.HTTP_409_CONFLICT)
+    if exam.end_time and timezone.now() >= exam.end_time:
+        raise BusinessError(4000, "EXAM_ENDED", status.HTTP_400_BAD_REQUEST)
+
+
 def get_question_for_write(question_id, user):
     question = Question.objects.select_related("exam", "exam__course", "exam__course__teacher").filter(
         id=question_id,
@@ -86,7 +95,27 @@ def normalize_answer(value):
         items = value
     else:
         items = [value]
-    return sorted(str(item).strip() for item in items if str(item).strip() != "")
+    normalized = []
+    for item in items:
+        text = str(item).strip()
+        if text == "":
+            continue
+        normalized.append(normalize_answer_text(text))
+    return sorted(normalized)
+
+
+def normalize_answer_text(text):
+    cleaned = text.strip()
+    upper = cleaned.upper()
+    truthy = {"TRUE", "T", "YES", "Y", "正确", "对", "是"}
+    falsy = {"FALSE", "F", "NO", "N", "错误", "错", "否"}
+    if upper in truthy:
+        return "true"
+    if upper in falsy:
+        return "false"
+    if len(cleaned) >= 2 and cleaned[0].isalnum() and cleaned[1] in {".", "．", "、", ":", "：", ")", "）"}:
+        return cleaned[0].upper()
+    return cleaned
 
 
 def calculate_score(exam, submitted_answers):
@@ -145,6 +174,7 @@ class ExamDetailView(APIView):
 
     def get(self, request, exam_id):
         exam = get_exam_for_read(exam_id, request.user)
+        assert_student_can_enter_exam(request.user, exam)
         role = get_user_role(request.user)
         hide_answer = role == "student"
         context = {"request": request, "hide_answer": hide_answer}
@@ -175,6 +205,7 @@ class ExamQuestionCreateView(APIView):
 
     def get(self, request, exam_id):
         exam = get_exam_for_read(exam_id, request.user)
+        assert_student_can_enter_exam(request.user, exam)
         role = get_user_role(request.user)
         questions = exam.questions.all()
         serializer = QuestionSerializer(

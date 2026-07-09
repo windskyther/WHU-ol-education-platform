@@ -1171,6 +1171,7 @@ P4 scope:
 - Teacher/admin manages questions and can view submissions.
 - Student can list and take exams only after enrolling in the course.
 - Student exam detail never returns `answer`.
+- Student cannot retrieve questions after submitting the exam or after the exam has ended.
 - Student submits answers only; backend calculates score transactionally.
 - Each student can submit the same exam only once.
 
@@ -1334,12 +1335,24 @@ Compatibility notes:
 - `pass_score` is accepted as an alias of `total_score` for the current frontend.
 - `isPublished` and `published` are accepted as aliases of `is_published`.
 - Empty `start_time` or `end_time` strings are treated as `null`.
+- If sent, `start_time` and `end_time` must be later than the current backend time.
+- If both are sent, `end_time` must be later than `start_time`.
+
+Common time validation errors:
+
+| message | Meaning |
+|---|---|
+| `START_TIME_MUST_BE_FUTURE` | Start time must be later than current backend time |
+| `END_TIME_MUST_BE_FUTURE` | End time must be later than current backend time |
+| `END_TIME_MUST_BE_AFTER_START_TIME` | End time must be later than start time |
 
 ### 27. Exam Detail
 
 #### GET `/api/exams/{exam_id}/`
 
 Student response includes `questions`, but every question hides `answer`.
+If the current student has already submitted this exam, backend returns `EXAM_ALREADY_SUBMITTED` and does not return questions.
+If the exam has ended, backend returns `EXAM_ENDED` and does not return questions.
 
 Teacher/admin response includes `questions` with `answer`.
 
@@ -1349,6 +1362,7 @@ Teacher/admin response includes `questions` with `answer`.
 
 Returns an array of `Question Object`.
 Student response hides `answer`; teacher/admin response includes `answer`.
+If the current student has already submitted this exam or the exam has ended, backend returns the same errors as `GET /api/exams/{exam_id}/`.
 
 #### POST `/api/exams/{exam_id}/questions/`
 
@@ -1423,6 +1437,7 @@ Frontend-compatible request body:
 ```
 
 Backend accepts both object-map and array formats.
+For choice answers, backend normalizes common option labels before grading. For example, `A`, `A. Python`, `A、Python`, and `A: Python` are treated as the same selected option. True/false answers also accept common aliases such as `true`, `false`, `正确`, and `错误`.
 
 Success response:
 
@@ -1449,6 +1464,12 @@ Success response:
       }
     },
     "score": 10.0,
+    "total_score": 10.0,
+    "objective_score": 10.0,
+    "subjective_score": 0,
+    "pass_score": 100,
+    "status": "submitted",
+    "passed": false,
     "submitted_at": "2026-07-08T10:30:00+08:00"
   }
 }
@@ -1457,7 +1478,7 @@ Success response:
 Important behavior:
 
 - Backend does not trust frontend score.
-- Backend compares normalized answer arrays.
+- Backend compares normalized answer arrays and common frontend option labels.
 - Same student can submit the same exam only once.
 - If `start_time` is in the future, backend returns `EXAM_NOT_STARTED`.
 - If `end_time` has passed, backend returns `EXAM_ENDED`.

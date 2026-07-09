@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 
 from apps.exams.models import Exam, ExamSubmission, Question
 
@@ -74,6 +75,19 @@ class ExamSerializer(serializers.ModelSerializer):
             return None
         submission = ExamSubmission.objects.filter(exam=obj, student=student).first()
         return submission.score if submission else None
+
+    def validate(self, attrs):
+        now = timezone.now()
+        for field in ("start_time", "end_time"):
+            value = attrs.get(field)
+            if value and value <= now:
+                raise serializers.ValidationError({field: f"{field.upper()}_MUST_BE_FUTURE"})
+
+        start_time = attrs.get("start_time", getattr(self.instance, "start_time", None))
+        end_time = attrs.get("end_time", getattr(self.instance, "end_time", None))
+        if start_time and end_time and end_time <= start_time:
+            raise serializers.ValidationError({"end_time": "END_TIME_MUST_BE_AFTER_START_TIME"})
+        return attrs
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -198,10 +212,32 @@ class ExamSubmissionSerializer(serializers.ModelSerializer):
     exam_title = serializers.CharField(source="exam.title", read_only=True)
     course_id = serializers.IntegerField(source="exam.course_id", read_only=True)
     course_title = serializers.CharField(source="exam.course.title", read_only=True)
+    total_score = serializers.SerializerMethodField()
+    objective_score = serializers.SerializerMethodField()
+    subjective_score = serializers.SerializerMethodField()
+    pass_score = serializers.IntegerField(source="exam.total_score", read_only=True)
+    status = serializers.SerializerMethodField()
+    passed = serializers.SerializerMethodField()
 
     class Meta:
         model = ExamSubmission
-        fields = ("id", "exam", "exam_title", "course_id", "course_title", "student", "answers", "score", "submitted_at")
+        fields = (
+            "id",
+            "exam",
+            "exam_title",
+            "course_id",
+            "course_title",
+            "student",
+            "answers",
+            "score",
+            "total_score",
+            "objective_score",
+            "subjective_score",
+            "pass_score",
+            "status",
+            "passed",
+            "submitted_at",
+        )
         read_only_fields = fields
 
     def get_student(self, obj):
@@ -210,3 +246,18 @@ class ExamSubmissionSerializer(serializers.ModelSerializer):
             "username": obj.student.username,
             "email": obj.student.email,
         }
+
+    def get_total_score(self, obj):
+        return obj.score
+
+    def get_objective_score(self, obj):
+        return obj.score
+
+    def get_subjective_score(self, obj):
+        return 0
+
+    def get_status(self, obj):
+        return "submitted"
+
+    def get_passed(self, obj):
+        return obj.score >= obj.exam.total_score
