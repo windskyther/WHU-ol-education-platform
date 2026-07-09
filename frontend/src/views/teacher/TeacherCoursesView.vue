@@ -3,22 +3,22 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/teacher/dashboard">教师首页</RouterLink>
-        <RouterLink to="/courses">公开课程</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建课程</el-button>
+        <RouterLink to="/teacher/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/courses">Public courses</RouterLink>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create course</el-button>
       </div>
     </nav>
 
     <section class="manager-shell">
-      <div class="manager-heading">
+      <div class="manager-heading kinetic-panel">
         <div>
           <p class="eyebrow">Teacher course manager</p>
-          <h1>课程管理</h1>
+          <h1>Build the catalog.</h1>
+          <p>维护课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
         </div>
-        <p>维护自己的课程草稿和发布状态。课程发布后，学生和游客才能在公开列表中看到。</p>
       </div>
 
       <section class="surface filter-panel">
@@ -187,7 +187,7 @@ async function togglePublish(course) {
 }
 
 async function confirmDelete(course) {
-  await ElMessageBox.confirm(`确认删除课程「${course.title}」吗？该操作会让课程不再出现在列表中。`, '删除课程', {
+  await ElMessageBox.confirm(`确认删除课程“${course.title}”吗？该操作会让课程不再出现在列表中。`, '删除课程', {
     type: 'warning',
     confirmButtonText: '删除',
     cancelButtonText: '取消'
@@ -211,47 +211,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.nav-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .manager-shell {
-  max-width: 1180px;
-  margin: 48px auto 0;
+  margin: 64px auto 0;
 }
 
 .manager-heading {
+  min-height: 360px;
+  padding: 42px;
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
-  gap: 28px;
-  align-items: end;
-  margin-bottom: 22px;
+  align-content: end;
 }
 
-.manager-heading h1 {
-  margin: 0;
-  font-size: clamp(36px, 5vw, 46px);
-  line-height: 1.1;
+.manager-heading h1,
+.manager-heading p {
+  color: var(--paper);
 }
 
-.manager-heading p:last-child {
-  margin: 0;
-  color: var(--slate-600);
-  line-height: 1.75;
+.manager-heading p:not(.eyebrow) {
+  max-width: 720px;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .filter-panel,
 .table-panel {
   padding: 16px;
+}
+
+.filter-panel {
+  margin-top: 18px;
 }
 
 .table-panel {
@@ -260,24 +247,17 @@ onMounted(() => {
 
 .course-cell {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+}
+
+.course-cell strong {
+  font-size: 22px;
+  font-weight: 900;
 }
 
 .course-cell span {
-  color: var(--slate-500);
+  color: var(--muted);
   font-size: 13px;
-}
-
-.table-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .manager-heading {
-    grid-template-columns: 1fr;
-  }
+  font-weight: 800;
 }
 </style>

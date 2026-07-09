@@ -69,6 +69,7 @@ class CourseSerializer(serializers.ModelSerializer):
     teacher_role = serializers.SerializerMethodField()
     cover_url = serializers.SerializerMethodField()
     chapter_count = serializers.SerializerMethodField()
+    is_enrolled = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
@@ -85,10 +86,21 @@ class CourseSerializer(serializers.ModelSerializer):
             "is_published",
             "published_at",
             "chapter_count",
+            "is_enrolled",
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "teacher", "teacher_role", "cover_url", "published_at", "chapter_count", "created_at", "updated_at")
+        read_only_fields = (
+            "id",
+            "teacher",
+            "teacher_role",
+            "cover_url",
+            "published_at",
+            "chapter_count",
+            "is_enrolled",
+            "created_at",
+            "updated_at",
+        )
         extra_kwargs = {"cover": {"write_only": True, "required": False, "allow_null": True}}
 
     def get_teacher_role(self, obj):
@@ -106,6 +118,17 @@ class CourseSerializer(serializers.ModelSerializer):
         if hasattr(obj, "chapter_count"):
             return obj.chapter_count
         return obj.chapters.count()
+
+    def get_is_enrolled(self, obj):
+        if hasattr(obj, "is_enrolled"):
+            return bool(obj.is_enrolled)
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated or ensure_user_profile(user).role != "student":
+            return False
+        from apps.progress.models import Enrollment
+
+        return Enrollment.objects.filter(student=user, course=obj).exists()
 
     def validate_cover(self, value):
         if value:

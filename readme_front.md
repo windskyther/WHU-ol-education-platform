@@ -1,12 +1,13 @@
-# Frontend Integration README - P1/P2
+# Frontend Integration README - P1/P2/P3
 
-This file is the frontend/backend contract for the P1 user-auth stage and P2 course/chapter stage.
+This file is the frontend/backend contract for the P1 user-auth, P2 course/chapter, and P3 enrollment/progress stages.
 
 Whenever the backend request fields, response fields, URL paths, auth rules, or error messages change, this file must be updated in the same commit.
 
 ## Base Rules
 
-- Backend base URL in local development: `http://127.0.0.1:8000`
+- Unified local gateway URL: `http://127.0.0.1:8080`
+- Django local upstream URL: `http://127.0.0.1:8000` (frontend should not call this directly)
 - All P1 business APIs are under `/api/`
 - JSON requests must use `Content-Type: application/json`
 - Authenticated requests must include:
@@ -14,6 +15,35 @@ Whenever the backend request fields, response fields, URL paths, auth rules, or 
 ```http
 Authorization: Bearer <access_token>
 ```
+
+## Local Nginx Gateway
+
+Frontend integration should use Nginx as the single local entry:
+
+```text
+Frontend -> Nginx 8080 -> Django 8000 for /api/
+Frontend -> Nginx 8080 -> backend/media for /media/
+```
+
+Repository config:
+
+```text
+deploy/nginx/nginx.dev.windows.conf
+```
+
+Frontend dev proxy target:
+
+```text
+VITE_DEV_PROXY_TARGET=http://127.0.0.1:8080
+```
+
+Video and material URLs returned by backend should therefore use the Nginx gateway host, for example:
+
+```text
+http://127.0.0.1:8080/media/materials/demo.mp4
+```
+
+Do not use `http://127.0.0.1:8000/media/...` for video playback during frontend integration, because Django development static serving does not return video range responses required for seeking.
 
 - Successful backend response format:
 
@@ -489,12 +519,19 @@ P2 scope:
   "is_published": false,
   "published_at": null,
   "chapter_count": 0,
+  "is_enrolled": false,
   "created_at": "2026-07-08T10:00:00+08:00",
   "updated_at": "2026-07-08T10:00:00+08:00"
 }
 ```
 
 `level` must be one of `beginner`, `intermediate`, `advanced`.
+
+`is_enrolled` indicates whether the current authenticated student has joined this course:
+
+- Student token: `true` if the current student has an `Enrollment` for the course, otherwise `false`.
+- No token, teacher token, or admin token: always `false`.
+- Frontend course plaza and course detail pages should use this field to render "joined/not joined" state.
 
 ### 8. Course List
 
@@ -539,6 +576,7 @@ Response is paginated. Course items are in `data.results`:
         "is_published": true,
         "published_at": "2026-07-08T10:00:00+08:00",
         "chapter_count": 2,
+        "is_enrolled": true,
         "created_at": "2026-07-08T10:00:00+08:00",
         "updated_at": "2026-07-08T10:00:00+08:00"
       }
@@ -552,6 +590,7 @@ Visibility rule:
 - No token/student token: only published and not deleted courses.
 - Teacher token: teacher's own not deleted courses, including drafts.
 - Admin token: all not deleted courses.
+- Student token: each course item includes accurate `is_enrolled`.
 
 ### 9. Create Course
 
@@ -595,6 +634,7 @@ Common errors:
 #### GET `/api/courses/{course_id}/`
 
 Visible course returns the same `Course Object` shape.
+Student token responses include accurate `is_enrolled`, so the detail page can render continue-learning or join-course state without calling `/api/my/courses/`.
 
 Draft visibility:
 
@@ -807,11 +847,325 @@ Common errors:
 4. Upload file field name must be exactly `file` for video/material endpoints.
 5. Publish and unpublish both use `/api/courses/{course_id}/publish/` with `is_published`.
 6. Course list is paginated; read list items from `data.results`.
-7. Do not use P3 enrollment/progress APIs yet; they are not part of P2.
+7. Chapter resource access now follows P3 enrollment rules.
+
+## P3 Enrollment And Learning Progress APIs
+
+P3 scope:
+
+- Student enrolls in published courses.
+- Student cannot enroll in the same course twice.
+- Student can view own enrolled courses.
+- Student can update learning progress only after enrollment.
+- `watched_seconds` and `percent` only increase; smaller submitted values will not roll progress back.
+- Course total progress is calculated by averaging chapter `percent`; completed chapters count as `100`.
+- Teacher can view progress summary for own courses.
+
+### P3 API Summary
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| `POST` | `/api/courses/{course_id}/enroll/` | Student | Enroll in published course |
+| `GET` | `/api/my/courses/` | Student | List current student's enrolled courses |
+| `POST` | `/api/progress/update/` | Student | Update chapter learning progress |
+| `GET` | `/api/progress/course/{course_id}/` | Student/Teacher/Admin | Student own progress or teacher course progress summary |
+| `GET` | `/api/materials/{material_id}/download/` | Student/Teacher/Admin | Download chapter material file |
+
+### Enrollment Object
+
+```json
+{
+  "id": 1,
+  "course": {
+    "id": 1,
+    "title": "Python Basics",
+    "description": "Intro course",
+    "cover_url": null,
+    "category": "programming",
+    "level": "beginner",
+    "teacher": {
+      "id": 2,
+      "username": "teacher01",
+      "email": "teacher@example.com"
+    },
+    "teacher_role": "teacher",
+    "is_published": true,
+    "published_at": "2026-07-08T10:00:00+08:00",
+    "chapter_count": 2,
+    "created_at": "2026-07-08T10:00:00+08:00",
+    "updated_at": "2026-07-08T10:00:00+08:00"
+  },
+  "progress": 0,
+  "enrolled_at": "2026-07-08T10:10:00+08:00",
+  "last_learned_at": null
+}
+```
+
+### 20. Enroll Course
+
+#### POST `/api/courses/{course_id}/enroll/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Request body: none.
+
+Success response:
+
+```json
+{
+  "code": 0,
+  "message": "enrolled",
+  "data": {
+    "id": 1,
+    "course": {},
+    "progress": 0,
+    "enrolled_at": "2026-07-08T10:10:00+08:00",
+    "last_learned_at": null
+  }
+}
+```
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `ONLY_STUDENT_CAN_ENROLL` | Teacher/admin cannot use student enrollment endpoint |
+| `COURSE_NOT_FOUND` | Course does not exist, is deleted, or is not published |
+| `ALREADY_ENROLLED` | Student already enrolled in this course |
+
+### 21. My Courses
+
+#### GET `/api/my/courses/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Query params:
+
+| Param | Required | Notes |
+|---|---|---|
+| `page` | No | Page number, default `1` |
+| `page_size` | No | Default `10`, max `100` |
+
+Response is paginated. Enrollment items are in `data.results`.
+
+### 22. Update Learning Progress
+
+#### POST `/api/progress/update/`
+
+Headers:
+
+```http
+Authorization: Bearer <student_access_token>
+```
+
+Request body:
+
+```json
+{
+  "course_id": 1,
+  "chapter_id": 1,
+  "watched_seconds": 120,
+  "percent": 35,
+  "is_completed": false
+}
+```
+
+Fields:
+
+| Field | Required | Notes |
+|---|---|---|
+| `course_id` | No | If sent, must match the chapter's course |
+| `chapter_id` | Yes | Chapter being watched |
+| `watched_seconds` | Yes | Non-negative integer; backend keeps max value |
+| `percent` | No | Number from `0` to `100`; backend keeps max value |
+| `is_completed` | No | If `true`, marks this chapter completed |
+
+Success response:
+
+```json
+{
+  "code": 0,
+  "message": "progress updated",
+  "data": {
+    "progress": 35,
+    "enrollment": {},
+    "progress_item": {
+      "id": 1,
+      "course": 1,
+      "chapter": {
+        "id": 1,
+        "course": 1,
+        "title": "Chapter 1",
+        "description": "Introduction",
+        "order": 1,
+        "video": {},
+        "material": {},
+        "created_at": "2026-07-08T10:00:00+08:00",
+        "updated_at": "2026-07-08T10:00:00+08:00"
+      },
+      "watched_seconds": 120,
+      "percent": 35,
+      "is_completed": false,
+      "updated_at": "2026-07-08T10:20:00+08:00"
+    },
+    "chapter_progress": []
+  }
+}
+```
+
+Important behavior:
+
+- If frontend first submits `watched_seconds: 120`, then later submits `60`, backend keeps `120`.
+- If frontend first submits `percent: 35`, then later submits `20`, backend keeps `35`.
+- If frontend submits `is_completed: true`, the chapter stays completed and its `percent` becomes `100`.
+- Backend recalculates enrollment `progress` after every update by averaging all chapter percentages.
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `ENROLLMENT_REQUIRED` | Student has not enrolled in this course |
+| `CHAPTER_NOT_FOUND` | Chapter does not exist or course is unavailable |
+| `CHAPTER_NOT_IN_COURSE` | Submitted `course_id` does not match chapter |
+
+### 23. Course Progress
+
+#### GET `/api/progress/course/{course_id}/`
+
+Student response:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "course_id": 1,
+    "student_id": 3,
+    "progress": 50.0,
+    "enrollment": {},
+    "progress_items": [
+      {
+        "id": 1,
+        "course": 1,
+        "chapter": {},
+        "watched_seconds": 120,
+        "percent": 50,
+        "is_completed": false,
+        "updated_at": "2026-07-08T10:20:00+08:00"
+      }
+    ],
+    "chapter_progress": [
+      {
+        "id": 1,
+        "course": 1,
+        "chapter": {},
+        "watched_seconds": 120,
+        "percent": 50,
+        "is_completed": false,
+        "updated_at": "2026-07-08T10:20:00+08:00"
+      }
+    ]
+  }
+}
+```
+
+`chapter_progress` is an alias of `progress_items` for frontend compatibility.
+
+Teacher/Admin response:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "course_id": 1,
+    "course_title": "Python Basics",
+    "student_count": 1,
+    "students": [
+      {
+        "student": {
+          "id": 3,
+          "username": "student01",
+          "email": "student@example.com"
+        },
+        "progress": 50.0,
+        "enrolled_at": "2026-07-08T10:10:00+08:00",
+        "last_learned_at": "2026-07-08T10:20:00+08:00"
+      }
+    ]
+  }
+}
+```
+
+### 24. Download Chapter Material
+
+#### GET `/api/materials/{material_id}/download/`
+
+Headers:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+Frontend request:
+
+```js
+request.get(`/materials/${materialId}/download/`, {
+  responseType: 'blob'
+})
+```
+
+Response:
+
+- This endpoint returns the raw file stream, not the unified JSON wrapper.
+- Browser response headers include `Content-Disposition: attachment`.
+- The frontend should create a Blob URL and trigger download.
+
+Permission rule:
+
+- Student can download only after enrolling in the material's course.
+- Course teacher/admin can download materials for accessible courses.
+- Only chapter material files are downloadable through this endpoint; videos still use the returned `/media/` URL for playback.
+
+Common errors:
+
+| message | Meaning |
+|---|---|
+| `MATERIAL_NOT_FOUND` | Material does not exist, is not a document material, or belongs to an unavailable course |
+| `MATERIAL_FILE_NOT_FOUND` | Database record exists but local file is missing |
+| `ENROLLMENT_REQUIRED` | Student has not enrolled in this course |
+| `PERMISSION_DENIED` | Current role cannot access this material |
+
+### P3 Resource Access Rule
+
+`GET /api/courses/{course_id}/chapters/` now requires:
+
+- course teacher/admin, or
+- student already enrolled in the course.
+
+Unauthenticated users or unenrolled students cannot obtain chapter video/material URLs.
+
+## P3 Frontend Integration Checklist
+
+1. Show enroll button only for student users, but still rely on backend permission.
+2. After enrollment succeeds, call `/api/courses/{course_id}/chapters/` to load learning resources.
+3. Submit progress periodically with `chapter_id` and `watched_seconds`.
+4. Send `is_completed: true` when the chapter is completed.
+5. Render course progress from enrollment `progress`.
+6. Treat `ENROLLMENT_REQUIRED` as "please enroll first".
+7. Load video URLs through the Nginx gateway `/media/` address, not Django `8000`, so browser seeking receives `206 Partial Content`.
 
 ## Maintenance Rule
 
-When backend auth/user/course/chapter APIs change, update this file in the same commit. This includes:
+When backend auth/user/course/chapter/enrollment/progress APIs change, update this file in the same commit. This includes:
 
 - URL path changes
 - Request field changes

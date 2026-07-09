@@ -3,9 +3,12 @@
     <nav class="dashboard-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="dashboard-actions">
+        <el-button v-if="userStore.role === 'student'" type="primary" :icon="Reading" @click="$router.push('/student/courses')">
+          我的课程
+        </el-button>
         <el-button v-if="userStore.role === 'teacher' || userStore.role === 'admin'" type="primary" :icon="Collection" @click="$router.push('/teacher/courses')">
           课程管理
         </el-button>
@@ -15,15 +18,25 @@
     </nav>
 
     <section class="dashboard-hero">
-      <div>
+      <div class="hero-card kinetic-panel">
         <p class="eyebrow">{{ roleCopy.eyebrow }}</p>
         <h1>{{ roleCopy.title }}</h1>
         <p>{{ roleCopy.description }}</p>
+        <div class="quick-actions">
+          <el-button v-for="action in roleCopy.actions" :key="action.path" :type="action.primary ? 'primary' : ''" @click="$router.push(action.path)">
+            {{ action.label }}
+          </el-button>
+        </div>
       </div>
       <div class="dashboard-card">
-        <span class="card-label">当前用户</span>
+        <span class="card-label">Current user</span>
         <strong>{{ userStore.userInfo?.username || userStore.userInfo?.email || '已登录用户' }}</strong>
-        <span>{{ roleCopy.roleName }}</span>
+        <span class="status-pill">{{ roleCopy.roleName }}</span>
+        <div class="mini-index" aria-hidden="true">
+          <span>01</span>
+          <span>02</span>
+          <span>03</span>
+        </div>
       </div>
     </section>
   </main>
@@ -33,7 +46,7 @@
 import { computed } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Collection } from '@element-plus/icons-vue'
+import { Collection, Reading } from '@element-plus/icons-vue'
 import { useUserStore } from '../../stores/user'
 
 const router = useRouter()
@@ -42,21 +55,33 @@ const userStore = useUserStore()
 const roleText = {
   student: {
     eyebrow: 'Student workspace',
-    title: '学生学习入口已准备',
-    description: 'P2 阶段可以浏览已发布课程和课程章节。选课、学习进度和考试会在后续阶段接入。',
-    roleName: '学生'
+    title: 'Keep the course moving.',
+    description: '查看已加入课程，回到视频学习页，系统会持续记录章节进度。P4 阶段已接入考试和成绩能力。',
+    roleName: '学生',
+    actions: [
+      { label: '我的课程', path: '/student/courses', primary: true },
+      { label: '发现课程', path: '/courses' }
+    ]
   },
   teacher: {
     eyebrow: 'Teacher workspace',
-    title: '教师课程工作台已准备',
-    description: '你可以创建课程、维护章节、上传视频和资料，并控制课程发布状态。',
-    roleName: '教师'
+    title: 'Shape the learning material.',
+    description: '创建课程、维护章节、上传视频资料，并控制课程发布状态。学生端会基于这些内容进入学习和考试流程。',
+    roleName: '教师',
+    actions: [
+      { label: '管理课程', path: '/teacher/courses', primary: true },
+      { label: '公开课程', path: '/courses' }
+    ]
   },
   admin: {
     eyebrow: 'Admin workspace',
-    title: '管理入口已准备',
-    description: '管理员可以辅助检查课程数据和权限边界，具体后台治理能力由后续阶段扩展。',
-    roleName: '管理员'
+    title: 'Audit the system boundary.',
+    description: '管理员可辅助查看课程数据和教师内容管理入口，检查课程、权限、考试与提交记录的边界。',
+    roleName: '管理员',
+    actions: [
+      { label: '课程管理', path: '/teacher/courses', primary: true },
+      { label: '课程列表', path: '/courses' }
+    ]
   }
 }
 
@@ -70,10 +95,69 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.dashboard-actions {
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  align-items: stretch;
+  min-height: calc(100vh - 150px);
+  margin: 64px auto 0;
+}
+
+.hero-card {
+  display: grid;
+  align-content: end;
+  min-height: 520px;
+  padding: 42px;
+}
+
+.hero-card h1,
+.hero-card p {
+  color: var(--paper);
+}
+
+.hero-card p:not(.eyebrow) {
+  max-width: 740px;
+  color: rgba(246, 241, 230, 0.72);
+}
+
+.quick-actions {
+  margin-top: 34px;
+}
+
+.dashboard-card {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+  padding: 32px;
+}
+
+.card-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dashboard-card strong {
+  font-size: clamp(36px, 4vw, 62px);
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+}
+
+.mini-index {
   display: flex;
-  flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
+  margin-top: 30px;
+  color: var(--hot);
+  font-weight: 900;
+}
+
+@media (max-width: 960px) {
+  .dashboard-hero {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

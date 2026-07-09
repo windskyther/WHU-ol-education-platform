@@ -39,6 +39,7 @@ defineEmits(['change'])
   gap: 16px;
   margin-top: 22px;
   color: var(--slate-500);
+  font-weight: 700;
 }
 
 @media (max-width: 680px) {

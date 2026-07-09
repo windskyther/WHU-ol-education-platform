@@ -3,35 +3,37 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/teacher/courses">课程管理</RouterLink>
-        <RouterLink :to="`/courses/${courseId}`">查看课程</RouterLink>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog">创建章节</el-button>
+        <RouterLink to="/teacher/courses">Course manager</RouterLink>
+        <RouterLink :to="`/courses/${courseId}`">View course</RouterLink>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog">Create chapter</el-button>
       </div>
     </nav>
 
     <section class="chapters-shell">
-      <div class="manager-heading">
+      <div class="manager-heading kinetic-panel">
         <div>
           <p class="eyebrow">Chapter manager</p>
-          <h1>{{ course?.title || '章节管理' }}</h1>
+          <h1>{{ course?.title || 'Chapter index' }}</h1>
+          <p>维护章节排序、简介、视频和资料。学生学习页会直接使用这些内容和资源。</p>
         </div>
-        <p>维护章节排序、简介、视频和资料。P2 只负责内容上传，不接入学习进度。</p>
       </div>
 
       <section v-loading="loading" class="surface chapter-panel">
         <div class="panel-title">
           <div>
-            <p class="eyebrow">Growth track</p>
-            <h2>章节生长轨迹</h2>
+            <p class="eyebrow">Learning content</p>
+            <h2>Content rail</h2>
           </div>
           <el-tag effect="light">{{ orderedChapters.length }} 章</el-tag>
         </div>
 
         <el-table :data="orderedChapters" row-key="id">
-          <el-table-column label="排序" prop="order" width="90" />
+          <el-table-column label="排序" prop="order" width="90">
+            <template #default="{ row }">{{ row.order ?? row.order_no }}</template>
+          </el-table-column>
           <el-table-column label="章节" min-width="240">
             <template #default="{ row }">
               <div class="chapter-cell">
@@ -43,7 +45,7 @@
           <el-table-column label="视频" min-width="220">
             <template #default="{ row }">
               <div class="asset-cell">
-                <span>{{ row.video?.original_name || (row.video ? '已上传视频' : '未上传') }}</span>
+                <span>{{ row.video?.original_name || row.video?.file_name || (row.video || row.video_url ? '已上传视频' : '未上传') }}</span>
                 <FileUpload
                   label="上传视频"
                   hint="mp4/webm/mov，200 MB"
@@ -59,7 +61,7 @@
           <el-table-column label="资料" min-width="240">
             <template #default="{ row }">
               <div class="asset-cell">
-                <span>{{ row.material?.original_name || (row.material ? '已上传资料' : '未上传') }}</span>
+                <span>{{ row.material?.original_name || row.material?.file_name || (row.material || row.material_url ? '已上传资料' : '未上传') }}</span>
                 <FileUpload
                   label="上传资料"
                   hint="pdf/doc/ppt/zip，20 MB"
@@ -125,11 +127,15 @@ const submitting = ref(false)
 const deletingId = ref(null)
 
 const materialExtensions = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.txt', '.zip']
-const orderedChapters = computed(() => [...chapters.value].sort((a, b) => (a.order || 0) - (b.order || 0)))
+const orderedChapters = computed(() => [...chapters.value].sort((a, b) => chapterOrder(a) - chapterOrder(b)))
 const nextOrder = computed(() => {
-  const maxOrder = orderedChapters.value.reduce((max, chapter) => Math.max(max, chapter.order || 0), 0)
+  const maxOrder = orderedChapters.value.reduce((max, chapter) => Math.max(max, chapterOrder(chapter)), 0)
   return maxOrder + 1
 })
+
+function chapterOrder(chapter) {
+  return chapter.order ?? chapter.order_no ?? 0
+}
 
 async function loadCourse() {
   course.value = await fetchCourseDetail(courseId.value)
@@ -137,7 +143,7 @@ async function loadCourse() {
 
 async function loadChapters() {
   const data = await fetchChapters(courseId.value)
-  chapters.value = Array.isArray(data) ? data : []
+  chapters.value = Array.isArray(data) ? data : data?.results || []
 }
 
 async function loadPage() {
@@ -181,7 +187,7 @@ async function handleSaveChapter(payload) {
 }
 
 async function confirmDelete(chapter) {
-  await ElMessageBox.confirm(`确认删除章节「${chapter.title}」吗？`, '删除章节', {
+  await ElMessageBox.confirm(`确认删除章节“${chapter.title}”吗？`, '删除章节', {
     type: 'warning',
     confirmButtonText: '删除',
     cancelButtonText: '取消'
@@ -205,46 +211,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.nav-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .chapters-shell {
-  max-width: 1180px;
-  margin: 48px auto 0;
+  margin: 64px auto 0;
 }
 
 .manager-heading {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
-  gap: 28px;
-  align-items: end;
-  margin-bottom: 22px;
+  align-content: end;
+  min-height: 360px;
+  padding: 42px;
 }
 
-.manager-heading h1 {
-  margin: 0;
-  font-size: clamp(34px, 5vw, 46px);
-  line-height: 1.1;
+.manager-heading h1,
+.manager-heading p {
+  color: var(--paper);
 }
 
-.manager-heading p:last-child {
-  margin: 0;
-  color: var(--slate-600);
-  line-height: 1.75;
+.manager-heading p:not(.eyebrow) {
+  max-width: 720px;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .chapter-panel {
-  padding: 16px;
+  margin-top: 18px;
+  padding: 18px;
 }
 
 .panel-title {
@@ -258,7 +248,10 @@ onMounted(() => {
 
 .panel-title h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
 }
 
 .chapter-cell,
@@ -267,22 +260,15 @@ onMounted(() => {
   gap: 8px;
 }
 
+.chapter-cell strong {
+  font-size: 22px;
+  font-weight: 900;
+}
+
 .chapter-cell span,
 .asset-cell span {
-  color: var(--slate-500);
+  color: var(--muted);
   font-size: 13px;
-}
-
-.table-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .manager-heading {
-    grid-template-columns: 1fr;
-  }
+  font-weight: 800;
 }
 </style>

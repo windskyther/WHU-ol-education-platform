@@ -3,25 +3,26 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/">首页</RouterLink>
-        <RouterLink v-if="!userStore.isLoggedIn" to="/login">登录</RouterLink>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink v-if="userStore.role === 'student'" to="/student/courses">My courses</RouterLink>
+        <RouterLink v-if="!userStore.isLoggedIn" to="/login">Login</RouterLink>
         <el-button v-if="userStore.role === 'teacher' || userStore.role === 'admin'" type="primary" @click="$router.push('/teacher/courses')">
-          管理课程
+          Manage
         </el-button>
       </div>
     </nav>
 
     <section class="course-list-shell">
-      <div class="list-heading">
+      <header class="list-heading">
         <div>
           <p class="eyebrow">Course catalog</p>
-          <h1>课程列表</h1>
+          <h1>Pick your next project.</h1>
         </div>
-        <p>浏览已发布课程。教师登录后可在管理页查看自己的草稿和已发布课程。</p>
-      </div>
+        <p>已发布课程以项目卡片的方式排列。筛选分类、难度和关键词，然后进入详情页开始学习。</p>
+      </header>
 
       <section class="surface filter-panel">
         <div class="filter-row">
@@ -40,7 +41,7 @@
         <CourseCard v-for="course in courses" :key="course.id" :course="course" />
       </div>
 
-      <div v-if="!loading && courses.length === 0" class="empty-state">暂无匹配课程</div>
+      <div v-if="!loading && courses.length === 0" class="empty-state">暂无匹配课程，换个关键词试试。</div>
 
       <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadCourses" />
     </section>
@@ -102,42 +103,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.nav-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: center;
-}
-
-.nav-actions a {
-  color: var(--ink-900);
-  font-weight: 700;
-  text-decoration: none;
-}
-
 .course-list-shell {
-  max-width: 1160px;
-  margin: 48px auto 0;
+  margin: 64px auto 0;
 }
 
 .list-heading {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(280px, 0.48fr);
-  gap: 28px;
+  grid-template-columns: minmax(0, 0.66fr) minmax(280px, 0.34fr);
+  gap: 36px;
   align-items: end;
-  margin-bottom: 22px;
-}
-
-.list-heading h1 {
-  margin: 0;
-  font-size: clamp(36px, 5vw, 46px);
-  line-height: 1.1;
-}
-
-.list-heading p:last-child {
-  margin: 0;
-  color: var(--slate-600);
-  line-height: 1.75;
+  margin-bottom: 26px;
 }
 
 .filter-panel {
@@ -146,15 +121,13 @@ onMounted(() => {
 
 .course-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  min-height: 180px;
-  margin-top: 16px;
+  gap: 18px;
+  min-height: 220px;
+  margin-top: 22px;
 }
 
-@media (max-width: 900px) {
-  .list-heading,
-  .course-grid {
+@media (max-width: 960px) {
+  .list-heading {
     grid-template-columns: 1fr;
   }
 }

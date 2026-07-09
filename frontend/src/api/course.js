@@ -51,3 +51,25 @@ export function uploadChapterMaterial(chapterId, file) {
   formData.append('file', file)
   return request.post(`/chapters/${chapterId}/upload-material/`, formData)
 }
+
+export function enrollCourse(courseId) {
+  return request.post(`/courses/${courseId}/enroll/`)
+}
+
+export function fetchMyCourses(params = {}) {
+  return request.get('/my/courses/', { params })
+}
+
+export function updateLearningProgress(payload) {
+  return request.post('/progress/update/', payload)
+}
+
+export function fetchCourseProgress(courseId) {
+  return request.get(`/progress/course/${courseId}/`)
+}
+
+export function downloadMaterial(materialId) {
+  return request.get(`/materials/${materialId}/download/`, {
+    responseType: 'blob'
+  })
+}

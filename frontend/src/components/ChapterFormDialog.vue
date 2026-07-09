@@ -2,7 +2,7 @@
   <el-dialog v-model="visible" :title="chapter?.id ? '编辑章节' : '创建章节'" width="560px" destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <el-form-item label="章节标题" prop="title">
-        <el-input v-model.trim="form.title" placeholder="例如：Chapter 1" />
+        <el-input v-model.trim="form.title" placeholder="例如：第 1 章 认识课程" />
       </el-form-item>
       <el-form-item label="章节简介" prop="description">
         <el-input v-model.trim="form.description" type="textarea" :rows="3" placeholder="说明本章内容" />

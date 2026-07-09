@@ -2,7 +2,7 @@
   <el-dialog v-model="visible" :title="course?.id ? '编辑课程' : '创建课程'" width="640px" destroy-on-close>
     <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
       <el-form-item label="课程标题" prop="title">
-        <el-input v-model.trim="form.title" placeholder="例如：Python Basics" />
+        <el-input v-model.trim="form.title" placeholder="例如：Python 入门实践" />
       </el-form-item>
       <el-form-item label="课程简介" prop="description">
         <el-input v-model.trim="form.description" type="textarea" :rows="4" placeholder="说明课程目标、适合对象和学习内容" />
@@ -23,7 +23,7 @@
         <input ref="coverInputRef" class="cover-input" type="file" accept=".jpg,.jpeg,.png,.webp" @change="handleCoverChange" />
         <div class="cover-row">
           <el-button :icon="Picture" @click="coverInputRef?.click()">选择封面</el-button>
-          <span class="muted">{{ coverName || '支持 jpg、png、webp，最大 5 MB' }}</span>
+          <span class="muted">{{ coverName || '支持 jpg、jpeg、png、webp，最大 5 MB' }}</span>
         </div>
       </el-form-item>
     </el-form>

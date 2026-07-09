@@ -1,11 +1,15 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel title="把身份交代清楚，课程才会长对方向" description="注册时选择学生或教师角色，平台会开放对应的学习和教学管理入口。" />
+    <LearningPathPanel
+      title="Start with one verified identity."
+      description="选择学生或教师身份，平台会开放对应的学习与课程管理入口。角色清晰，协作更顺畅。"
+    />
 
     <section class="auth-card" aria-label="注册表单">
       <div class="auth-card__header">
-        <RouterLink class="back-link" to="/">返回首页</RouterLink>
-        <h2>注册</h2>
+        <RouterLink class="back-link" to="/">Back home</RouterLink>
+        <p class="eyebrow">Create account</p>
+        <h2>Register</h2>
         <p>邮箱验证码用于确认账号归属。</p>
       </div>
 
@@ -158,3 +162,60 @@ onBeforeUnmount(() => {
   }
 })
 </script>
+
+<style scoped>
+.auth-page {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.92fr) minmax(360px, 1.08fr);
+  padding: 0;
+}
+
+.auth-card {
+  align-self: center;
+  width: min(600px, calc(100% - 48px));
+  margin: 48px auto;
+  padding: 42px;
+}
+
+.auth-card__header {
+  margin-bottom: 28px;
+}
+
+.code-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  gap: 12px;
+  width: 100%;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.auth-switch {
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-weight: 900;
+  text-align: center;
+}
+
+.auth-switch a {
+  border-bottom: 2px solid currentColor;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .code-row {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    width: calc(100% - 32px);
+    padding: 30px;
+  }
+}
+</style>

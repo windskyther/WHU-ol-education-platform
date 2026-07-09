@@ -1,5 +1,8 @@
+from urllib.parse import quote
+
 from django.db import IntegrityError
-from django.db.models import Count
+from django.http import FileResponse
+from django.db.models import BooleanField, Count, Exists, OuterRef, Value
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
@@ -18,6 +21,19 @@ from apps.courses.serializers import (
     MaterialSerializer,
     UploadMaterialSerializer,
 )
+
+
+def annotate_enrollment_state(queryset, user):
+    role = get_user_role(user) if user and user.is_authenticated else None
+    if role != "student":
+        return queryset.annotate(is_enrolled=Value(False, output_field=BooleanField()))
+    from apps.progress.models import Enrollment
+
+    return queryset.annotate(
+        is_enrolled=Exists(
+            Enrollment.objects.filter(student=user, course_id=OuterRef("pk")),
+        ),
+    )
 
 
 def is_teacher_or_admin(user):
@@ -39,6 +55,7 @@ def assert_course_owner(user, course):
 
 def get_course_for_read(course_id, user):
     queryset = Course.objects.filter(id=course_id, is_deleted=False).annotate(chapter_count=Count("chapters"))
+    queryset = annotate_enrollment_state(queryset, user)
     course = queryset.first()
     if not course:
         raise BusinessError(4040, "COURSE_NOT_FOUND", status.HTTP_404_NOT_FOUND)
@@ -57,6 +74,19 @@ def get_chapter_for_write(chapter_id, user):
     return chapter
 
 
+def assert_chapter_read_access(user, course):
+    if user and user.is_authenticated and (get_user_role(user) == "admin" or course.teacher_id == user.id):
+        return
+    if not user or not user.is_authenticated:
+        raise BusinessError(4001, "AUTHENTICATION_REQUIRED", status.HTTP_401_UNAUTHORIZED)
+    if get_user_role(user) != "student":
+        raise BusinessError(4003, "PERMISSION_DENIED", status.HTTP_403_FORBIDDEN)
+    from apps.progress.models import Enrollment
+
+    if not Enrollment.objects.filter(student=user, course=course).exists():
+        raise BusinessError(4003, "ENROLLMENT_REQUIRED", status.HTTP_403_FORBIDDEN)
+
+
 class CourseListCreateView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
@@ -73,6 +103,7 @@ class CourseListCreateView(APIView):
             .order_by("-created_at", "-id")
         )
         role = get_user_role(request.user) if request.user and request.user.is_authenticated else None
+        queryset = annotate_enrollment_state(queryset, request.user)
         if role == "teacher":
             queryset = queryset.filter(teacher=request.user)
         elif role != "admin":
@@ -154,6 +185,7 @@ class CourseChapterListCreateView(APIView):
 
     def get(self, request, course_id):
         course = get_course_for_read(course_id, request.user)
+        assert_chapter_read_access(request.user, course)
         chapters = course.chapters.prefetch_related("materials").all()
         return api_response(ChapterSerializer(chapters, many=True, context={"request": request}).data)
 
@@ -218,3 +250,36 @@ class ChapterUploadVideoView(ChapterUploadView):
 
 class ChapterUploadMaterialView(ChapterUploadView):
     kind = Material.KIND_DOCUMENT
+
+
+class MaterialDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, material_id):
+        material = (
+            Material.objects.select_related("chapter", "chapter__course", "chapter__course__teacher")
+            .filter(id=material_id, kind=Material.KIND_DOCUMENT, chapter__course__is_deleted=False)
+            .first()
+        )
+        if not material or not material.file:
+            raise BusinessError(4040, "MATERIAL_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        course = material.chapter.course
+        if not course.is_published and not (
+            request.user
+            and request.user.is_authenticated
+            and (get_user_role(request.user) == "admin" or course.teacher_id == request.user.id)
+        ):
+            raise BusinessError(4040, "MATERIAL_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        assert_chapter_read_access(request.user, material.chapter.course)
+
+        try:
+            response = FileResponse(material.file.open("rb"), content_type=material.content_type or "application/octet-stream")
+        except FileNotFoundError:
+            raise BusinessError(4040, "MATERIAL_FILE_NOT_FOUND", status.HTTP_404_NOT_FOUND)
+
+        filename = material.original_name or material.file.name.rsplit("/", 1)[-1]
+        response["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(filename)}"
+        response["Content-Length"] = material.size
+        return response

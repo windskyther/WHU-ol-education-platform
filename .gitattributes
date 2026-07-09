@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Windows 脚本可以保留 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
