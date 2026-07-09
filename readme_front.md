@@ -1181,6 +1181,7 @@ P4 scope:
 | `GET` | `/api/exams/{exam_id}/` | Student/Teacher/Admin | Exam detail and questions |
 | `PUT/PATCH` | `/api/exams/{exam_id}/` | Course teacher/Admin | Update exam |
 | `DELETE` | `/api/exams/{exam_id}/` | Course teacher/Admin | Delete exam |
+| `GET` | `/api/exams/{exam_id}/questions/` | Student/Teacher/Admin | List exam questions; student response hides answers |
 | `POST` | `/api/exams/{exam_id}/questions/` | Course teacher/Admin | Create question |
 | `PUT/PATCH` | `/api/questions/{question_id}/` | Course teacher/Admin | Update question |
 | `DELETE` | `/api/questions/{question_id}/` | Course teacher/Admin | Delete question |
@@ -1197,7 +1198,9 @@ P4 scope:
   "title": "Chapter Quiz",
   "description": "Basic quiz",
   "total_score": 100,
+  "pass_score": 100,
   "duration_minutes": 60,
+  "duration": 60,
   "is_published": true,
   "start_time": null,
   "end_time": null,
@@ -1220,11 +1223,13 @@ Teacher/admin response includes `answer`:
   "id": 1,
   "exam": 1,
   "question_type": "single",
+  "type": "single",
   "content": "Which option is correct?",
   "options": ["A", "B", "C", "D"],
   "answer": ["A"],
   "score": 10,
   "order": 1,
+  "order_no": 1,
   "created_at": "2026-07-08T10:00:00+08:00",
   "updated_at": "2026-07-08T10:00:00+08:00"
 }
@@ -1237,10 +1242,12 @@ Student response removes `answer`:
   "id": 1,
   "exam": 1,
   "question_type": "single",
+  "type": "single",
   "content": "Which option is correct?",
   "options": ["A", "B", "C", "D"],
   "score": 10,
   "order": 1,
+  "order_no": 1,
   "created_at": "2026-07-08T10:00:00+08:00",
   "updated_at": "2026-07-08T10:00:00+08:00"
 }
@@ -1254,6 +1261,15 @@ Supported `question_type` values:
 | `multiple` | Multiple choice | `["A", "C"]` |
 | `true_false` | True or false | `["true"]` |
 | `fill` | Fill in the blank | `["Django"]` |
+
+Frontend-compatible aliases:
+
+- Request may send `type`; backend maps it to `question_type`.
+- `judge` maps to `true_false`.
+- `blank` and `short` map to `fill`.
+- Response includes both backend `question_type` and frontend-friendly `type`.
+- Request may send `order_no`; backend maps it to `order`.
+- Response includes both `order` and `order_no`.
 
 ### 25. Course Exam List
 
@@ -1296,6 +1312,27 @@ Request body:
 }
 ```
 
+Frontend-compatible request body:
+
+```json
+{
+  "title": "Chapter Quiz",
+  "description": "Basic quiz",
+  "pass_score": 60,
+  "duration": 60,
+  "is_published": true,
+  "start_time": "",
+  "end_time": ""
+}
+```
+
+Compatibility notes:
+
+- `duration` is accepted as an alias of `duration_minutes`.
+- `pass_score` is accepted as an alias of `total_score` for the current frontend.
+- `isPublished` and `published` are accepted as aliases of `is_published`.
+- Empty `start_time` or `end_time` strings are treated as `null`.
+
 ### 27. Exam Detail
 
 #### GET `/api/exams/{exam_id}/`
@@ -1305,6 +1342,11 @@ Student response includes `questions`, but every question hides `answer`.
 Teacher/admin response includes `questions` with `answer`.
 
 ### 28. Create Question
+
+#### GET `/api/exams/{exam_id}/questions/`
+
+Returns an array of `Question Object`.
+Student response hides `answer`; teacher/admin response includes `answer`.
 
 #### POST `/api/exams/{exam_id}/questions/`
 
@@ -1324,6 +1366,19 @@ Request body:
   "answer": ["A"],
   "score": 10,
   "order": 1
+}
+```
+
+Frontend-compatible request body:
+
+```json
+{
+  "type": "single",
+  "content": "Which option is correct?",
+  "options": ["A", "B", "C", "D"],
+  "answer": "A",
+  "score": 10,
+  "order_no": 1
 }
 ```
 
@@ -1352,6 +1407,20 @@ Request body:
 ```
 
 The keys inside `answers` are `question_id` strings. A single answer may be sent as a scalar or list; backend normalizes it to a list.
+
+Frontend-compatible request body:
+
+```json
+{
+  "answers": [
+    { "question_id": 1, "answer": "A" },
+    { "question_id": 2, "answer": ["A", "C"] },
+    { "question_id": 3, "answer": "true" }
+  ]
+}
+```
+
+Backend accepts both object-map and array formats.
 
 Success response:
 

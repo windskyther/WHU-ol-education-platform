@@ -173,6 +173,17 @@ class ExamDetailView(APIView):
 class ExamQuestionCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get(self, request, exam_id):
+        exam = get_exam_for_read(exam_id, request.user)
+        role = get_user_role(request.user)
+        questions = exam.questions.all()
+        serializer = QuestionSerializer(
+            questions,
+            many=True,
+            context={"request": request, "hide_answer": role == "student"},
+        )
+        return api_response(serializer.data)
+
     def post(self, request, exam_id):
         exam = get_exam_for_read(exam_id, request.user)
         assert_course_owner(request.user, exam.course)
