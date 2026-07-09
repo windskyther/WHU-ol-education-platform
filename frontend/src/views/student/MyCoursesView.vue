@@ -3,19 +3,19 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/student/dashboard">学生首页</RouterLink>
-        <RouterLink to="/courses">发现课程</RouterLink>
+        <RouterLink to="/student/dashboard">Dashboard</RouterLink>
+        <RouterLink to="/courses">Discover</RouterLink>
       </div>
     </nav>
 
     <section class="my-workspace">
-      <header class="learning-board">
+      <header class="learning-board kinetic-panel">
         <div>
           <p class="eyebrow">Learning dashboard</p>
-          <h1>我的学习进度</h1>
+          <h1>Track the work in motion.</h1>
           <p>继续推进已经加入的课程，优先回到最需要完成的学习内容。</p>
         </div>
         <el-button type="primary" size="large" @click="$router.push('/courses')">发现新课程</el-button>
@@ -36,7 +36,7 @@
         </div>
       </section>
 
-      <section class="course-toolbar">
+      <section class="surface course-toolbar">
         <el-select v-model="state" clearable placeholder="学习状态" @change="loadCourses(1)">
           <el-option label="学习中" value="learning" />
           <el-option label="已完成" value="completed" />
@@ -52,7 +52,7 @@
           </div>
           <div class="row-main">
             <div class="row-meta">
-              <el-tag effect="light">{{ levelText(courseOf(item).level) }}</el-tag>
+              <span>{{ levelText(courseOf(item).level) }}</span>
               <span>{{ courseOf(item).category || '未分类' }}</span>
               <span>{{ courseOf(item).teacher?.username || courseOf(item).teacher_name || '教师未命名' }}</span>
             </div>
@@ -145,15 +145,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.my-page {
-  background:
-    radial-gradient(circle at 18% 8%, rgba(99, 102, 241, 0.18), transparent 30%),
-    linear-gradient(180deg, #ffffff 0, #f6f5ff 360px, #fafafa 100%);
-}
-
 .my-workspace {
-  max-width: 1180px;
-  margin: 46px auto 0;
+  margin: 64px auto 0;
 }
 
 .learning-board {
@@ -161,59 +154,51 @@ onMounted(() => {
   gap: 24px;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 34px;
-  color: var(--white);
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(139, 92, 246, 0.9)),
-    #6366f1;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
+  min-height: 420px;
+  padding: 42px;
 }
 
-.learning-board .eyebrow {
-  color: rgba(255, 255, 255, 0.78) !important;
+.learning-board h1,
+.learning-board p {
+  color: var(--paper);
 }
 
-.learning-board h1 {
-  margin: 0;
-  font-size: clamp(38px, 5vw, 58px);
-  line-height: 1.06;
-}
-
-.learning-board p:last-child {
+.learning-board p:not(.eyebrow) {
   max-width: 620px;
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 17px;
-  line-height: 1.7;
+  color: rgba(246, 241, 230, 0.72);
 }
 
 .summary-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 12px;
   margin-top: 18px;
 }
 
 .summary-strip div {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   padding: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
 }
 
-.summary-strip span {
-  color: var(--slate-500);
-  font-weight: 800;
+.summary-strip span,
+.row-meta,
+.row-action span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .summary-strip strong {
-  color: var(--ink-900);
-  font-size: 34px;
-  line-height: 1;
+  font-size: 54px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
 }
 
 .course-toolbar {
@@ -223,9 +208,6 @@ onMounted(() => {
   align-items: center;
   margin-top: 18px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: var(--radius-md);
 }
 
 .course-list {
@@ -237,36 +219,25 @@ onMounted(() => {
 
 .learning-row {
   display: grid;
-  grid-template-columns: 156px minmax(0, 1fr) 150px;
-  gap: 18px;
+  grid-template-columns: 180px minmax(0, 1fr) 160px;
+  gap: 22px;
   align-items: stretch;
   padding: 14px;
-  background: var(--white);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 0 rgba(23, 22, 41, 0.03);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.learning-row:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
 }
 
 .row-cover {
   display: grid;
   place-items: center;
-  min-height: 150px;
+  min-height: 170px;
   overflow: hidden;
-  color: var(--brand-indigo);
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.13), rgba(245, 158, 11, 0.18));
-  border-radius: var(--radius-md);
-  font-size: 48px;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--hot), var(--pink));
+  font-size: 72px;
   font-weight: 900;
+  letter-spacing: -0.1em;
 }
 
 .row-cover img {
@@ -277,57 +248,45 @@ onMounted(() => {
 
 .row-main {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-content: center;
 }
 
 .row-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  color: var(--slate-500);
-  font-size: 13px;
-  font-weight: 800;
+  gap: 12px;
 }
 
 .row-main h2 {
   margin: 0;
-  font-size: 24px;
-  line-height: 1.25;
+  font-size: clamp(34px, 5vw, 70px);
+  font-weight: 900;
+  line-height: 0.84;
+  letter-spacing: -0.075em;
 }
 
 .row-main p {
-  display: -webkit-box;
   margin: 0;
-  overflow: hidden;
-  color: var(--slate-600);
-  line-height: 1.7;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .row-action {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   align-content: center;
   justify-items: end;
-  padding-left: 14px;
-  border-left: 1px solid rgba(99, 102, 241, 0.12);
 }
 
 .row-action strong {
-  color: var(--brand-indigo);
-  font-size: 38px;
-  line-height: 1;
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
 }
 
-.row-action span {
-  color: var(--slate-500);
-  font-weight: 800;
-}
-
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .learning-board {
     align-items: flex-start;
     flex-direction: column;
@@ -340,8 +299,6 @@ onMounted(() => {
 
   .row-action {
     justify-items: start;
-    padding-left: 0;
-    border-left: 0;
   }
 }
 </style>

@@ -3,11 +3,11 @@
     <nav class="app-nav">
       <RouterLink class="brand-link" to="/">
         <span class="brand-mark">WHU</span>
-        <span>在线教育平台</span>
+        <span>Online Education</span>
       </RouterLink>
       <div class="nav-actions">
-        <RouterLink to="/student/courses">我的课程</RouterLink>
-        <RouterLink :to="`/courses/${courseId}`">课程详情</RouterLink>
+        <RouterLink to="/student/courses">My courses</RouterLink>
+        <RouterLink :to="`/courses/${courseId}`">Course detail</RouterLink>
       </div>
     </nav>
 
@@ -76,7 +76,7 @@
             <div class="rail-heading">
               <div>
                 <p class="eyebrow">Chapter rail</p>
-                <h2>章节</h2>
+                <h2>Index</h2>
               </div>
               <span>{{ orderedChapters.length }} 章</span>
             </div>
@@ -358,69 +358,54 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.learn-page {
-  background:
-    radial-gradient(circle at 16% 8%, rgba(99, 102, 241, 0.2), transparent 28%),
-    radial-gradient(circle at 86% 10%, rgba(139, 92, 246, 0.16), transparent 30%),
-    linear-gradient(180deg, #ffffff 0, #f5f4ff 380px, #fafafa 100%);
-}
-
 .learn-workspace {
-  max-width: 1280px;
   min-height: 520px;
-  margin: 38px auto 0;
+  margin: 54px auto 0;
 }
 
 .learn-titlebar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 260px;
   gap: 24px;
-  align-items: stretch;
-  padding: 30px;
-  color: var(--white);
-  background:
-    linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(139, 92, 246, 0.92)),
-    #6366f1;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-}
-
-.learn-titlebar .eyebrow {
-  color: rgba(255, 255, 255, 0.76) !important;
+  align-items: end;
+  padding: 38px;
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
 }
 
 .learn-titlebar h1 {
-  max-width: 820px;
-  margin: 0;
-  font-size: clamp(34px, 5vw, 58px);
-  line-height: 1.06;
+  max-width: 980px;
 }
 
 .learn-titlebar p:last-child {
-  max-width: 760px;
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.84);
-  line-height: 1.75;
+  max-width: 720px;
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .course-progress {
   display: grid;
-  gap: 10px;
-  align-content: center;
-  padding: 22px;
-  color: var(--ink-900);
-  background: rgba(255, 255, 255, 0.96);
+  gap: 12px;
+  padding: 20px;
+  color: var(--paper);
+  background: var(--ink);
   border-radius: var(--radius-md);
 }
 
 .course-progress span {
-  color: var(--slate-500);
+  color: rgba(246, 241, 230, 0.68);
+  font-size: 12px;
   font-weight: 900;
+  text-transform: uppercase;
 }
 
 .course-progress strong {
-  font-size: 42px;
-  line-height: 1;
+  font-size: 58px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.08em;
 }
 
 .study-grid {
@@ -432,10 +417,9 @@ onBeforeUnmount(() => {
 
 .player-workbench,
 .chapter-rail {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  background: rgba(255, 250, 240, 0.88);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
 }
 
 .player-workbench {
@@ -450,26 +434,28 @@ onBeforeUnmount(() => {
   gap: 18px;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 10px 8px 0;
+  padding: 16px 12px 0;
 }
 
 .now-row h2 {
   margin: 0;
-  font-size: 30px;
+  font-size: clamp(36px, 5vw, 78px);
+  font-weight: 900;
+  line-height: 0.84;
+  letter-spacing: -0.075em;
 }
 
 .now-row p:last-child {
-  max-width: 780px;
-  margin: 8px 0 0;
-  color: var(--slate-600);
-  line-height: 1.7;
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-weight: 800;
 }
 
 .video-stage {
   overflow: hidden;
-  background: #111124;
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: #070706;
+  border-radius: var(--radius-md);
 }
 
 video,
@@ -482,7 +468,7 @@ video,
 .empty-video {
   display: grid;
   place-items: center;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(246, 241, 230, 0.68);
   font-weight: 900;
 }
 
@@ -492,22 +478,19 @@ video,
   gap: 18px;
   align-items: center;
   padding: 18px;
-  background: #fbfaff;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: var(--radius-md);
+  border-top: 2px solid var(--line);
 }
 
 .progress-console span {
   display: block;
   margin-bottom: 8px;
-  color: var(--slate-500);
+  color: var(--muted);
+  font-size: 12px;
   font-weight: 900;
+  text-transform: uppercase;
 }
 
 .tool-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   justify-content: flex-end;
 }
 
@@ -528,53 +511,41 @@ video,
 
 .rail-heading h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: 58px;
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.08em;
 }
 
 .rail-heading > span {
-  color: var(--slate-500);
+  color: var(--muted);
   font-weight: 900;
 }
 
 .chapter-button {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 12px;
   width: 100%;
-  padding: 12px;
-  margin-bottom: 10px;
-  color: var(--ink-900);
+  padding: 12px 0;
+  color: var(--ink);
   text-align: left;
   cursor: pointer;
-  background: #fbfaff;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: var(--radius-md);
-  transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid var(--line);
 }
 
 .chapter-button:hover,
 .chapter-button.is-active {
-  border-color: rgba(99, 102, 241, 0.36);
-  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.12);
-  transform: translateY(-1px);
-}
-
-.chapter-button.is-active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+  color: var(--hot);
 }
 
 .chapter-no {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  color: var(--white);
-  background: var(--gradient-primary);
-  border-radius: var(--radius-sm);
+  font-size: 40px;
   font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.08em;
 }
 
 .chapter-copy {
@@ -588,14 +559,17 @@ video,
 
 .chapter-copy strong {
   overflow: hidden;
+  font-size: 18px;
+  font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .chapter-copy small {
-  margin-top: 4px;
-  color: var(--slate-500);
-  font-weight: 800;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 @media (max-width: 980px) {
