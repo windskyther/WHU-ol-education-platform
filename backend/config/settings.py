@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "apps.progress",
     "apps.exams",
     "apps.qa",
+    "apps.community",
 ]
 
 MIDDLEWARE = [

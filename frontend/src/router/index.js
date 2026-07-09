@@ -172,6 +172,49 @@ const routes = [
       title: '个人设置',
       requiresAuth: true
     }
+  },
+  {
+    path: '/community',
+    component: () => import('../views/community/CommunityView.vue'),
+    redirect: '/community/forum',
+    meta: {
+      requiresAuth: true,
+      roles: ['student', 'teacher']
+    },
+    children: [
+      {
+        path: 'forum',
+        name: 'community-forum',
+        component: () => import('../views/community/ForumView.vue'),
+        meta: {
+          title: '论坛'
+        }
+      },
+      {
+        path: 'resources',
+        name: 'community-resources',
+        component: () => import('../views/community/ResourceShareView.vue'),
+        meta: {
+          title: '资料推送'
+        }
+      },
+      {
+        path: 'mine',
+        name: 'community-mine',
+        component: () => import('../views/community/MyPostsView.vue'),
+        meta: {
+          title: '我的发布'
+        }
+      },
+      {
+        path: 'favorites',
+        name: 'community-favorites',
+        component: () => import('../views/community/MyFavoritesView.vue'),
+        meta: {
+          title: '我的收藏'
+        }
+      }
+    ]
   }
 ]
 

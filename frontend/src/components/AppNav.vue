@@ -95,6 +95,10 @@ const mainLinks = computed(() => {
     )
   }
 
+  if (userStore.role === 'student' || userStore.role === 'teacher') {
+    links.push({ label: '社区中心', to: '/community/forum' })
+  }
+
   return links
 })
 
@@ -105,6 +109,10 @@ function isActiveLink(path) {
 
   if (path === '/student/dashboard' || path === '/teacher/dashboard' || path === '/admin/dashboard') {
     return route.path.endsWith('/dashboard')
+  }
+
+  if (path === '/community/forum') {
+    return route.path.startsWith('/community')
   }
 
   return route.path === path || route.path.startsWith(`${path}/`)
