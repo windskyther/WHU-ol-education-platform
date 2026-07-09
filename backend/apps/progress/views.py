@@ -35,21 +35,34 @@ def get_enrollment(student, course):
     return enrollment
 
 
-def sync_enrollment_progress(enrollment):
+def calculate_enrollment_progress(enrollment):
     total_chapters = Chapter.objects.filter(course=enrollment.course).count()
     if total_chapters == 0:
-        progress = 0
-    else:
-        progress_items = LearningProgress.objects.filter(
-            student=enrollment.student,
-            course=enrollment.course,
-        )
-        watched_percent = sum(100 if item.is_completed else item.percent for item in progress_items)
-        progress = round(watched_percent / total_chapters, 2)
+        return 0
+    progress_items = LearningProgress.objects.filter(
+        student=enrollment.student,
+        course=enrollment.course,
+    )
+    watched_percent = sum(100 if item.is_completed else item.percent for item in progress_items)
+    return round(watched_percent / total_chapters, 2)
+
+
+def sync_enrollment_progress(enrollment, touch_last_learned=True):
+    progress = calculate_enrollment_progress(enrollment)
+    update_fields = ["progress"]
     enrollment.progress = progress
-    enrollment.last_learned_at = timezone.now()
-    enrollment.save(update_fields=["progress", "last_learned_at"])
+    if touch_last_learned:
+        enrollment.last_learned_at = timezone.now()
+        update_fields.append("last_learned_at")
+    enrollment.save(update_fields=update_fields)
     return enrollment
+
+
+def sync_course_enrollments_progress(course):
+    enrollments = Enrollment.objects.filter(course=course).select_related("student", "course")
+    for enrollment in enrollments:
+        sync_enrollment_progress(enrollment, touch_last_learned=False)
+    return enrollments
 
 
 class CourseEnrollView(APIView):
@@ -84,6 +97,8 @@ class MyCoursesView(APIView):
         )
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
+        for enrollment in page:
+            sync_enrollment_progress(enrollment, touch_last_learned=False)
         serializer = EnrollmentSerializer(page, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
 
@@ -148,6 +163,7 @@ class CourseProgressView(APIView):
         role = get_user_role(request.user)
         if role == "student":
             enrollment = get_enrollment(request.user, course)
+            enrollment = sync_enrollment_progress(enrollment, touch_last_learned=False)
             progress_items = LearningProgress.objects.filter(student=request.user, course=course).select_related(
                 "course",
                 "chapter",
@@ -165,6 +181,7 @@ class CourseProgressView(APIView):
         if role in {"teacher", "admin"}:
             if role != "admin" and course.teacher_id != request.user.id:
                 raise BusinessError(4003, "COURSE_OWNER_REQUIRED", status.HTTP_403_FORBIDDEN)
+            sync_course_enrollments_progress(course)
             enrollments = Enrollment.objects.filter(course=course).select_related("student").order_by("-enrolled_at", "-id")
             data = {
                 "course_id": course.id,

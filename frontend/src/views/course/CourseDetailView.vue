@@ -9,6 +9,7 @@
         <RouterLink to="/courses">Courses</RouterLink>
         <RouterLink v-if="userStore.role === 'student'" to="/student/courses">My courses</RouterLink>
         <el-button v-if="canManage" type="primary" @click="$router.push(`/teacher/courses/${courseId}/chapters`)">Manage chapters</el-button>
+        <el-button v-if="canManage" plain @click="$router.push(`/teacher/courses/${courseId}/exams`)">Manage exams</el-button>
       </div>
     </nav>
 
@@ -65,6 +66,10 @@
             <span>Chapters</span>
             <strong>{{ course.chapter_count || chapters.length }}</strong>
           </div>
+          <div>
+            <span>Exams</span>
+            <strong>{{ exams.length }}</strong>
+          </div>
         </section>
 
         <section class="chapter-access">
@@ -99,6 +104,38 @@
 
           <div v-else class="empty-state">暂无章节</div>
         </section>
+
+        <section v-if="canViewChapters" class="exam-access">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Exam access</p>
+              <h2>Assessment rail</h2>
+            </div>
+            <el-tag effect="light">{{ exams.length }} 场考试</el-tag>
+          </div>
+
+          <div v-if="exams.length" class="exam-grid">
+            <article v-for="examItem in exams" :key="examItem.id" class="exam-tile">
+              <div>
+                <span class="status-pill" :class="{ 'is-done': examItem.is_published }">
+                  {{ examItem.is_published ? '已发布' : '草稿' }}
+                </span>
+                <h3>{{ examItem.title }}</h3>
+                <p>{{ examItem.description || '暂无考试说明' }}</p>
+              </div>
+              <div class="exam-meta">
+                <span>{{ examItem.duration || examItem.duration_minutes || '-' }} 分钟</span>
+                <span>及格线 {{ examItem.pass_score ?? '-' }}</span>
+              </div>
+              <div class="table-actions">
+                <el-button v-if="userStore.role === 'student'" type="primary" @click="$router.push(`/student/exams/${examItem.id}`)">进入考试</el-button>
+                <el-button v-if="canManage" plain @click="$router.push(`/teacher/exams/${examItem.id}/questions`)">维护题目</el-button>
+              </div>
+            </article>
+          </div>
+
+          <div v-else class="empty-state">暂无考试</div>
+        </section>
       </template>
     </section>
   </main>
@@ -109,6 +146,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { enrollCourse, fetchChapters, fetchCourseDetail } from '../../api/course'
+import { fetchCourseExams } from '../../api/exam'
 import { useUserStore } from '../../stores/user'
 import { getCommonErrorMessage } from '../../utils/errorMessage'
 import { normalizeMediaUrl } from '../../utils/mediaUrl'
@@ -121,6 +159,7 @@ const loading = ref(false)
 const enrolling = ref(false)
 const course = ref(null)
 const chapters = ref([])
+const exams = ref([])
 
 const levelMap = {
   beginner: '初级',
@@ -184,10 +223,15 @@ async function loadDetail() {
     const courseData = await fetchCourseDetail(courseId.value)
     course.value = courseData
     chapters.value = []
+    exams.value = []
 
     if (canViewChapters.value) {
-      const chapterData = await fetchChapters(courseId.value)
+      const [chapterData, examData] = await Promise.all([
+        fetchChapters(courseId.value),
+        fetchCourseExams(courseId.value)
+      ])
       chapters.value = Array.isArray(chapterData) ? chapterData : chapterData?.results || []
+      exams.value = Array.isArray(examData) ? examData : examData?.results || []
     }
   } catch (error) {
     ElMessage.error(getCommonErrorMessage(error, '课程详情加载失败'))
@@ -312,7 +356,8 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.chapter-access {
+.chapter-access,
+.exam-access {
   margin-top: 18px;
   padding: 28px;
   background: rgba(255, 250, 240, 0.88);
@@ -350,6 +395,12 @@ onMounted(() => {
 }
 
 .chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.exam-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
@@ -402,10 +453,47 @@ onMounted(() => {
   border-color: var(--acid);
 }
 
+.exam-tile {
+  display: grid;
+  gap: 16px;
+  align-content: space-between;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.36);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.exam-tile h3 {
+  margin: 12px 0 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.exam-tile p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.exam-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exam-meta span {
+  padding: 7px 10px;
+  background: rgba(25, 25, 23, 0.06);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 @media (max-width: 980px) {
   .detail-intro,
   .course-facts,
-  .chapter-grid {
+  .chapter-grid,
+  .exam-grid {
     grid-template-columns: 1fr;
   }
 }

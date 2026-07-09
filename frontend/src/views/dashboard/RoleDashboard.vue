@@ -60,6 +60,7 @@ const roleText = {
     roleName: '学生',
     actions: [
       { label: '我的课程', path: '/student/courses', primary: true },
+      { label: '我的成绩', path: '/student/scores' },
       { label: '发现课程', path: '/courses' }
     ]
   },

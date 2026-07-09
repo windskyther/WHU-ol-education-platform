@@ -20,6 +20,14 @@ const networkMessages = new Set([
   '服务器暂时不可用，请稍后重试'
 ])
 
+const examMessageMap = {
+  EXAM_ALREADY_SUBMITTED: '你已经提交过本场考试，不能重复作答',
+  EXAM_ENDED: '本场考试已截止，不能继续作答',
+  START_TIME_MUST_BE_FUTURE: '开始时间必须晚于当前时间',
+  END_TIME_MUST_BE_FUTURE: '截止时间必须晚于当前时间',
+  END_TIME_MUST_BE_AFTER_START_TIME: '截止时间必须晚于开始时间'
+}
+
 function stringifyErrorData(value) {
   if (!value) return ''
   if (typeof value === 'string') return value
@@ -49,6 +57,20 @@ function includesAny(text, keywords) {
 
 function isNetworkLevelMessage(message) {
   return networkMessages.has(message)
+}
+
+export function getBackendMessage(error) {
+  return error?.rawData?.message || error?.response?.data?.message || ''
+}
+
+export function getExamErrorCode(error) {
+  const message = getBackendMessage(error)
+  return Object.prototype.hasOwnProperty.call(examMessageMap, message) ? message : ''
+}
+
+export function getExamErrorMessage(error, fallback = '考试操作失败，请稍后重试') {
+  const code = getExamErrorCode(error)
+  return code ? examMessageMap[code] : getCommonErrorMessage(error, fallback)
 }
 
 export function getLoginErrorMessage(error) {
