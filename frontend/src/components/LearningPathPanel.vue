@@ -6,23 +6,7 @@
     </div>
 
     <div class="path-copy">
-      <p class="path-eyebrow">{{ t('auth.accessLayer') }}</p>
       <h1>{{ title }}</h1>
-      <p>{{ description }}</p>
-    </div>
-
-    <div class="path-index" aria-hidden="true">
-      <span>01</span>
-      <i></i>
-      <span>02</span>
-      <i></i>
-      <span>03</span>
-    </div>
-
-    <div class="path-steps">
-      <span>{{ t('auth.identity') }}</span>
-      <span>{{ t('auth.courses') }}</span>
-      <span>{{ t('auth.progressStep') }}</span>
     </div>
   </aside>
 </template>
@@ -34,10 +18,6 @@ const { t } = useI18n()
 
 defineProps({
   title: {
-    type: String,
-    required: true
-  },
-  description: {
     type: String,
     required: true
   }
@@ -67,9 +47,7 @@ defineProps({
 }
 
 .path-brand,
-.path-copy,
-.path-index,
-.path-steps {
+.path-copy {
   position: relative;
   z-index: 1;
 }
@@ -81,40 +59,5 @@ defineProps({
   font-weight: 900;
   line-height: 0.82;
   letter-spacing: -0.08em;
-}
-
-.path-copy p:last-child {
-  max-width: 560px;
-  color: rgba(246, 241, 230, 0.7);
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1.18;
-}
-
-.path-index {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 54px 0;
-  color: var(--hot);
-  font-weight: 900;
-}
-
-.path-index i {
-  width: min(16vw, 160px);
-  height: 2px;
-  background: currentColor;
-  opacity: 0.45;
-}
-
-.path-steps {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px;
-  color: rgba(246, 241, 230, 0.64);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 </style>

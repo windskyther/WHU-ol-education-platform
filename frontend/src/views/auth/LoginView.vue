@@ -1,9 +1,6 @@
 <template>
   <main class="auth-page">
-    <LearningPathPanel
-      :title="t('auth.learningFlowTitle')"
-      :description="t('auth.learningFlowDesc')"
-    />
+    <LearningPathPanel :title="t('auth.learningFlowTitle')" />
 
     <section class="auth-card" aria-label="登录表单">
       <div class="auth-card__header">
