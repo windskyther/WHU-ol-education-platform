@@ -9,11 +9,26 @@ TARGET_CHOICES = (
     (TARGET_RESOURCE, "resource"),
 )
 
+POST_CATEGORY_CHOICES = (
+    ("experience", "经验分享"),
+    ("qa", "答疑求助"),
+    ("course_discussion", "课程讨论"),
+    ("chat", "闲聊杂谈"),
+)
+
+RESOURCE_CATEGORY_CHOICES = (
+    ("courseware", "课件资料"),
+    ("tools", "学习工具"),
+    ("links", "参考链接"),
+    ("other", "其他"),
+)
+
 
 class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="community_posts")
     title = models.CharField(max_length=128)
     content = models.TextField()
+    category = models.CharField(max_length=32, choices=POST_CATEGORY_CHOICES, blank=True)
     likes_count = models.PositiveIntegerField(default=0)
     favorites_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
@@ -26,6 +41,7 @@ class Post(models.Model):
         indexes = [
             models.Index(fields=["author"]),
             models.Index(fields=["is_deleted"]),
+            models.Index(fields=["category"]),
         ]
 
     def __str__(self):
@@ -54,6 +70,7 @@ class Resource(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="community_resources")
     title = models.CharField(max_length=128)
     description = models.TextField(blank=True)
+    category = models.CharField(max_length=32, choices=RESOURCE_CATEGORY_CHOICES, blank=True)
     url = models.URLField(max_length=500, blank=True)
     file = models.FileField(upload_to="community/resources/", blank=True, null=True)
     original_name = models.CharField(max_length=255, blank=True)
@@ -71,6 +88,7 @@ class Resource(models.Model):
         indexes = [
             models.Index(fields=["author"]),
             models.Index(fields=["is_deleted"]),
+            models.Index(fields=["category"]),
         ]
 
     def __str__(self):

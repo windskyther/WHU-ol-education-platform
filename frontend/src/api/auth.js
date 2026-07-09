@@ -31,3 +31,7 @@ export function updateMe(payload) {
 export function changePassword(payload) {
   return request.post('/users/me/password/', payload)
 }
+
+export function fetchPublicUser(userId) {
+  return request.get(`/users/${userId}/`)
+}

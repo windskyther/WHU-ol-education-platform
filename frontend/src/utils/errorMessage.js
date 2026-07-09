@@ -163,6 +163,35 @@ export function getProfileErrorMessage(error, fallback = '资料更新失败，�
   return getCommonErrorMessage(error, fallback)
 }
 
+const communityMessageMap = {
+  POST_TITLE_REQUIRED: '请填写帖子标题',
+  POST_CONTENT_REQUIRED: '请填写帖子内容',
+  RESOURCE_TITLE_REQUIRED: '请填写资料标题',
+  RESOURCE_URL_OR_FILE_REQUIRED: '请填写资料网址，或上传一个文件',
+  RESOURCE_FILE_TYPE_NOT_ALLOWED: '文件格式不支持',
+  RESOURCE_FILE_SIZE_EXCEEDED: '文件大小超出限制（最大 20 MB）',
+  ATTACHMENT_TYPE_NOT_ALLOWED: '附件格式不支持',
+  ATTACHMENT_SIZE_EXCEEDED: '附件大小超出限制（最大 20 MB）',
+  COMMENT_CONTENT_REQUIRED: '请填写评论内容'
+}
+
+export function getCommunityErrorMessage(error, fallback = '操作失败，请稍后重试') {
+  if (isNetworkLevelMessage(error?.userMessage)) return error.userMessage
+
+  const message = getBackendMessage(error)
+  if (message && communityMessageMap[message]) return communityMessageMap[message]
+
+  const text = getErrorText(error)
+  if (includesAny(text, ['请输入合法的url', 'enter a valid url', 'invalid url'])) {
+    return '请输入合法的网址，例如 https://example.com'
+  }
+  for (const [code, readable] of Object.entries(communityMessageMap)) {
+    if (includesAny(text, [code])) return readable
+  }
+
+  return getCommonErrorMessage(error, fallback)
+}
+
 export function getPasswordErrorMessage(error, fallback = '密码更新失败，请稍后重试') {
   const message = getBackendMessage(error)
   if (profileMessageMap[message]) return profileMessageMap[message]

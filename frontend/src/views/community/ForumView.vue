@@ -6,6 +6,11 @@
         <el-form-item label="标题">
           <el-input v-model.trim="postForm.title" maxlength="128" show-word-limit placeholder="给帖子起个标题" />
         </el-form-item>
+        <el-form-item label="分类">
+          <el-select v-model="postForm.category" placeholder="选择分类（可选）" clearable style="width: 240px">
+            <el-option v-for="item in categories" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="内容">
           <el-input v-model.trim="postForm.content" type="textarea" :rows="4" maxlength="4000" show-word-limit placeholder="分享你的想法、问题或经验…" />
         </el-form-item>
@@ -32,19 +37,28 @@
       </div>
     </section>
 
-    <div v-loading="loading" class="post-list">
-      <PostCard
-        v-for="post in posts"
-        :key="post.id"
-        :post="post"
-        @deleted="handleDeleted"
-        @updated="handleUpdated"
-      />
+    <div class="community-layout">
+      <aside class="community-sidebar surface">
+        <h4>分类</h4>
+        <CategoryNav v-model="activeCategory" :categories="categories" @change="handleCategoryChange" />
+      </aside>
+
+      <div class="community-main">
+        <div v-loading="loading" class="post-grid">
+          <PostCard
+            v-for="post in posts"
+            :key="post.id"
+            :post="post"
+            @deleted="handleDeleted"
+            @updated="handleUpdated"
+          />
+        </div>
+
+        <div v-if="!loading && posts.length === 0" class="empty-state">还没有帖子，来发布第一条吧。</div>
+
+        <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadPosts" />
+      </div>
     </div>
-
-    <div v-if="!loading && posts.length === 0" class="empty-state">还没有帖子，来发布第一条吧。</div>
-
-    <PaginationBar :total="total" :page="page" :page-size="pageSize" @change="loadPosts" />
   </section>
 </template>
 
@@ -53,9 +67,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { EditPen, Paperclip, Search } from '@element-plus/icons-vue'
 import PostCard from '../../components/community/PostCard.vue'
+import CategoryNav from '../../components/community/CategoryNav.vue'
 import PaginationBar from '../../components/PaginationBar.vue'
-import { createPost, fetchPosts, uploadPostAttachments } from '../../api/community'
-import { getCommonErrorMessage } from '../../utils/errorMessage'
+import { createPost, fetchCategories, fetchPosts, uploadPostAttachments } from '../../api/community'
+import { getCommunityErrorMessage } from '../../utils/errorMessage'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -65,30 +80,52 @@ const page = ref(1)
 const pageSize = ref(10)
 const keyword = ref('')
 const fileList = ref([])
+const categories = ref([])
+const activeCategory = ref('')
 
 const postForm = reactive({
   title: '',
-  content: ''
+  content: '',
+  category: ''
 })
+
+async function loadCategories() {
+  try {
+    const data = await fetchCategories('post')
+    categories.value = data || []
+  } catch (error) {
+    categories.value = []
+  }
+}
 
 async function loadPosts(nextPage = page.value) {
   loading.value = true
   try {
-    const data = await fetchPosts({ page: nextPage, page_size: pageSize.value, keyword: keyword.value || undefined })
+    const data = await fetchPosts({
+      page: nextPage,
+      page_size: pageSize.value,
+      keyword: keyword.value || undefined,
+      category: activeCategory.value || undefined
+    })
     posts.value = data?.results || []
     total.value = data?.count || posts.value.length
     page.value = data?.page || nextPage
     pageSize.value = data?.page_size || pageSize.value
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '帖子加载失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '帖子加载失败'))
   } finally {
     loading.value = false
   }
 }
 
+function handleCategoryChange() {
+  loadPosts(1)
+}
+
 function resetForm() {
   postForm.title = ''
   postForm.content = ''
+  postForm.category = ''
   fileList.value = []
 }
 
@@ -111,7 +148,7 @@ async function submitPost() {
   }
   submitting.value = true
   try {
-    const post = await createPost({ title: postForm.title, content: postForm.content })
+    const post = await createPost({ title: postForm.title, content: postForm.content, category: postForm.category })
     const files = fileList.value.map((item) => item.raw).filter(Boolean)
     if (files.length) {
       await uploadPostAttachments(post.id, files)
@@ -120,13 +157,14 @@ async function submitPost() {
     resetForm()
     await loadPosts(1)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '帖子发布失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '帖子发布失败'))
   } finally {
     submitting.value = false
   }
 }
 
 onMounted(() => {
+  loadCategories()
   loadPosts(1)
 })
 </script>
@@ -162,10 +200,50 @@ onMounted(() => {
   flex: 1;
 }
 
-.post-list {
+.community-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.community-sidebar {
+  padding: 16px;
+  position: sticky;
+  top: 16px;
+}
+
+.community-sidebar h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--ink-500, #6b7a70);
+}
+
+.community-main {
   display: grid;
   gap: 16px;
+  min-width: 0;
+}
+
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
   min-height: 80px;
+}
+
+@media (max-width: 860px) {
+  .community-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .community-sidebar {
+    position: static;
+  }
+
+  .post-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 680px) {
@@ -174,3 +252,4 @@ onMounted(() => {
   }
 }
 </style>
+

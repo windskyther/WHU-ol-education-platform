@@ -213,6 +213,14 @@ const routes = [
         meta: {
           title: '我的收藏'
         }
+      },
+      {
+        path: 'author/:id',
+        name: 'community-author-profile',
+        component: () => import('../views/community/AuthorProfileView.vue'),
+        meta: {
+          title: '用户主页'
+        }
       }
     ]
   }

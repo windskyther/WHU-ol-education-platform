@@ -3,17 +3,31 @@
     <template v-if="!editing">
       <div class="card-head">
         <h3>{{ post.title }}</h3>
-        <div v-if="post.is_mine" class="table-actions">
-          <el-button text :icon="Edit" @click="startEdit">编辑</el-button>
-          <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">删除</el-button>
+        <div class="card-head-right">
+          <div v-if="post.is_mine" class="table-actions">
+            <el-button text :icon="Edit" @click="startEdit">编辑</el-button>
+            <el-button text type="danger" :icon="Delete" :loading="deleting" @click="handleDelete">删除</el-button>
+          </div>
+          <AuthorAvatar :author="post.author" />
         </div>
       </div>
       <p class="card-content">{{ post.content }}</p>
 
       <div v-if="post.attachments?.length" class="attachment-list">
-        <a v-for="attachment in post.attachments" :key="attachment.id" :href="attachment.url" target="_blank" rel="noopener" class="attachment-chip">
-          📎 {{ attachment.original_name }}
-        </a>
+        <template v-for="attachment in post.attachments" :key="attachment.id">
+          <el-image
+            v-if="attachment.is_image"
+            class="attachment-image"
+            :src="attachment.url"
+            :preview-src-list="imageAttachmentUrls"
+            :initial-index="imageAttachmentUrls.indexOf(attachment.url)"
+            fit="cover"
+            preview-teleported
+          />
+          <a v-else :href="attachment.url" target="_blank" rel="noopener" class="attachment-chip">
+            📎 {{ attachment.original_name }}
+          </a>
+        </template>
       </div>
 
       <div class="card-meta">
@@ -22,10 +36,10 @@
       </div>
 
       <div class="card-actions">
-        <el-button :type="post.is_liked ? 'primary' : 'default'" plain :icon="Star" :loading="liking" @click="handleLike">
-          点赞 {{ post.likes_count }}
+        <el-button class="reaction-btn" :class="{ 'is-active': post.is_liked }" plain :loading="liking" @click="handleLike">
+          <span class="reaction-icon">👍</span> {{ post.likes_count }}
         </el-button>
-        <el-button :type="post.is_favorited ? 'primary' : 'default'" plain :icon="Collection" :loading="favoriting" @click="handleFavorite">
+        <el-button class="reaction-btn" :class="{ 'is-active': post.is_favorited }" plain :icon="post.is_favorited ? StarFilled : Star" :loading="favoriting" @click="handleFavorite">
           收藏 {{ post.favorites_count }}
         </el-button>
       </div>
@@ -50,12 +64,13 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Collection, Delete, Edit, Star } from '@element-plus/icons-vue'
+import { Delete, Edit, Star, StarFilled } from '@element-plus/icons-vue'
 import CommentSection from './CommentSection.vue'
+import AuthorAvatar from './AuthorAvatar.vue'
 import { deletePost, toggleFavorite, toggleLike, updatePost } from '../../api/community'
-import { getCommonErrorMessage } from '../../utils/errorMessage'
+import { getCommunityErrorMessage } from '../../utils/errorMessage'
 
 const props = defineProps({
   post: {
@@ -73,6 +88,11 @@ const editing = ref(false)
 const saving = ref(false)
 const editForm = reactive({ title: '', content: '' })
 
+const imageAttachmentUrls = computed(() =>
+  (props.post.attachments || []).filter((item) => item.is_image).map((item) => item.url)
+)
+
+
 function formatTime(value) {
   if (!value) return '-'
   return new Date(value).toLocaleString('zh-CN', { hour12: false })
@@ -85,7 +105,7 @@ async function handleLike() {
     props.post.is_liked = data.liked
     props.post.likes_count = data.likes_count
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '点赞失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '点赞失败'))
   } finally {
     liking.value = false
   }
@@ -98,7 +118,7 @@ async function handleFavorite() {
     props.post.is_favorited = data.favorited
     props.post.favorites_count = data.favorites_count
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '收藏失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '收藏失败'))
   } finally {
     favoriting.value = false
   }
@@ -126,7 +146,7 @@ async function submitEdit() {
     ElMessage.success('帖子已更新')
     editing.value = false
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '帖子更新失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '帖子更新失败'))
   } finally {
     saving.value = false
   }
@@ -144,7 +164,7 @@ async function handleDelete() {
     ElMessage.success('帖子已删除')
     emit('deleted', props.post.id)
   } catch (error) {
-    ElMessage.error(getCommonErrorMessage(error, '帖子删除失败'))
+    ElMessage.error(getCommunityErrorMessage(error, '帖子删除失败'))
   } finally {
     deleting.value = false
   }
@@ -168,6 +188,13 @@ async function handleDelete() {
   gap: 12px;
 }
 
+.card-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .card-head h3 {
   margin: 0;
   font-size: 20px;
@@ -187,6 +214,15 @@ async function handleDelete() {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.attachment-image {
+  width: 96px;
+  height: 96px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: zoom-in;
+  border: 1px solid var(--line);
 }
 
 .attachment-chip {
@@ -211,6 +247,21 @@ async function handleDelete() {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.reaction-btn {
+  font-size: 14px;
+}
+
+.reaction-btn.is-active {
+  color: var(--el-color-warning);
+  border-color: var(--el-color-warning);
+  background-color: var(--el-color-warning-light-9);
+}
+
+.reaction-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
 .edit-form {

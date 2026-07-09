@@ -9,7 +9,18 @@ from apps.common.exceptions import BusinessError
 from apps.common.pagination import StandardPagination
 from apps.common.permissions import get_user_role
 from apps.common.responses import api_response
-from apps.community.models import TARGET_POST, TARGET_RESOURCE, Comment, Favorite, Like, Post, PostAttachment, Resource
+from apps.community.models import (
+    POST_CATEGORY_CHOICES,
+    RESOURCE_CATEGORY_CHOICES,
+    TARGET_POST,
+    TARGET_RESOURCE,
+    Comment,
+    Favorite,
+    Like,
+    Post,
+    PostAttachment,
+    Resource,
+)
 from apps.community.serializers import (
     CommentSerializer,
     PostAttachmentSerializer,
@@ -65,6 +76,9 @@ class PostListCreateView(APIView):
         keyword = request.query_params.get("keyword")
         if keyword:
             queryset = queryset.filter(Q(title__icontains=keyword) | Q(content__icontains=keyword))
+        category = request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
         serializer = PostSerializer(page, many=True, context={"request": request})
@@ -145,6 +159,9 @@ class ResourceListCreateView(APIView):
             queryset = queryset.exclude(url="")
         elif has_url == "false":
             queryset = queryset.filter(url="")
+        category = request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
         serializer = ResourceSerializer(page, many=True, context={"request": request})
@@ -301,3 +318,18 @@ class MyFavoritesView(APIView):
         ordered_items = [items_by_id[item_id] for item_id in page_ids if item_id in items_by_id]
         serializer = serializer_class(ordered_items, many=True, context={"request": request})
         return paginator.get_paginated_response(serializer.data)
+
+
+class CategoryListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        target_type = request.query_params.get("target")
+        if target_type == TARGET_POST:
+            choices = POST_CATEGORY_CHOICES
+        elif target_type == TARGET_RESOURCE:
+            choices = RESOURCE_CATEGORY_CHOICES
+        else:
+            raise BusinessError(4000, "CATEGORY_TARGET_REQUIRED", status.HTTP_400_BAD_REQUEST)
+        data = [{"value": value, "label": label} for value, label in choices]
+        return api_response(data)

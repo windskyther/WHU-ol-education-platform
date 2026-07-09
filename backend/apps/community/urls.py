@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.community.views import (
+    CategoryListView,
     CommentListCreateView,
     FavoriteToggleView,
     LikeToggleView,
@@ -15,6 +16,7 @@ from apps.community.views import (
 )
 
 urlpatterns = [
+    path("community/categories/", CategoryListView.as_view(), name="community-category-list"),
     path("community/posts/", PostListCreateView.as_view(), name="community-post-list-create"),
     path("community/posts/<int:post_id>/", PostDetailView.as_view(), name="community-post-detail"),
     path("community/posts/<int:post_id>/attachments/", PostAttachmentUploadView.as_view(), name="community-post-attachment-upload"),

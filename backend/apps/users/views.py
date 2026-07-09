@@ -1,4 +1,6 @@
+from django.contrib.auth import get_user_model
 from rest_framework import status
+from rest_framework.generics import get_object_or_404
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
@@ -8,11 +10,14 @@ from apps.common.responses import api_response
 from apps.users.serializers import (
     ChangePasswordSerializer,
     LoginSerializer,
+    PublicUserSerializer,
     RegisterSerializer,
     SendEmailCodeSerializer,
     UserSerializer,
 )
 from apps.users.services import register_user, send_register_email_code
+
+User = get_user_model()
 
 
 class SendEmailCodeView(APIView):
@@ -99,3 +104,14 @@ class ChangePasswordView(APIView):
         user.set_password(serializer.validated_data["new_password"])
         user.save()
         return api_response(None, "password changed")
+
+
+class PublicUserProfileView(APIView):
+    """Read-only public profile lookup, used for e.g. viewing a community
+    post/resource author's info by clicking their avatar."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, pk=user_id)
+        return api_response(PublicUserSerializer(user, context={"request": request}).data)

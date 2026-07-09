@@ -2,7 +2,22 @@ from pathlib import Path
 
 from rest_framework import serializers
 
-from apps.community.models import TARGET_POST, TARGET_RESOURCE, Comment, Favorite, Like, Post, PostAttachment, Resource
+from apps.community.models import (
+    POST_CATEGORY_CHOICES,
+    RESOURCE_CATEGORY_CHOICES,
+    TARGET_POST,
+    TARGET_RESOURCE,
+    Comment,
+    Favorite,
+    Like,
+    Post,
+    PostAttachment,
+    Resource,
+)
+from apps.users.models import ensure_user_profile
+
+POST_CATEGORY_LABELS = dict(POST_CATEGORY_CHOICES)
+RESOURCE_CATEGORY_LABELS = dict(RESOURCE_CATEGORY_CHOICES)
 
 MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024
 MAX_RESOURCE_FILE_SIZE = 20 * 1024 * 1024
@@ -31,18 +46,44 @@ def validate_upload_file(file_obj, error_prefix):
         raise serializers.ValidationError(f"{error_prefix}_SIZE_EXCEEDED")
 
 
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+def is_image_file(content_type, name):
+    if content_type and content_type.startswith("image/"):
+        return True
+    if name and Path(name).suffix.lower() in IMAGE_EXTENSIONS:
+        return True
+    return False
+
+
 class UserBriefSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     username = serializers.CharField()
     email = serializers.EmailField()
+    role = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
+
+    def get_role(self, obj):
+        return ensure_user_profile(obj).role
+
+    def get_avatar_url(self, obj):
+        request = self.context.get("request")
+        profile = ensure_user_profile(obj)
+        if profile.avatar and request:
+            return request.build_absolute_uri(profile.avatar.url)
+        if profile.avatar:
+            return profile.avatar.url
+        return None
 
 
 class PostAttachmentSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    is_image = serializers.SerializerMethodField()
 
     class Meta:
         model = PostAttachment
-        fields = ("id", "url", "original_name", "content_type", "size", "created_at")
+        fields = ("id", "url", "original_name", "content_type", "size", "is_image", "created_at")
         read_only_fields = fields
 
     def get_url(self, obj):
@@ -53,10 +94,14 @@ class PostAttachmentSerializer(serializers.ModelSerializer):
             return obj.file.url
         return None
 
+    def get_is_image(self, obj):
+        return is_image_file(obj.content_type, obj.original_name)
+
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserBriefSerializer(read_only=True)
     attachments = PostAttachmentSerializer(many=True, read_only=True)
+    category_label = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
@@ -68,6 +113,8 @@ class PostSerializer(serializers.ModelSerializer):
             "author",
             "title",
             "content",
+            "category",
+            "category_label",
             "attachments",
             "likes_count",
             "favorites_count",
@@ -81,6 +128,7 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "author",
+            "category_label",
             "attachments",
             "likes_count",
             "favorites_count",
@@ -91,6 +139,7 @@ class PostSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
+        extra_kwargs = {"category": {"required": False, "allow_blank": True}}
 
     def validate_title(self, value):
         value = value.strip()
@@ -103,6 +152,9 @@ class PostSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("POST_CONTENT_REQUIRED")
         return value
+
+    def get_category_label(self, obj):
+        return POST_CATEGORY_LABELS.get(obj.category, "")
 
     def get_is_liked(self, obj):
         request = self.context.get("request")
@@ -127,6 +179,8 @@ class PostSerializer(serializers.ModelSerializer):
 class ResourceSerializer(serializers.ModelSerializer):
     author = UserBriefSerializer(read_only=True)
     file_url = serializers.SerializerMethodField()
+    category_label = serializers.SerializerMethodField()
+    is_image = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
@@ -138,12 +192,15 @@ class ResourceSerializer(serializers.ModelSerializer):
             "author",
             "title",
             "description",
+            "category",
+            "category_label",
             "url",
             "file",
             "file_url",
             "original_name",
             "content_type",
             "size",
+            "is_image",
             "likes_count",
             "favorites_count",
             "comments_count",
@@ -156,10 +213,12 @@ class ResourceSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "author",
+            "category_label",
             "file_url",
             "original_name",
             "content_type",
             "size",
+            "is_image",
             "likes_count",
             "favorites_count",
             "comments_count",
@@ -169,7 +228,10 @@ class ResourceSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        extra_kwargs = {"file": {"write_only": True, "required": False, "allow_null": True}}
+        extra_kwargs = {
+            "file": {"write_only": True, "required": False, "allow_null": True},
+            "category": {"required": False, "allow_blank": True},
+        }
 
     def validate_title(self, value):
         value = value.strip()
@@ -204,6 +266,14 @@ class ResourceSerializer(serializers.ModelSerializer):
         if obj.file:
             return obj.file.url
         return None
+
+    def get_category_label(self, obj):
+        return RESOURCE_CATEGORY_LABELS.get(obj.category, "")
+
+    def get_is_image(self, obj):
+        if not obj.file:
+            return False
+        return is_image_file(obj.content_type, obj.original_name)
 
     def get_is_liked(self, obj):
         request = self.context.get("request")

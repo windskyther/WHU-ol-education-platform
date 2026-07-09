@@ -1,5 +1,9 @@
 import request from '../utils/request'
 
+export function fetchCategories(target) {
+  return request.get('/community/categories/', { params: { target } })
+}
+
 export function fetchPosts(params = {}) {
   return request.get('/community/posts/', { params })
 }

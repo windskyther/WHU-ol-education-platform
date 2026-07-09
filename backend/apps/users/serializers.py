@@ -71,6 +71,35 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
+class PublicUserSerializer(serializers.ModelSerializer):
+    """Read-only, privacy-trimmed profile for viewing another user (e.g. from a
+    community post/resource author link). Excludes email/contact info."""
+
+    avatar_url = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
+    bio = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("id", "username", "role", "avatar_url", "bio", "date_joined")
+        read_only_fields = fields
+
+    def get_role(self, obj):
+        return ensure_user_profile(obj).role
+
+    def get_bio(self, obj):
+        return ensure_user_profile(obj).bio
+
+    def get_avatar_url(self, obj):
+        request = self.context.get("request")
+        profile = ensure_user_profile(obj)
+        if profile.avatar and request:
+            return request.build_absolute_uri(profile.avatar.url)
+        if profile.avatar:
+            return profile.avatar.url
+        return None
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True, min_length=6)
