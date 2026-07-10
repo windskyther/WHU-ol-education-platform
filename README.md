@@ -1,87 +1,78 @@
-# WHU Online Education Platform
+# WHU 在线教育平台
 
-三人协作的在线教育平台项目，按 `P0 -> P7` 阶段推进。当前仓库已完成成员 A 负责的 P0 后端基础和 P1 用户权限后端接口：Django REST Framework 项目骨架、MySQL 配置、跨域、媒体目录、统一响应、统一异常、健康检查、邮箱验证码、注册、登录、Token 刷新/退出和当前用户接口。
+面向学生、教师和管理员的综合在线教学平台。项目提供课程发布与学习、在线考试、学习交流及证书管理等能力，前后端分离开发。
+
+**在线访问：** [https://education.ccrate.cc](https://education.ccrate.cc)
+
+## 功能概览
+
+- 账号与权限：邮箱验证码注册、登录、JWT 身份认证，以及学生、教师、管理员角色路由控制。
+- 课程教学：课程检索与详情、教师课程/章节管理、视频和资料上传、课程发布与下架。
+- 学习与考核：选课学习、学习进度记录、在线答题、成绩查看，以及教师题库和答卷管理。
+- 社区与成果：课程论坛、资料分享、收藏和个人发布管理，以及学习证书查看。
 
 ## 技术栈
 
-- 后端：Python 3.10+、Django、Django REST Framework、Simple JWT、MySQL
-- 前端：Vue 3、Vite、JavaScript、Element Plus、Pinia、Axios，由成员 B 按接口文档独立搭建
-- 部署：Nginx、Gunicorn、云服务器、服务器本地 `media/`
+| 层级 | 技术 |
+| --- | --- |
+| 前端 | Vue 3、Vite、Vue Router、Pinia、Element Plus、Axios |
+| 后端 | Python 3.10+、Django、Django REST Framework、Simple JWT |
+| 数据库 | MySQL 8.0（开发环境可切换 SQLite） |
+| 部署 | Nginx、Gunicorn |
 
-## 目录
+## 项目结构
 
 ```text
-backend/     成员 A 负责的 Django + DRF 后端
-docs/        面向前端/部署/测试的接口与阶段说明
-doc/         原始需求与设计文档
+backend/        Django REST Framework 服务与业务应用
+frontend/       Vue 3 前端应用
+deploy/nginx/   Nginx 网关配置与部署说明
+docs/           API 与阶段设计文档
+demo/           演示相关资源
 ```
 
-## 后端本地运行
+后端业务应用包括用户、课程、学习进度、考试、问答社区和证书等模块；接口统一以 `/api/` 为前缀。
 
-```bash
+## 本地运行
+
+### 1. 启动后端
+
+```powershell
 cd backend
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-copy .env.example .env
-python manage.py makemigrations
+Copy-Item .env.example .env
 python manage.py migrate
 python manage.py runserver
 ```
 
-健康检查：`GET http://127.0.0.1:8000/api/health/`
+默认使用 MySQL。仅用于本地快速演示时，可在 `backend/.env` 中设置 `USE_SQLITE=True`。后端健康检查地址为 `http://127.0.0.1:8000/api/health/`。
 
-默认使用 MySQL。开发机暂时没有 MySQL 时，可在 `.env` 中设置 `USE_SQLITE=True` 快速启动本地演示库。
+### 2. 启动前端
 
-## 当前已提供接口
-
-- `GET /api/health/`：后端健康检查，返回统一响应格式。
-- `POST /api/auth/email-code/send/`：发送注册邮箱验证码。
-- `POST /api/auth/register/`：用户注册。
-- `POST /api/auth/login/`：用户登录，返回 `access` 和 `refresh`。
-- `POST /api/auth/refresh/`：刷新 Token。
-- `POST /api/auth/logout/`：退出登录。
-- `GET /api/users/me/`：获取当前用户。
-- `PUT /api/users/me/`：修改个人资料。
-
-后续 P2-P4 的业务接口路径和字段见 [API接口文档](docs/API接口文档.md)。
-
-## 阶段路线
-
-- `v0.1` 项目初始化、前后端骨架、MySQL 连接、健康检查
-- `v0.2` 用户、权限、邮箱验证码
-- `v0.3` 课程、章节、上传、发布/下架
-- `v0.4` 选课、视频学习、学习进度
-- `v0.5` 在线考试、自动判分、成绩
-- `v0.6` 论坛、报告、证书/推荐
-- `v0.9` 部署、并发、安全测试
-- `v1.0` 最终验收、演示数据、文档归档
-
-## 协作约定
-
-所有功能先进入个人 `feature/*` 分支，再 PR 到 `dev`。阶段测试通过后由成员 A 合并 `dev -> main` 并打版本标签。当前阶段要求后端 P1 可迁移、认证接口可访问、前端可通过文档完成登录注册联调。
-
-禁止提交 `.env`、数据库密码、SMTP 密码、Token、私钥、`node_modules`、虚拟环境、`dist` 和大型媒体文件。
-
-
-## P0 前端启动
-
-前端工程位于 `frontend/`，用于完成 P0 阶段成员 B 的前端骨架交付。
-
-```bash
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-开发服务启动后，根据终端输出访问本地地址，默认通常为 `http://localhost:5173/`。
+按终端提示访问前端；默认地址通常为 `http://localhost:5173`。前端通过 `VITE_API_BASE_URL` 配置接口网关，未配置时请求 `/api`。
 
-## 前端构建
+### 3. 构建生产前端
 
-```bash
+```powershell
 cd frontend
 npm run build
 ```
 
-构建产物输出到 `frontend/dist/`，后续可交由 Nginx 部署。
+构建产物输出至 `frontend/dist/`，由 Nginx 提供静态资源服务，并将 `/api/` 代理到 Django、`/media/` 用于媒体文件访问。更多网关配置见 [deploy/nginx/README.md](deploy/nginx/README.md)。
 
+## 相关文档
+
+- [API 接口文档](docs/API接口文档.md)
+- [后端基础说明](docs/P0后端基础说明.md)
+- [用户与权限说明](docs/P1用户权限后端说明.md)
+
+## 安全提示
+
+请勿提交 `.env`、数据库密码、SMTP 授权码、JWT Token、私钥、`node_modules`、虚拟环境、构建产物或大体积媒体文件。

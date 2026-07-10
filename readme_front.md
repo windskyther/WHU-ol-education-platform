@@ -7,6 +7,7 @@ Whenever the backend request fields, response fields, URL paths, auth rules, or 
 ## Base Rules
 
 - Unified local gateway URL: `http://127.0.0.1:8080`
+- Campus LAN gateway URLs: `http://10.138.78.52:8080` or `http://10.133.131.67:8080`
 - Django local upstream URL: `http://127.0.0.1:8000` (frontend should not call this directly)
 - All P1 business APIs are under `/api/`
 - JSON requests must use `Content-Type: application/json`
@@ -16,9 +17,9 @@ Whenever the backend request fields, response fields, URL paths, auth rules, or 
 Authorization: Bearer <access_token>
 ```
 
-## Local Nginx Gateway
+## Local And Campus LAN Nginx Gateway
 
-Frontend integration should use Nginx as the single local entry:
+Frontend integration should use Nginx as the single entry:
 
 ```text
 Frontend -> Nginx 8080 -> Django 8000 for /api/
@@ -31,16 +32,18 @@ Repository config:
 deploy/nginx/nginx.dev.windows.conf
 ```
 
-Frontend dev proxy target:
+Frontend dev proxy target for campus LAN:
 
 ```text
-VITE_DEV_PROXY_TARGET=http://127.0.0.1:8080
+VITE_DEV_PROXY_TARGET=http://10.138.78.52:8080
 ```
+
+If the active campus network is Wi-Fi, use `http://10.133.131.67:8080` instead.
 
 Video and material URLs returned by backend should therefore use the Nginx gateway host, for example:
 
 ```text
-http://127.0.0.1:8080/media/materials/demo.mp4
+http://10.138.78.52:8080/media/materials/demo.mp4
 ```
 
 Do not use `http://127.0.0.1:8000/media/...` for video playback during frontend integration, because Django development static serving does not return video range responses required for seeking.
@@ -495,12 +498,13 @@ Common errors:
 7. Handle `/api/auth/refresh/` separately because its response is Simple JWT default format.
 8. If the browser reports CORS errors, check backend `.env` `CORS_ALLOWED_ORIGINS`.
 
-## Local CORS Example
+## Local And LAN CORS Example
 
-Backend `.env` should include the frontend dev origin:
+Backend `.env` should include the local and campus LAN frontend origins:
 
 ```env
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://10.138.78.52:5173,http://10.138.78.52:8080,http://10.133.131.67:5173,http://10.133.131.67:8080
+CSRF_TRUSTED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://10.138.78.52:5173,http://10.138.78.52:8080,http://10.133.131.67:5173,http://10.133.131.67:8080
 ```
 
 ## P2 Course And Chapter APIs
@@ -537,7 +541,7 @@ P2 scope:
   "id": 1,
   "title": "Python Basics",
   "description": "Intro course",
-  "cover_url": "http://127.0.0.1:8000/media/covers/demo.png",
+  "cover_url": "http://10.138.78.52:8080/media/covers/demo.png",
   "category": "programming",
   "level": "beginner",
   "teacher": {
@@ -745,7 +749,7 @@ When files are uploaded, `video` and `material` contain:
 {
   "id": 1,
   "kind": "video",
-  "url": "http://127.0.0.1:8000/media/materials/demo.mp4",
+  "url": "http://10.138.78.52:8080/media/materials/demo.mp4",
   "original_name": "demo.mp4",
   "content_type": "video/mp4",
   "size": 123456,
