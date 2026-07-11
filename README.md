@@ -1,8 +1,8 @@
 # WHU 在线教育平台
 
-面向学生、教师和管理员的综合在线教学平台。项目提供课程发布与学习、在线考试、学习交流及证书管理等能力，前后端分离开发。
+面向学生、教师和管理员的综合在线教学平台。项目提供课程发布与学习、在线考试、学习交流及证书管理等能力，前后端分离开发。（WHU校园网局域网访问）
 
-**在线访问：** [https://education.ccrate.cc](https://education.ccrate.cc)
+**在线访问（公网）：** [https://education.ccrate.cc](https://education.ccrate.cc)
 
 ## 功能概览
 
