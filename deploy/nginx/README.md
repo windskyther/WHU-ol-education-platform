@@ -1,91 +1,16 @@
-# Campus LAN Nginx Gateway
+# Windows Nginx 网关
 
-This config provides one gateway for campus LAN frontend integration:
+网关监听 `8080`：`/` 提供 Vue 构建产物并处理路由刷新；`/api/` 代理到 Django 的 `127.0.0.1:8000`；`/media/` 从媒体目录读取文件，支持视频范围请求。
 
-- `/api/` is proxied to Django at `http://127.0.0.1:8000/api/`.
-- `/media/` is served directly from `backend/media/`.
-- `/` serves the built frontend from `frontend/dist`.
-- Video files served through `/media/` support browser range requests through Nginx, so native HTML5 video seeking can work.
-
-## Ports
-
-| Service | URL |
-|---|---|
-| Django | `http://127.0.0.1:8000` |
-| Local Nginx gateway | `http://127.0.0.1:8080` |
-| Campus LAN gateway, Ethernet | `http://10.138.78.52:8080` |
-| Campus LAN gateway, Wi-Fi | `http://10.133.131.67:8080` |
-| Vite dev server | `http://10.138.78.52:5173` or `http://10.133.131.67:5173` |
-
-## Start Order
-
-1. Start Django. Django can stay local-only because Nginx is the external LAN entry:
+1. 按 [项目启动说明](../../README.md)启动 Django，并在 `frontend/` 执行 `npm run build`。
+2. 将 `nginx.dev.windows.conf` 中的 `root` 与 `alias` 改成当前机器上 `frontend/dist` 和媒体目录的绝对路径；Windows 配置中使用正斜杠，路径含空格时保留引号。根据访问地址调整 `server_name` 和 Django 的 `ALLOWED_HOSTS`。
+3. 将配置复制为 Nginx 安装目录下的 `conf/nginx.conf`，在该安装目录执行：
 
 ```powershell
-cd backend
-.\venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
+.\nginx.exe -t
+.\nginx.exe
 ```
 
-2. Build frontend before serving it through Nginx:
+配置变更后运行 `.\nginx.exe -t`，通过后运行 `.\nginx.exe -s reload`。访问 `http://127.0.0.1:8080/` 和 `http://127.0.0.1:8080/api/health/` 验证页面与接口；使用浏览器网络面板确认视频的有效范围请求返回 `206 Partial Content`。
 
-```powershell
-cd frontend
-npm run build
-```
-
-3. Start Nginx with this config. Recommended on Windows: copy `nginx.dev.windows.conf` to your local Nginx `conf/nginx.conf`, then run:
-
-```powershell
-nginx -t
-nginx
-```
-
-For running directly from this repository as the Nginx prefix, keep `deploy/nginx/logs/` and the temp subdirectories under `deploy/nginx/temp/` present. Windows Nginx uses them for pid, logs, and temporary request files.
-
-If your project path contains spaces, Windows Nginx may split `-p` or `-c` arguments incorrectly. In that case, copy the config into the Nginx install directory or another path without spaces before starting Nginx.
-
-4. If you use Vite dev server instead of `frontend/dist`, the Vite dev proxy should point to the LAN Nginx gateway:
-
-```powershell
-cd frontend
-npm run dev
-```
-
-Default dev proxy target: `http://10.138.78.52:8080`. If the active campus network is Wi-Fi, change it to `http://10.133.131.67:8080`.
-
-## Firewall
-
-Allow inbound TCP `8080` in Windows Defender Firewall. If you also expose Vite dev server to teammates, allow inbound TCP `5173`.
-
-Teammates on the same campus LAN should open:
-
-```text
-http://10.138.78.52:8080
-```
-
-If Ethernet is disconnected and Wi-Fi is the active campus network, use:
-
-```text
-http://10.133.131.67:8080
-```
-
-## Verification
-
-Open these URLs from another device on the campus LAN:
-
-```text
-http://10.138.78.52:8080/
-http://10.138.78.52:8080/api/health/
-```
-
-If the page cannot be opened but local `http://127.0.0.1:8080/` works, check Windows Firewall or campus network client isolation.
-
-Open a video request in browser DevTools. A successful seek request should return:
-
-```http
-206 Partial Content
-Accept-Ranges: bytes
-Content-Range: bytes ...
-```
-
-If the request still returns `200 OK` from `WSGIServer`, the video is still going directly to Django instead of Nginx.
+校园网联调时，从同一网络访问 Nginx 主机的局域网 IP 和 8080 端口；如需让 Vite 使用该网关，将 `VITE_DEV_PROXY_TARGET` 设为网关地址。
